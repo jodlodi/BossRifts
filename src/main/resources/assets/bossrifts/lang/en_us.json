@@ -1,0 +1,10 @@
+{
+  "entity.bossrifts.boss_rift": "Rift",
+  
+  "subtitles.bossrifts.entity.boss_rift.spawn": "Rift spawns",
+  "subtitles.bossrifts.entity.boss_rift.open": "Rift opens",
+  "subtitles.bossrifts.entity.boss_rift.close": "Rift closes",
+  "subtitles.bossrifts.entity.boss_rift.rev_up": "Rift is revving",
+  "subtitles.bossrifts.entity.boss_rift.warp": "Rift warps",
+  "subtitles.bossrifts.entity.boss_rift.expire": "Rift expires"
+}
