@@ -2,13 +2,16 @@ package io.github.jodlodi.bossrifts.registry;
 
 import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import io.github.jodlodi.bossrifts.BossRifts;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
+import io.github.jodlodi.bossrifts.rift.RiftRenderer;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.EntityTypeTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -27,7 +30,7 @@ public class Reg {
     }
 
     public static final RegistryObject<EntityType<BossRiftEntity>> BOSS_RIFT = ENTITY_TYPES.register("boss_rift",
-            () -> EntityType.Builder.<BossRiftEntity>of(BossRiftEntity::new, EntityClassification.MISC)
+            () -> EntityType.Builder.<BossRiftEntity>of(BossRiftEntity::new, MobCategory.MISC)
                     .sized(0.5F,0.5F)
                     .setCustomClientFactory(BossRiftEntity::new)
                     .build(riftResource("boss_rift").toString()));
@@ -38,4 +41,10 @@ public class Reg {
     public static final RegistryObject<SoundEvent> RIFT_REV_UP = riftSound("entity.boss_rift.rev_up");
     public static final RegistryObject<SoundEvent> RIFT_WARP = riftSound("entity.boss_rift.warp");
     public static final RegistryObject<SoundEvent> RIFT_EXPIRE = riftSound("entity.boss_rift.expire");
+
+    public static final ModelLayerLocation BOSS_RIFT_MODEL =  new ModelLayerLocation(riftResource("boss_rift"), "main");
+
+    public static void register(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(BOSS_RIFT_MODEL, RiftRenderer::createBodyLayer);
+    }
 }
