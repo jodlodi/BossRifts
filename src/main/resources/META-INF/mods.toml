@@ -1,10 +1,10 @@
 modLoader="javafml"
 loaderVersion="[37,)"
 license="LGPL 2.1"
-#issueTrackerURL="https://change.me.to.your.issue.tracker.example.invalid/"
+issueTrackerURL="https://github.com/jodlodi/BossRifts/issues"
 [[mods]]
 modId="bossrifts"
-version="${file.jarVersion}"
+version="1.0"
 displayName="Boss Rifts"
 #updateJSONURL="https://change.me.example.invalid/updates.json"
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/"
