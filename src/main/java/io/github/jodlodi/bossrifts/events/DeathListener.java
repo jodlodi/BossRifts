@@ -15,7 +15,7 @@ public class DeathListener {
     @SubscribeEvent
     public static void livingEntityDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntityLiving();
-        if (entity.getType().is(Reg.RIFT_BOSSES)) {
+        if (Reg.RIFT_BOSSES.contains(entity.getType())) {
             BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(entity.level);
             if (bossRift != null) {
                 BlockPos pos = entity.blockPosition().above();
