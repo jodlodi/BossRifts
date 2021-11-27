@@ -28,9 +28,9 @@ public class Reg {
 
     public static final RegistryObject<EntityType<BossRiftEntity>> BOSS_RIFT = ENTITY_TYPES.register("boss_rift",
             () -> EntityType.Builder.<BossRiftEntity>of(BossRiftEntity::new, EntityClassification.MISC)
-                    .sized(0.5F,0.5F)
                     .setCustomClientFactory(BossRiftEntity::new)
-                    .build(riftResource("boss_rift").toString()));
+                    .sized(0.5F,0.5F)
+                    .build("boss_rift"));
 
     public static final RegistryObject<SoundEvent> RIFT_SPAWN = riftSound("entity.boss_rift.spawn");
     public static final RegistryObject<SoundEvent> RIFT_OPEN = riftSound("entity.boss_rift.open");
