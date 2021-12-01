@@ -25,11 +25,12 @@ public class PearlListener {
         List<Entity> nearbyRifts = pearl.level.getEntitiesOfClass(BossRiftEntity.class, pearl.getBoundingBox().inflate(1.6D), EntityPredicates.ENTITY_STILL_ALIVE);
         if (!nearbyRifts.isEmpty()) {
             BossRiftEntity rift = (BossRiftEntity)nearbyRifts.get(0);
-            if (server != null && rift.validateSpawn(server, serverPlayer,false)) {
+            if (server != null) {
                 event.setCanceled(true);
                 serverPlayer.fallDistance = 0.0F;
                 serverPlayer.hurt(DamageSource.FALL, event.getAttackDamage());
                 server.tell(new TickDelayedTask(server.getTickCount(), () -> rift.sendToSpawn(server, serverPlayer.getEntity(), serverPlayer)));
+                server.tell(new TickDelayedTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
             }
         }
     }

@@ -34,6 +34,7 @@ import net.minecraftforge.fml.network.FMLPlayMessages;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static net.minecraftforge.event.ForgeEventFactory.onEntityTeleportCommand;
@@ -134,7 +135,7 @@ public class BossRiftEntity extends Entity {
                         this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_WARP.get(), SoundCategory.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
                         server.tell(new TickDelayedTask(server.getTickCount(), () -> sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
                     }
-                    validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty());
+                    server.tell(new TickDelayedTask(server.getTickCount(), () -> validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
                 }
             } else addPoints(1);
         } else if (getPoints() > 0) {
@@ -159,7 +160,7 @@ public class BossRiftEntity extends Entity {
         MinecraftServer server = this.getServer();
         if (server != null && !warpYesNoMaybe) {
             ServerPlayerEntity serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
-            if (serverPlayer != null && validateSpawn(server, serverPlayer, true)) {
+            if (serverPlayer != null) {
                 warpYesNoMaybe = true;
                 this.lastToTouch = server.getPlayerList().getPlayer(player.getUUID());
                 this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_OPEN.get(), SoundCategory.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
@@ -169,82 +170,79 @@ public class BossRiftEntity extends Entity {
         return ActionResultType.FAIL;
     }
 
-    public boolean validateSpawn(MinecraftServer server, ServerPlayerEntity serverPlayer, boolean check) {
+    public void validateSpawn(MinecraftServer server, ServerPlayerEntity serverPlayer, boolean check) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
         ServerWorld serverworld = server.getLevel(serverPlayer.getRespawnDimension());
 
-        Optional<Vector3d> optional;
         if (serverworld != null && spawnPoint != null) {
-            optional = PlayerEntity.findRespawnPositionAndUseSpawnBlock(serverworld, spawnPoint, viewAngle, false, check);
-        } else optional = Optional.empty();
-
-        return optional.isPresent();
+            PlayerEntity.findRespawnPositionAndUseSpawnBlock(serverworld, spawnPoint, viewAngle, false, check);
+            if (serverworld.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR) && !check) {
+                server.tell(new TickDelayedTask(server.getTickCount(), () ->
+                        serverPlayer.connection.send(new SPlaySoundEffectPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundCategory.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F))));
+            }
+        }
     }
 
     public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayerEntity serverPlayer) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
-        ServerWorld serverworld = server.getLevel(serverPlayer.getRespawnDimension());
+        ServerWorld spawnWorld = Objects.requireNonNull(server.getLevel(serverPlayer.getRespawnDimension()));
 
         Optional<Vector3d> optional;
-        if (serverworld != null && spawnPoint != null) {
-            optional = PlayerEntity.findRespawnPositionAndUseSpawnBlock(serverworld, spawnPoint, viewAngle, false, true);
+        if (spawnPoint != null) {
+            optional = PlayerEntity.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
         } else optional = Optional.empty();
 
-        if (optional.isPresent()) {
-            Vector3d vector3d = optional.get();
+        if (!optional.isPresent()) spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
+        Vector3d worldSpawn = new Vector3d(spawnWorld.getSharedSpawnPos().getX() + 0.5D, spawnWorld.getSharedSpawnPos().getY(), spawnWorld.getSharedSpawnPos().getZ() + 0.5D);
 
-            TeleportCommand event = onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
-            if (event.isCanceled()) return;
+        Vector3d vector3d = optional.orElse(worldSpawn);
 
-            double dx = event.getTargetX();
-            double dy = event.getTargetY();
-            double dz = event.getTargetZ();
+        TeleportCommand event = onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
+        if (event.isCanceled()) return;
 
-            if (entity instanceof ServerPlayerEntity) {
-                ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
-                serverworld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
-                entity.stopRiding();
+        double dx = event.getTargetX();
+        double dy = event.getTargetY();
+        double dz = event.getTargetZ();
 
-                if (((ServerPlayerEntity) entity).isSleeping()) {
-                    ((ServerPlayerEntity) entity).stopSleepInBed(true, true);
-                }
-                if (serverworld == entity.level) {
-                    ((ServerPlayerEntity) entity).connection.teleport(dx, dy, dz, entity.yRot, entity.xRot);
-                } else {
-                    ((ServerPlayerEntity) entity).teleportTo(serverworld, dx, dy, dz, entity.yRot, entity.xRot);
-                }
-                if (serverworld.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR)) {
-                    serverPlayer.connection.send(new SPlaySoundEffectPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundCategory.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F));
-                }
+        if (entity instanceof ServerPlayerEntity) {
+            ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
+            spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
+            entity.stopRiding();
+
+            if (((ServerPlayerEntity)entity).isSleeping()) ((ServerPlayerEntity) entity).stopSleepInBed(true, true);
+            if (spawnWorld == entity.level) {
+                ((ServerPlayerEntity)entity).connection.teleport(dx, dy, dz, entity.yRot, entity.xRot);
             } else {
-                float f1 = MathHelper.wrapDegrees(entity.yRot);
-                float f = MathHelper.wrapDegrees(entity.xRot);
+                ((ServerPlayerEntity)entity).teleportTo(spawnWorld, dx, dy, dz, entity.yRot, entity.xRot);
+            }
+        } else {
+            float f1 = MathHelper.wrapDegrees(entity.yRot);
+            float f = MathHelper.wrapDegrees(entity.xRot);
 
-                f = MathHelper.clamp(f, -90.0F, 90.0F);
-                if (serverworld == entity.level) {
-                    entity.moveTo(dx, dy, dz, f1, f);
-                    entity.setYHeadRot(f1);
-                } else {
-                    entity.unRide();
-                    Entity newEntity = entity.getType().create(serverworld);
-                    if (newEntity != null) {
-                        newEntity.restoreFrom(entity);
-                        entity.remove();
-                        newEntity.moveTo(dx, dy, dz, f1 ,f);
-                        newEntity.setYHeadRot(f1);
-                        serverworld.addFreshEntity(newEntity);
-                    }
+            f = MathHelper.clamp(f, -90.0F, 90.0F);
+            if (spawnWorld == entity.level) {
+                entity.moveTo(dx, dy, dz, f1, f);
+                entity.setYHeadRot(f1);
+            } else {
+                entity.unRide();
+                Entity newEntity = entity.getType().create(spawnWorld);
+                if (newEntity != null) {
+                    newEntity.restoreFrom(entity);
+                    entity.remove();
+                    newEntity.moveTo(dx, dy, dz, f1, f);
+                    newEntity.setYHeadRot(f1);
+                    spawnWorld.addFreshEntity(newEntity);
                 }
             }
-            if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
-                entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
-                entity.setOnGround(true);
-            }
-            if (entity instanceof CreatureEntity) ((CreatureEntity) entity).getNavigation().stop();
-            if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
         }
+        if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
+            entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
+            entity.setOnGround(true);
+        }
+        if (entity instanceof CreatureEntity) ((CreatureEntity) entity).getNavigation().stop();
+        if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
     }
 
     protected void addAdditionalSaveData(CompoundNBT p_213281_1_) {
