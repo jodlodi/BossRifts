@@ -4,16 +4,13 @@ license="LGPL 2.1"
 issueTrackerURL="https://github.com/jodlodi/BossRifts/issues"
 [[mods]]
 modId="bossrifts"
-version="1.0"
+version="1.1"
 displayName="Boss Rifts"
 #updateJSONURL="https://change.me.example.invalid/updates.json"
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/"
-logoFile="bossrifts.png"
-credits=""
+#logoFile="bossrifts.png"
 authors="jodlodi"
-description='''
-Killing bosses out while exploring will summon a rift core that when used, will transport everything around itself to the player's spawn point.
-'''
+description='''Killing bosses out while exploring will summon a rift core that when used, will transport everything around itself to the player's spawn point.'''
 
 [[dependencies.bossrifts]]
     modId="forge"

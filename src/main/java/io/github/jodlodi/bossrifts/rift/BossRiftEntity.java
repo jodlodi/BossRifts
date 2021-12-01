@@ -11,6 +11,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
@@ -35,11 +36,13 @@ import net.minecraftforge.fmllegacy.network.FMLPlayMessages;
 import net.minecraftforge.fmllegacy.network.NetworkHooks;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static net.minecraftforge.event.ForgeEventFactory.onEntityTeleportCommand;
 import static net.minecraftforge.event.entity.EntityTeleportEvent.TeleportCommand;
 
+@SuppressWarnings("ALL")
 public class BossRiftEntity extends Entity {
     private static final EntityDataAccessor<Integer> DATA_WARP_POINTS = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.INT);
     public int warpSpan = 160;
@@ -134,9 +137,9 @@ public class BossRiftEntity extends Entity {
                     else this.warpYesNoMaybe = false;
                     if (nearbyEntities.contains(this.lastToTouch)) {
                         this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-                        server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
+                        server.tell(new TickTask(server.getTickCount(), () -> sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
                     }
-                    validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty());
+                    server.tell(new TickTask(server.getTickCount(), () -> validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
                 }
             } else addPoints(1);
         } else if (getPoints() > 0) {
@@ -160,7 +163,7 @@ public class BossRiftEntity extends Entity {
         MinecraftServer server = this.getServer();
         if (server != null && !warpYesNoMaybe) {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayer(player.getUUID());
-            if (serverPlayer != null && validateSpawn(server, serverPlayer, true)) {
+            if (serverPlayer != null) {
                 warpYesNoMaybe = true;
                 this.lastToTouch = serverPlayer;
                 this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_OPEN.get(), SoundSource.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
@@ -170,83 +173,80 @@ public class BossRiftEntity extends Entity {
         return InteractionResult.FAIL;
     }
 
-    public boolean validateSpawn(MinecraftServer server, ServerPlayer serverPlayer, boolean check) {
+    public void validateSpawn(MinecraftServer server, ServerPlayer serverPlayer, boolean check) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
         ServerLevel serverLevel = server.getLevel(serverPlayer.getRespawnDimension());
 
-        Optional<Vec3> optional;
         if (serverLevel != null && spawnPoint != null) {
-            optional = Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, check);
-        } else optional = Optional.empty();
-
-        return optional.isPresent();
+            Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, check);
+            if (serverLevel.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR) && !check) {
+                server.tell(new TickTask(server.getTickCount(), () ->
+                        serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F))));
+            }
+        }
     }
 
     public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayer serverPlayer) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
-        ServerLevel serverLevel = server.getLevel(serverPlayer.getRespawnDimension());
+        ServerLevel spawnLevel = Objects.requireNonNull(server.getLevel(serverPlayer.getRespawnDimension()));
 
         Optional<Vec3> optional;
-        if (serverLevel != null && spawnPoint != null) {
-            optional = Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, true);
+        if (spawnPoint != null) {
+            optional = Player.findRespawnPositionAndUseSpawnBlock(spawnLevel, spawnPoint, viewAngle, false, true);
         } else optional = Optional.empty();
 
-        if (optional.isPresent()) {
-            Vec3 vec3 = optional.get();
+        if (!optional.isPresent()) spawnLevel = Objects.requireNonNull(server.getLevel(Level.OVERWORLD));
+        Vec3 worldSpawn = new Vec3(spawnLevel.getSharedSpawnPos().getX() + 0.5D, spawnLevel.getSharedSpawnPos().getY(), spawnLevel.getSharedSpawnPos().getZ() + 0.5D);
 
-            TeleportCommand event = onEntityTeleportCommand(entity, vec3.x, vec3.y, vec3.z);
-            if (event.isCanceled()) return;
+        Vec3 vec3 = optional.orElse(worldSpawn);
 
-            double dx = event.getTargetX();
-            double dy = event.getTargetY();
-            double dz = event.getTargetZ();
+        TeleportCommand event = onEntityTeleportCommand(entity, vec3.x, vec3.y, vec3.z);
+        if (event.isCanceled()) return;
 
-            if (entity instanceof ServerPlayer) {
-                ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
-                serverLevel.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
-                entity.stopRiding();
+        double dx = event.getTargetX();
+        double dy = event.getTargetY();
+        double dz = event.getTargetZ();
 
-                if (((ServerPlayer) entity).isSleeping()) {
-                    ((ServerPlayer) entity).stopSleepInBed(true, true);
-                }
-                if (serverLevel == entity.level) {
-                    ((ServerPlayer) entity).connection.teleport(dx, dy, dz, entity.getYRot(), entity.getXRot());//TODO: check if this works properly
-                } else {
-                    ((ServerPlayer) entity).teleportTo(serverLevel, dx, dy, dz, entity.getYRot(), entity.getXRot());
-                }
-                if (serverLevel.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR)) {
-                    serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F));
-                }
+        if (entity instanceof ServerPlayer) {
+            ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
+            spawnLevel.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
+            entity.stopRiding();
+
+            if (((ServerPlayer)entity).isSleeping()) ((ServerPlayer)entity).stopSleepInBed(true, true);
+            if (spawnLevel == entity.level) {
+                ((ServerPlayer)entity).connection.teleport(dx, dy, dz, entity.getYRot(), entity.getXRot());
             } else {
-                float f1 = Mth.wrapDegrees(entity.getYRot());
-                float f = Mth.wrapDegrees(entity.getXRot());
+                ((ServerPlayer)entity).teleportTo(spawnLevel, dx, dy, dz, entity.getYRot(), entity.getXRot());
+            }
+        } else {
+            float f1 = Mth.wrapDegrees(entity.getYRot());
+            float f = Mth.wrapDegrees(entity.getXRot());
 
 
-                f = Mth.clamp(f, -90.0F, 90.0F);
-                if (serverLevel == entity.level) {
-                    entity.moveTo(dx, dy, dz, f1, f);
-                    entity.setYHeadRot(f1);
-                } else {
-                    entity.unRide();
-                    Entity newEntity = entity.getType().create(serverLevel);
-                    if (newEntity != null) {
-                        newEntity.restoreFrom(entity);
-                        entity.remove(RemovalReason.CHANGED_DIMENSION);
-                        newEntity.moveTo(dx, dy, dz, f1 ,f);
-                        newEntity.setYHeadRot(f1);
-                        serverLevel.addFreshEntity(newEntity);
-                    }
+            f = Mth.clamp(f, -90.0F, 90.0F);
+            if (spawnLevel == entity.level) {
+                entity.moveTo(dx, dy, dz, f1, f);
+                entity.setYHeadRot(f1);
+            } else {
+                entity.unRide();
+                Entity newEntity = entity.getType().create(spawnLevel);
+                if (newEntity != null) {
+                    newEntity.restoreFrom(entity);
+                    entity.remove(RemovalReason.CHANGED_DIMENSION);
+                    newEntity.moveTo(dx, dy, dz, f1, f);
+                    newEntity.setYHeadRot(f1);
+                    spawnLevel.addFreshEntity(newEntity);
                 }
             }
-            if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
-                entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
-                entity.setOnGround(true);
-            }
-            if (entity instanceof AmbientCreature) ((AmbientCreature) entity).getNavigation().stop();
-            if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
         }
+        if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
+            entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
+            entity.setOnGround(true);
+        }
+        if (entity instanceof AmbientCreature) ((AmbientCreature) entity).getNavigation().stop();
+        if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
     }
 
     public boolean hurt(DamageSource source, float damage) {

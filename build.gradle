@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.0'
+version = '1.1'
 group = 'io.github.jodlodi.bossrifts'
 archivesBaseName = 'bossrifts'
 
@@ -75,11 +75,11 @@ jar {
     manifest {
         attributes([
                 "Specification-Title"     : "bossrifts",
-                "Specification-Vendor"    : "bossriftssareus",
+                "Specification-Vendor"    : "jodlodi",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "1.0",
-                "Implementation-Vendor"   : "bossriftssareus",
+                "Implementation-Version"  : "1.1",
+                "Implementation-Vendor"   : "jodlodi",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
