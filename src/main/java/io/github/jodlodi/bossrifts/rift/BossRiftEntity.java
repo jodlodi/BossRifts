@@ -32,8 +32,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fmllegacy.network.FMLPlayMessages;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PlayMessages;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +61,7 @@ public class BossRiftEntity extends Entity {
         this.warpYesNoMaybe = false;
     }
 
-    public BossRiftEntity(FMLPlayMessages.SpawnEntity spawnEntity, Level level) {
+    public BossRiftEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
         this(level);
     }
 
