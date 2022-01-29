@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.registry.ClientReg;
 import io.github.jodlodi.bossrifts.registry.Reg;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -50,7 +51,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         super(rendererProvider);
         this.shadowRadius = 0.25F;
 
-        ModelPart modelpart = rendererProvider.bakeLayer(Reg.BOSS_RIFT_MODEL);
+        ModelPart modelpart = rendererProvider.bakeLayer(ClientReg.BOSS_RIFT_MODEL);
         this.core = modelpart.getChild("core");
         this.shellE1 = modelpart.getChild("shellE1");
         this.shellE2 = modelpart.getChild("shellE2");

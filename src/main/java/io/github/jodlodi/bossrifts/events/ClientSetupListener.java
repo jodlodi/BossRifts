@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.registry.ClientReg;
 import io.github.jodlodi.bossrifts.registry.Reg;
 import io.github.jodlodi.bossrifts.rift.RiftRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -14,7 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class ClientSetupListener {
     @SubscribeEvent
     public static void layerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        Reg.register(event);
+        ClientReg.register(event);
     }
 
     @SubscribeEvent
