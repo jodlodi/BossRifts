@@ -5,6 +5,8 @@ import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class RiftConfig {
     public static final Server CONFIG;
@@ -24,6 +26,7 @@ public class RiftConfig {
         public final ConfigValue<Integer> finalExpireSpan;
         public final ConfigValue<Boolean> finalReusableState;
 
+        @ParametersAreNonnullByDefault
         Server(ForgeConfigSpec.Builder builder) {
             builder.comment("How long should the Rift take to naturally expire? (20 ticks is 1 second)" +
                     "\nIf you type in the number 0, the Rift will never naturally expire.");

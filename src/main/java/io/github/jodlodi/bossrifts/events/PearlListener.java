@@ -11,11 +11,13 @@ import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class PearlListener {
     @SubscribeEvent
+    @ParametersAreNonnullByDefault
     public static void playerEnderPearl(EntityTeleportEvent.EnderPearl event) {
         ServerPlayer serverPlayer = event.getPlayer();
         ThrownEnderpearl pearl = event.getPearlEntity();
