@@ -21,6 +21,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
 
 @OnlyIn(Dist.CLIENT)
@@ -69,6 +71,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         this.shellC6 = modelpart.getChild("shellC6");
     }
 
+    @Nonnull
     public static LayerDefinition createBodyLayer() {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
@@ -90,10 +93,13 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         return LayerDefinition.create(meshdefinition, 64, 20);
     }
 
+    @Nonnull
+    @ParametersAreNonnullByDefault
     public ResourceLocation getTextureLocation(BossRiftEntity p_114482_) {
         return RIFT_LOCATION;
     }
 
+    @ParametersAreNonnullByDefault
     public void render(BossRiftEntity rift, float v, float v1, PoseStack stack, MultiBufferSource buffer, int light) {
         RANDOM.setSeed(31100L);
         stack.pushPose();
