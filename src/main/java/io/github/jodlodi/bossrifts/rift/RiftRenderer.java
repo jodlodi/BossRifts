@@ -16,6 +16,8 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -83,10 +85,13 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         this.core.addBox(-3.9F, -3.9F, -3.9F, 7.8F, 7.8F, 7.8F);
     }
 
+    @Nonnull
+    @ParametersAreNonnullByDefault
     public ResourceLocation getTextureLocation(BossRiftEntity rift) {
         return EndPortalTileEntityRenderer.END_PORTAL_LOCATION;
     }
 
+    @ParametersAreNonnullByDefault
     public void render(BossRiftEntity rift, float v, float v1, MatrixStack stack, IRenderTypeBuffer buffer, int light) {
         RANDOM.setSeed(31100L);
         stack.pushPose();
