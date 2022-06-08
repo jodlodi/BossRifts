@@ -1,40 +1,35 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import io.github.jodlodi.bossrifts.registry.Reg;
-import net.minecraft.client.gui.Gui;
+import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Pig;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class DeathListener {
     @SubscribeEvent
     @ParametersAreNonnullByDefault
     public static void livingEntityDeath(LivingDeathEvent event) {
-        LivingEntity entity = event.getEntityLiving();
-        if (!entity.level.isClientSide() && entity.getType().is(Reg.RIFT_BOSSES)) {
+        LivingEntity dyingEntity = event.getEntityLiving();
+        if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Reg.RIFT_BOSSES)) {
 
-            List<Entity> list = entity.level.getEntities(entity, entity.getBoundingBox().inflate(32), Entity::isAlive);
-            if (list.stream().anyMatch(o -> o instanceof LivingEntity living && living.getType().is(Reg.RIFT_BOSSES) && !living.isDeadOrDying())) return;
+            if (!dyingEntity.level.getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
+                    entity -> entity.getType().is(Reg.RIFT_BOSSES) && entity instanceof LivingEntity living && !living.isDeadOrDying()).isEmpty()) return;
 
-            BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(entity.level);
+            BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(dyingEntity.level);
             if (bossRift != null) {
-                BlockPos pos = entity.blockPosition().above();
-                if (entity.level.getBlockState(pos).isCollisionShapeFullBlock(entity.level, pos)) {
-                    entity.level.removeBlock(pos, false);
+                BlockPos pos = dyingEntity.blockPosition().above();
+                if (dyingEntity.level.getBlockState(pos).isCollisionShapeFullBlock(dyingEntity.level, pos)) {
+                    dyingEntity.level.removeBlock(pos, false);
                 }
                 bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
-                entity.level.addFreshEntity(bossRift);
+                dyingEntity.level.addFreshEntity(bossRift);
             }
         }
     }

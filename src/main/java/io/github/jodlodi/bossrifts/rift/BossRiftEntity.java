@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -98,25 +99,25 @@ public class BossRiftEntity extends Entity {
             double minY = this.getRandomY(0.1D) - 2.25D;
             double minZ = this.getRandomZ(0.1D) - 2.5D;
 
-            addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, maxY, maxZ);
-            addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, maxY, minZ);
-            addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, minY, maxZ);
-            addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, minY, minZ);
+            this.addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, maxY, maxZ);
+            this.addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, maxY, minZ);
+            this.addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, minY, maxZ);
+            this.addRandomStationaryParticle((double) (this.random.nextInt(49) - 25) / 10 + thisX, minY, minZ);
 
-            addRandomStationaryParticle(maxX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, maxZ);
-            addRandomStationaryParticle(maxX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, minZ);
-            addRandomStationaryParticle(minX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, maxZ);
-            addRandomStationaryParticle(minX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, minZ);
+            this.addRandomStationaryParticle(maxX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, maxZ);
+            this.addRandomStationaryParticle(maxX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, minZ);
+            this.addRandomStationaryParticle(minX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, maxZ);
+            this.addRandomStationaryParticle(minX, (double) (this.random.nextInt(49) - 25) / 10 + thisY, minZ);
 
-            addRandomStationaryParticle(maxX, maxY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
-            addRandomStationaryParticle(maxX, minY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
-            addRandomStationaryParticle(minX, maxY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
-            addRandomStationaryParticle(minX, minY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
+            this.addRandomStationaryParticle(maxX, maxY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
+            this.addRandomStationaryParticle(maxX, minY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
+            this.addRandomStationaryParticle(minX, maxY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
+            this.addRandomStationaryParticle(minX, minY, (double) (this.random.nextInt(49) - 25) / 10 + thisZ);
 
             double d0 = thisX - 0.5D + this.random.nextDouble();
             double d1 = thisY + 0.25D;
             double d2 = thisZ - 0.5D + this.random.nextDouble();
-            addRandomStationaryParticle(d0, d1, d2);
+            this.addRandomStationaryParticle(d0, d1, d2);
 
             List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
             for (Entity entity : nearbyEntities) {
@@ -128,30 +129,30 @@ public class BossRiftEntity extends Entity {
             }
         }
 
-        MinecraftServer server = this.getServer();
         if (this.warpYesNoMaybe) {
-            if (getPoints() >= this.warpSpan) {
+            if (this.getPoints() >= this.warpSpan) {
+                MinecraftServer server = this.getServer();
                 if (server != null && !this.level.isClientSide) {
                     List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
                     for (Entity entity : nearbyEntities) {
                         if (entity.getUUID() != this.lastToTouch.getUUID() && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame)) {
                             this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-                            sendToSpawn(server, entity, this.lastToTouch);
+                            this.sendToSpawn(server, entity, this.lastToTouch);
                         }
                     }
                     if (RiftConfig.reusableState) this.remove(Entity.RemovalReason.KILLED);
                     else this.warpYesNoMaybe = false;
                     if (nearbyEntities.contains(this.lastToTouch)) {
                         this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-                        server.tell(new TickTask(server.getTickCount(), () -> sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
+                        server.tell(new TickTask(server.getTickCount(), () -> this.sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
                     }
-                    server.tell(new TickTask(server.getTickCount(), () -> validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
+                    server.tell(new TickTask(server.getTickCount(), () -> this.validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
                 }
-            } else addPoints(1);
-        } else if (getPoints() > 0) {
-            addPoints(-1);
-            if (getPoints() > 0) addPoints(-1);
-            if (getPoints() == 0) {
+            } else this.addPoints(1);
+        } else if (this.getPoints() > 0) {
+            this.addPoints(-1);
+            if (this.getPoints() > 0) this.addPoints(-1);
+            if (this.getPoints() == 0) {
                 this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_CLOSE.get(), SoundSource.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
             }
         } else if (!this.level.isClientSide && RiftConfig.expireState && this.time >= RiftConfig.expireSpan) this.kill();
@@ -191,7 +192,7 @@ public class BossRiftEntity extends Entity {
             Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, check);
             if (serverLevel.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR) && !check) {
                 server.tell(new TickTask(server.getTickCount(), () ->
-                        serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F))));
+                        serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F, this.random.nextLong()))));
             }
         }
     }
@@ -284,14 +285,10 @@ public class BossRiftEntity extends Entity {
     }
 
     @ParametersAreNonnullByDefault
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
-
-    }
+    protected void readAdditionalSaveData(CompoundTag compoundTag) { }
 
     @ParametersAreNonnullByDefault
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
-
-    }
+    protected void addAdditionalSaveData(CompoundTag compoundTag) { }
 
     @Nonnull
     protected Entity.MovementEmission getMovementEmission() {
@@ -311,6 +308,6 @@ public class BossRiftEntity extends Entity {
     @Override
     @Nonnull
     public Packet<?> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+        return new ClientboundAddEntityPacket(this);
     }
 }
