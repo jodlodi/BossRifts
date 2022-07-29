@@ -44,6 +44,7 @@ import java.util.Optional;
 import static net.minecraftforge.event.ForgeEventFactory.onEntityTeleportCommand;
 import static net.minecraftforge.event.entity.EntityTeleportEvent.TeleportCommand;
 
+@ParametersAreNonnullByDefault
 public class BossRiftEntity extends Entity {
     private static final EntityDataAccessor<Integer> DATA_WARP_POINTS = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.INT);
     public int warpSpan = 160;
@@ -166,7 +167,6 @@ public class BossRiftEntity extends Entity {
     }
 
     @Nonnull
-    @ParametersAreNonnullByDefault
     public InteractionResult interact(Player player, InteractionHand hand) {
         MinecraftServer server = this.getServer();
         if (server != null && !this.warpYesNoMaybe) {
@@ -181,7 +181,6 @@ public class BossRiftEntity extends Entity {
         return InteractionResult.FAIL;
     }
 
-    @ParametersAreNonnullByDefault
     public void validateSpawn(MinecraftServer server, ServerPlayer serverPlayer, boolean check) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
@@ -196,7 +195,6 @@ public class BossRiftEntity extends Entity {
         }
     }
 
-    @ParametersAreNonnullByDefault
     public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayer serverPlayer) {
         BlockPos spawnPoint = serverPlayer.getRespawnPosition();
         float viewAngle = serverPlayer.getRespawnAngle();
@@ -258,7 +256,6 @@ public class BossRiftEntity extends Entity {
         if (entity instanceof ItemEntity itemEntity) itemEntity.setExtendedLifetime();
     }
 
-    @ParametersAreNonnullByDefault
     public boolean hurt(DamageSource source, float damage) {
         if (source.getEntity() instanceof Player && !source.isProjectile() && !source.isMagic()) {
             this.warpYesNoMaybe = false;
@@ -283,12 +280,10 @@ public class BossRiftEntity extends Entity {
         return true;
     }
 
-    @ParametersAreNonnullByDefault
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         this.time = compoundTag.getFloat("time");
     }
 
-    @ParametersAreNonnullByDefault
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("time", this.time);
     }

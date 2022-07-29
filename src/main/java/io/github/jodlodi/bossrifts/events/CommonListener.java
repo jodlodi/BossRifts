@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -26,7 +26,7 @@ public class CommonListener {
 
     @SubscribeEvent
     public static void livingEntityDeath(LivingDeathEvent event) {
-        LivingEntity dyingEntity = event.getEntityLiving();
+        LivingEntity dyingEntity = event.getEntity();
         if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Reg.RIFT_BOSSES)) {
 
             if (!dyingEntity.level.getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
@@ -63,7 +63,7 @@ public class CommonListener {
     }
 
     @SubscribeEvent
-    public static void worldLoad(WorldEvent.Load event) {
+    public static void worldLoad(LevelEvent.Load event) {
         RiftConfig.refresh();
     }
 }
