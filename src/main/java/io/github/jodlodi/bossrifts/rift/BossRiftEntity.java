@@ -33,7 +33,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PlayMessages;
 
 import javax.annotation.Nonnull;
@@ -285,10 +284,14 @@ public class BossRiftEntity extends Entity {
     }
 
     @ParametersAreNonnullByDefault
-    protected void readAdditionalSaveData(CompoundTag compoundTag) { }
+    protected void readAdditionalSaveData(CompoundTag compoundTag) {
+        this.time = compoundTag.getFloat("time");
+    }
 
     @ParametersAreNonnullByDefault
-    protected void addAdditionalSaveData(CompoundTag compoundTag) { }
+    protected void addAdditionalSaveData(CompoundTag compoundTag) {
+        compoundTag.putFloat("time", this.time);
+    }
 
     @Nonnull
     protected Entity.MovementEmission getMovementEmission() {

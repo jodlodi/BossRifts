@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.2'
+version = '1.19-1.2.1'
 group = 'io.github.jodlodi.bossrifts'
 archivesBaseName = 'bossrifts'
 
@@ -67,7 +67,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19-41.0.1'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.87'
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

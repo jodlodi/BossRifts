@@ -1,23 +1,50 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.registry.Reg;
 import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
+@ParametersAreNonnullByDefault
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
-public class PearlListener {
+public class CommonListener {
+
     @SubscribeEvent
-    @ParametersAreNonnullByDefault
+    public static void livingEntityDeath(LivingDeathEvent event) {
+        LivingEntity dyingEntity = event.getEntityLiving();
+        if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Reg.RIFT_BOSSES)) {
+
+            if (!dyingEntity.level.getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
+                    entity -> entity.getType().is(Reg.RIFT_BOSSES) && entity instanceof LivingEntity living && !living.isDeadOrDying()).isEmpty()) return;
+
+            BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(dyingEntity.level);
+            if (bossRift != null) {
+                BlockPos pos = dyingEntity.blockPosition().above();
+                if (dyingEntity.level.getBlockState(pos).isCollisionShapeFullBlock(dyingEntity.level, pos)) {
+                    dyingEntity.level.removeBlock(pos, false);
+                }
+                bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
+                dyingEntity.level.addFreshEntity(bossRift);
+            }
+        }
+    }
+
+    @SubscribeEvent
     public static void playerEnderPearl(EntityTeleportEvent.EnderPearl event) {
         ServerPlayer serverPlayer = event.getPlayer();
         ThrownEnderpearl pearl = event.getPearlEntity();
@@ -33,5 +60,10 @@ public class PearlListener {
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void worldLoad(WorldEvent.Load event) {
+        RiftConfig.refresh();
     }
 }
