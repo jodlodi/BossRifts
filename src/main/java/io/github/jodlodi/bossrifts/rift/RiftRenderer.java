@@ -99,11 +99,11 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
     }
 
     @ParametersAreNonnullByDefault
-    public void render(BossRiftEntity rift, float v, float v1, PoseStack stack, MultiBufferSource buffer, int light) {
+    public void render(BossRiftEntity rift, float yaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
         RANDOM.setSeed(31100L);
         stack.pushPose();
-        double multiplier = (double)rift.getPoints() / (double)rift.warpSpan / 20;
-        float spinn = rift.time / 2 + rift.revSpeed * 2F + v1;
+        double multiplier = ((double)rift.getPoints() + partialTicks) / (double)rift.warpSpan / 20;
+        float spinn = ((rift.time + partialTicks) / 2) + (rift.revSpeed) * 2F;
         stack.pushPose();
         int i = OverlayTexture.NO_OVERLAY;
 
@@ -146,6 +146,6 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         stack.popPose();
         stack.popPose();
 
-        super.render(rift, v, v1, stack, buffer, light);
+        super.render(rift, yaw, partialTicks, stack, buffer, light);
     }
 }

@@ -15,7 +15,7 @@ import net.minecraftforge.registries.RegistryObject;
 import javax.annotation.Nonnull;
 
 public class Reg {
-    public static final TagKey<EntityType<?>> RIFT_BOSSES = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, riftResource("rift_bosses"));
+    public static final TagKey<EntityType<?>> BOSS_EXCEPTION = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, riftResource("boss_exception"));
 
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, BossRifts.MOD_ID);
     public static final DeferredRegister<SoundEvent> SOUND_TYPES = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BossRifts.MOD_ID);

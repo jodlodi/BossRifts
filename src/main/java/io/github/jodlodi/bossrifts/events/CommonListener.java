@@ -11,6 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -27,10 +28,9 @@ public class CommonListener {
     @SubscribeEvent
     public static void livingEntityDeath(LivingDeathEvent event) {
         LivingEntity dyingEntity = event.getEntity();
-        if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Reg.RIFT_BOSSES)) {
-
+        if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Tags.EntityTypes.BOSSES) && !dyingEntity.getType().is(Reg.BOSS_EXCEPTION)) {
             if (!dyingEntity.level.getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
-                    entity -> entity.getType().is(Reg.RIFT_BOSSES) && entity instanceof LivingEntity living && !living.isDeadOrDying()).isEmpty()) return;
+                    entity -> entity.getType().is(Tags.EntityTypes.BOSSES) && entity instanceof LivingEntity living && !living.isDeadOrDying()).isEmpty()) return;
 
             BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(dyingEntity.level);
             if (bossRift != null) {

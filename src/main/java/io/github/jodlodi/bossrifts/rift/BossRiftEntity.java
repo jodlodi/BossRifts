@@ -2,6 +2,7 @@ package io.github.jodlodi.bossrifts.rift;
 
 import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.registry.Reg;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -79,14 +80,14 @@ public class BossRiftEntity extends Entity {
     public void tick() {
         double multi = 2.25D;
         ++this.time;
-        float revUp = (float)Math.pow((double)getPoints() / (double)this.warpSpan, 2D);
-        this.revSpeed += (revUp / 10F) * (float)getPoints();
 
         double thisX = this.getX();
         double thisY = this.getY();
         double thisZ = this.getZ();
 
         if (this.level.isClientSide) {
+            float revUp = (float)Math.pow(((double)getPoints() + Minecraft.getInstance().getFrameTime())  / (double)this.warpSpan, 2D);
+            this.revSpeed += (revUp / 10F) * (float)getPoints();
             float pause = (3F / revUp);
             if (getPoints() > 0 && Math.abs(this.lastRev - this.time) >= pause) {
                 this.level.playLocalSound(thisX, thisY + 0.25D, thisZ, Reg.RIFT_REV_UP.get(), SoundSource.BLOCKS, 0.1F + revUp / 2, revUp + (float)getPoints() / 120F - 1.5F, false);
