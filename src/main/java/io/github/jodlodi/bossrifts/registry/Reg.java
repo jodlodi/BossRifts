@@ -2,7 +2,6 @@ package io.github.jodlodi.bossrifts.registry;
 
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
@@ -15,7 +14,7 @@ import net.minecraftforge.registries.RegistryObject;
 import javax.annotation.Nonnull;
 
 public class Reg {
-    public static final TagKey<EntityType<?>> BOSS_EXCEPTION = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, riftResource("boss_exception"));
+    public static final TagKey<EntityType<?>> BOSS_EXCEPTION = TagKey.create(ForgeRegistries.ENTITY_TYPES.getRegistryKey(), riftResource("boss_exception"));
 
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, BossRifts.MOD_ID);
     public static final DeferredRegister<SoundEvent> SOUND_TYPES = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BossRifts.MOD_ID);
@@ -26,7 +25,7 @@ public class Reg {
     }
 
     private static RegistryObject<SoundEvent> riftSound(String key) {
-        return SOUND_TYPES.register(key, () -> new SoundEvent(riftResource(key)));
+        return SOUND_TYPES.register(key, () -> SoundEvent.createVariableRangeEvent(riftResource(key)));
     }
 
     public static final RegistryObject<EntityType<BossRiftEntity>> BOSS_RIFT = ENTITY_TYPES.register("boss_rift",

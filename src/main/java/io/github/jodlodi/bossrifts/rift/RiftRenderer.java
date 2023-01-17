@@ -2,7 +2,7 @@ package io.github.jodlodi.bossrifts.rift;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.registry.ClientReg;
 import net.minecraft.client.model.geom.ModelPart;
@@ -108,7 +108,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         int i = OverlayTexture.NO_OVERLAY;
 
         stack.translate(0, 0.25D, 0);
-        stack.mulPose(Vector3f.YP.rotationDegrees(spinn));
+        stack.mulPose(Axis.YP.rotationDegrees(spinn));
         this.core.render(stack, buffer.getBuffer(RenderType.endPortal()), light, i);
 
         VertexConsumer vertexconsumer = buffer.getBuffer(RENDER_TYPE);
