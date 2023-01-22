@@ -1,0 +1,10 @@
+{
+  "entity.bossrifts.boss_rift": "裂缝",
+  
+  "subtitles.bossrifts.entity.boss_rift.spawn": "裂缝：生成",
+  "subtitles.bossrifts.entity.boss_rift.open": "裂缝：打开",
+  "subtitles.bossrifts.entity.boss_rift.close": "裂缝：关闭",
+  "subtitles.bossrifts.entity.boss_rift.rev_up": "裂缝：加速中",
+  "subtitles.bossrifts.entity.boss_rift.warp": "裂缝：传送",
+  "subtitles.bossrifts.entity.boss_rift.expire": "裂缝：失效"
+}
