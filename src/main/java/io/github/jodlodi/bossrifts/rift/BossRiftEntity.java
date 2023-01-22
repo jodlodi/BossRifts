@@ -284,13 +284,13 @@ public class BossRiftEntity extends Entity {
     }
 
     @ParametersAreNonnullByDefault
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
-
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        this.time = tag.getFloat("time");
     }
 
     @ParametersAreNonnullByDefault
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
-
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        tag.putFloat("time", this.time);
     }
 
     @Nonnull

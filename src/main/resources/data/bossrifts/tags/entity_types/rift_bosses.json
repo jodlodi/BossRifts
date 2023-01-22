@@ -49,6 +49,11 @@
     { "id": "dungeonsmod:kraken", "required": false },
     { "id": "dungeonsmod:voidmaster", "required": false },
     { "id": "forestcraft:beequeen", "required": false },
-    { "id": "forestcraft:iguana_king", "required": false }
+    { "id": "forestcraft:iguana_king", "required": false },
+    { "id": "cataclysm:ender_golem", "required": false },
+    { "id": "cataclysm:ender_guardian", "required": false },
+    { "id": "cataclysm:ignis", "required": false },
+    { "id": "cataclysm:ignited_revenant", "required": false },
+    { "id": "cataclysm:netherite_monstrosity", "required": false }
   ]
 }
