@@ -7,7 +7,6 @@ import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
@@ -55,7 +54,7 @@ public class CommonListener {
             if (server != null) {
                 event.setCanceled(true);
                 serverPlayer.fallDistance = 0.0F;
-                serverPlayer.hurt(DamageSource.FALL, event.getAttackDamage());
+                serverPlayer.hurt(pearl.damageSources().fall(), event.getAttackDamage());
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.sendToSpawn(server, serverPlayer, serverPlayer)));
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
             }

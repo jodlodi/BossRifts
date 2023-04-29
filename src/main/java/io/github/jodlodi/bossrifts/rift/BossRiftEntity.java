@@ -24,6 +24,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,10 +75,12 @@ public class BossRiftEntity extends Entity {
         this.blocksBuilding = true;
     }
 
+    @Override
     protected void defineSynchedData() {
         this.getEntityData().define(DATA_WARP_POINTS, 0);
     }
 
+    @Override
     public void tick() {
         double multi = 2.25D;
         ++this.time;
@@ -169,6 +172,7 @@ public class BossRiftEntity extends Entity {
     }
 
     @Nonnull
+    @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         MinecraftServer server = this.getServer();
         if (server != null && !this.warpYesNoMaybe) {
@@ -220,7 +224,7 @@ public class BossRiftEntity extends Entity {
         double dz = event.getTargetZ();
 
         if (entity instanceof ServerPlayer) {
-            ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
+            ChunkPos chunkpos = new ChunkPos(BlockPos.containing(dx, dy, dz));
             spawnLevel.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
             entity.stopRiding();
 
@@ -258,8 +262,9 @@ public class BossRiftEntity extends Entity {
         if (entity instanceof ItemEntity itemEntity) itemEntity.setExtendedLifetime();
     }
 
+    @Override
     public boolean hurt(DamageSource source, float damage) {
-        if (source.getEntity() instanceof Player && !source.isProjectile() && !source.isMagic()) {
+        if (source.getEntity() instanceof Player && !source.is(DamageTypes.MOB_PROJECTILE) && !source.is(DamageTypes.MAGIC)) {
             this.warpYesNoMaybe = false;
             this.markHurt();
         }
@@ -274,32 +279,39 @@ public class BossRiftEntity extends Entity {
         return this.getEntityData().get(DATA_WARP_POINTS);
     }
 
+    @Override
     public boolean canBeCollidedWith() {
         return true;
     }
 
+    @Override
     public boolean isPickable() {
         return true;
     }
 
+    @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         this.time = compoundTag.getFloat("time");
     }
 
+    @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("time", this.time);
     }
 
     @Nonnull
+    @Override
     protected Entity.MovementEmission getMovementEmission() {
         return Entity.MovementEmission.NONE;
     }
 
+    @Override
     public void onAddedToWorld() {
         this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
         super.onAddedToWorld();
     }
 
+    @Override
     public void kill() {
         this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_EXPIRE.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.4F);
         super.kill();
