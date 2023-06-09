@@ -7,7 +7,6 @@ import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
@@ -28,18 +27,18 @@ public class CommonListener {
     @SubscribeEvent
     public static void livingEntityDeath(LivingDeathEvent event) {
         LivingEntity dyingEntity = event.getEntity();
-        if (!dyingEntity.level.isClientSide() && dyingEntity.getType().is(Tags.EntityTypes.BOSSES) && !dyingEntity.getType().is(Reg.BOSS_EXCEPTION)) {
-            if (!dyingEntity.level.getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
+        if (!dyingEntity.level().isClientSide() && dyingEntity.getType().is(Tags.EntityTypes.BOSSES) && !dyingEntity.getType().is(Reg.BOSS_EXCEPTION)) {
+            if (!dyingEntity.level().getEntities(dyingEntity, dyingEntity.getBoundingBox().inflate(32),
                     entity -> entity.getType().is(Tags.EntityTypes.BOSSES) && entity instanceof LivingEntity living && !living.isDeadOrDying()).isEmpty()) return;
 
-            BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(dyingEntity.level);
+            BossRiftEntity bossRift = Reg.BOSS_RIFT.get().create(dyingEntity.level());
             if (bossRift != null) {
                 BlockPos pos = dyingEntity.blockPosition().above();
-                if (dyingEntity.level.getBlockState(pos).isCollisionShapeFullBlock(dyingEntity.level, pos)) {
-                    dyingEntity.level.removeBlock(pos, false);
+                if (dyingEntity.level().getBlockState(pos).isCollisionShapeFullBlock(dyingEntity.level(), pos)) {
+                    dyingEntity.level().removeBlock(pos, false);
                 }
                 bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
-                dyingEntity.level.addFreshEntity(bossRift);
+                dyingEntity.level().addFreshEntity(bossRift);
             }
         }
     }
@@ -49,13 +48,13 @@ public class CommonListener {
         ServerPlayer serverPlayer = event.getPlayer();
         ThrownEnderpearl pearl = event.getPearlEntity();
         MinecraftServer server = pearl.getServer();
-        List<BossRiftEntity> nearbyRifts = pearl.level.getEntitiesOfClass(BossRiftEntity.class, pearl.getBoundingBox().inflate(1.6D), Entity::isAlive);
+        List<BossRiftEntity> nearbyRifts = pearl.level().getEntitiesOfClass(BossRiftEntity.class, pearl.getBoundingBox().inflate(1.6D), Entity::isAlive);
         if (!nearbyRifts.isEmpty()) {
             BossRiftEntity rift = nearbyRifts.get(0);
             if (server != null) {
                 event.setCanceled(true);
                 serverPlayer.fallDistance = 0.0F;
-                serverPlayer.hurt(DamageSource.FALL, event.getAttackDamage());
+                serverPlayer.hurt(pearl.damageSources().fall(), event.getAttackDamage());
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.sendToSpawn(server, serverPlayer, serverPlayer)));
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
             }

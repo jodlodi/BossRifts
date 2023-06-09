@@ -24,6 +24,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,10 +75,12 @@ public class BossRiftEntity extends Entity {
         this.blocksBuilding = true;
     }
 
+    @Override
     protected void defineSynchedData() {
         this.getEntityData().define(DATA_WARP_POINTS, 0);
     }
 
+    @Override
     public void tick() {
         double multi = 2.25D;
         ++this.time;
@@ -86,12 +89,12 @@ public class BossRiftEntity extends Entity {
         double thisY = this.getY();
         double thisZ = this.getZ();
 
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             float revUp = (float)Math.pow(((double)getPoints() + Minecraft.getInstance().getFrameTime())  / (double)this.warpSpan, 2D);
             this.revSpeed += (revUp / 10F) * (float)getPoints();
             float pause = (3F / revUp);
             if (getPoints() > 0 && Math.abs(this.lastRev - this.time) >= pause) {
-                this.level.playLocalSound(thisX, thisY + 0.25D, thisZ, Reg.RIFT_REV_UP.get(), SoundSource.BLOCKS, 0.1F + revUp / 2, revUp + (float)getPoints() / 120F - 1.5F, false);
+                this.level().playLocalSound(thisX, thisY + 0.25D, thisZ, Reg.RIFT_REV_UP.get(), SoundSource.BLOCKS, 0.1F + revUp / 2, revUp + (float)getPoints() / 120F - 1.5F, false);
                 this.lastRev = (int)this.time;
             }
             double maxX = this.getRandomX(0.1D) + 2.5D;
@@ -121,12 +124,12 @@ public class BossRiftEntity extends Entity {
             double d2 = thisZ - 0.5D + this.random.nextDouble();
             this.addRandomStationaryParticle(d0, d1, d2);
 
-            List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
+            List<Entity> nearbyEntities = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
             for (Entity entity : nearbyEntities) {
                 if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame) && this.random.nextInt(this.warpSpan) <= getPoints() + this.warpSpan / 3) {
                     double itemFix = 0D;
                     if (entity instanceof ItemEntity) itemFix = 0.25D;
-                    this.level.addParticle(ParticleTypes.PORTAL, entity.getRandomX(0.5D - itemFix), entity.getRandomY() + itemFix, entity.getRandomZ(0.5D - itemFix), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix, -this.random.nextDouble(), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix);
+                    this.level().addParticle(ParticleTypes.PORTAL, entity.getRandomX(0.5D - itemFix), entity.getRandomY() + itemFix, entity.getRandomZ(0.5D - itemFix), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix, -this.random.nextDouble(), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix);
                 }
             }
         }
@@ -134,18 +137,18 @@ public class BossRiftEntity extends Entity {
         if (this.warpYesNoMaybe) {
             if (this.getPoints() >= this.warpSpan) {
                 MinecraftServer server = this.getServer();
-                if (server != null && !this.level.isClientSide) {
-                    List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
+                if (server != null && !this.level().isClientSide) {
+                    List<Entity> nearbyEntities = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
                     for (Entity entity : nearbyEntities) {
                         if (entity.getUUID() != this.lastToTouch.getUUID() && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame)) {
-                            this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
+                            this.level().playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
                             this.sendToSpawn(server, entity, this.lastToTouch);
                         }
                     }
                     if (RiftConfig.reusableState) this.remove(Entity.RemovalReason.KILLED);
                     else this.warpYesNoMaybe = false;
                     if (nearbyEntities.contains(this.lastToTouch)) {
-                        this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
+                        this.level().playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
                         server.tell(new TickTask(server.getTickCount(), () -> this.sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
                     }
                     server.tell(new TickTask(server.getTickCount(), () -> this.validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
@@ -155,9 +158,9 @@ public class BossRiftEntity extends Entity {
             this.addPoints(-1);
             if (this.getPoints() > 0) this.addPoints(-1);
             if (this.getPoints() == 0) {
-                this.level.playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_CLOSE.get(), SoundSource.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
+                this.level().playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_CLOSE.get(), SoundSource.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
             }
-        } else if (!this.level.isClientSide && RiftConfig.expireState && this.time >= RiftConfig.expireSpan) this.kill();
+        } else if (!this.level().isClientSide && RiftConfig.expireState && this.time >= RiftConfig.expireSpan) this.kill();
     }
 
     public double getRandomY(double size) {
@@ -165,10 +168,11 @@ public class BossRiftEntity extends Entity {
     }
 
     private void addRandomStationaryParticle(double x, double y, double z) {
-        if (this.random.nextInt(this.warpSpan) < getPoints()) this.level.addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0, 0);
+        if (this.random.nextInt(this.warpSpan) < getPoints()) this.level().addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0, 0);
     }
 
     @Nonnull
+    @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         MinecraftServer server = this.getServer();
         if (server != null && !this.warpYesNoMaybe) {
@@ -176,7 +180,7 @@ public class BossRiftEntity extends Entity {
             if (serverPlayer != null) {
                 this.warpYesNoMaybe = true;
                 this.lastToTouch = serverPlayer;
-                this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_OPEN.get(), SoundSource.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
+                this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_OPEN.get(), SoundSource.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
                 return InteractionResult.SUCCESS;
             }
         }
@@ -219,23 +223,23 @@ public class BossRiftEntity extends Entity {
         double dy = event.getTargetY();
         double dz = event.getTargetZ();
 
-        if (entity instanceof ServerPlayer) {
-            ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
+        if (entity instanceof ServerPlayer serverPlayer1) {
+            ChunkPos chunkpos = new ChunkPos(BlockPos.containing(dx, dy, dz));
             spawnLevel.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
             entity.stopRiding();
 
-            if (((ServerPlayer)entity).isSleeping()) ((ServerPlayer)entity).stopSleepInBed(true, true);
-            if (spawnLevel == entity.level) {
-                ((ServerPlayer)entity).connection.teleport(dx, dy, dz, entity.getYRot(), entity.getXRot());
+            if (serverPlayer1.isSleeping()) ((ServerPlayer)entity).stopSleepInBed(true, true);
+            if (spawnLevel == entity.level()) {
+                serverPlayer1.connection.teleport(dx, dy, dz, entity.getYRot(), entity.getXRot());
             } else {
-                ((ServerPlayer)entity).teleportTo(spawnLevel, dx, dy, dz, entity.getYRot(), entity.getXRot());
+                serverPlayer1.teleportTo(spawnLevel, dx, dy, dz, entity.getYRot(), entity.getXRot());
             }
         } else {
             float f1 = Mth.wrapDegrees(entity.getYRot());
             float f = Mth.wrapDegrees(entity.getXRot());
 
             f = Mth.clamp(f, -90.0F, 90.0F);
-            if (spawnLevel == entity.level) {
+            if (spawnLevel == entity.level()) {
                 entity.moveTo(dx, dy, dz, f1, f);
                 entity.setYHeadRot(f1);
             } else {
@@ -258,8 +262,9 @@ public class BossRiftEntity extends Entity {
         if (entity instanceof ItemEntity itemEntity) itemEntity.setExtendedLifetime();
     }
 
+    @Override
     public boolean hurt(DamageSource source, float damage) {
-        if (source.getEntity() instanceof Player && !source.isProjectile() && !source.isMagic()) {
+        if (source.getEntity() instanceof Player && !source.is(DamageTypes.MOB_PROJECTILE) && !source.is(DamageTypes.MAGIC)) {
             this.warpYesNoMaybe = false;
             this.markHurt();
         }
@@ -274,34 +279,41 @@ public class BossRiftEntity extends Entity {
         return this.getEntityData().get(DATA_WARP_POINTS);
     }
 
+    @Override
     public boolean canBeCollidedWith() {
         return true;
     }
 
+    @Override
     public boolean isPickable() {
         return true;
     }
 
+    @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         this.time = compoundTag.getFloat("time");
     }
 
+    @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putFloat("time", this.time);
     }
 
     @Nonnull
+    @Override
     protected Entity.MovementEmission getMovementEmission() {
         return Entity.MovementEmission.NONE;
     }
 
+    @Override
     public void onAddedToWorld() {
-        this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
+        this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
         super.onAddedToWorld();
     }
 
+    @Override
     public void kill() {
-        this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_EXPIRE.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.4F);
+        this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_EXPIRE.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.4F);
         super.kill();
     }
 
