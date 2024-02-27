@@ -26,3 +26,6 @@ forge*changelog.txt
 /gradlew.bat
 /build.bat
 /setup.bat
+/runs/*
+/run/*
+/runs/client/*

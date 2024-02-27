@@ -15,6 +15,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
+import net.minecraft.server.commands.TeleportCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
@@ -36,7 +37,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PlayMessages;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,8 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static net.minecraftforge.event.ForgeEventFactory.onEntityTeleportCommand;
-import static net.minecraftforge.event.entity.EntityTeleportEvent.TeleportCommand;
+import static net.neoforged.neoforge.event.EventHooks.onEntityTeleportCommand;
 
 @ParametersAreNonnullByDefault
 public class BossRiftEntity extends Entity {
@@ -64,10 +64,6 @@ public class BossRiftEntity extends Entity {
         this.revSpeed = 0;
         this.lastRev = 0;
         this.warpYesNoMaybe = false;
-    }
-
-    public BossRiftEntity(PlayMessages.SpawnEntity spawnEntity, Level level) {
-        this(level);
     }
 
     public BossRiftEntity(Level level) {
@@ -216,7 +212,7 @@ public class BossRiftEntity extends Entity {
 
         Vec3 vec3 = optional.orElse(worldSpawn);
 
-        TeleportCommand event = onEntityTeleportCommand(entity, vec3.x, vec3.y, vec3.z);
+        EntityTeleportEvent.TeleportCommand event = onEntityTeleportCommand(entity, vec3.x, vec3.y, vec3.z);
         if (event.isCanceled()) return;
 
         double dx = event.getTargetX();

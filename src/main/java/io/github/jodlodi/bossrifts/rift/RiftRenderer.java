@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.registry.ClientReg;
+import io.github.jodlodi.bossrifts.events.ClientSetupListener;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -17,8 +17,8 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -52,7 +52,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
         super(rendererProvider);
         this.shadowRadius = 0.25F;
 
-        ModelPart modelpart = rendererProvider.bakeLayer(ClientReg.BOSS_RIFT_MODEL);
+        ModelPart modelpart = rendererProvider.bakeLayer(ClientSetupListener.BOSS_RIFT_MODEL);
         this.core = modelpart.getChild("core");
         this.shellE1 = modelpart.getChild("shellE1");
         this.shellE2 = modelpart.getChild("shellE2");

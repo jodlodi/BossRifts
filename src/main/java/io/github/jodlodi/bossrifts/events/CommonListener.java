@@ -1,7 +1,6 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.registry.Reg;
 import io.github.jodlodi.bossrifts.rift.BossRiftEntity;
 import net.minecraft.core.BlockPos;
@@ -10,12 +9,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -59,10 +57,5 @@ public class CommonListener {
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void worldLoad(LevelEvent.Load event) {
-        RiftConfig.refresh();
     }
 }

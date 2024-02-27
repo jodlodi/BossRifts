@@ -1,25 +1,30 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.registry.ClientReg;
 import io.github.jodlodi.bossrifts.registry.Reg;
 import io.github.jodlodi.bossrifts.rift.RiftRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD, modid = BossRifts.MOD_ID)
 public class ClientSetupListener {
+    public static final ModelLayerLocation BOSS_RIFT_MODEL =  new ModelLayerLocation(Reg.riftResource("boss_rift"), "main");
+
     @SubscribeEvent
     public static void layerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        ClientReg.register(event);
+        event.registerLayerDefinition(BOSS_RIFT_MODEL, RiftRenderer::createBodyLayer);
     }
 
     @SubscribeEvent
-    public static void clientSetup(FMLClientSetupEvent event) {
-        EntityRenderers.register(Reg.BOSS_RIFT.get(), RiftRenderer::new);
+    public static void clientSetup(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(Reg.BOSS_RIFT.get(), RiftRenderer::new);
     }
 }

@@ -1,27 +1,20 @@
 package io.github.jodlodi.bossrifts;
 
-import io.github.jodlodi.bossrifts.events.ClientSetupListener;
 import io.github.jodlodi.bossrifts.events.CommonListener;
 import io.github.jodlodi.bossrifts.registry.Reg;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(BossRifts.MOD_ID)
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class BossRifts
 {
     public static final String MOD_ID = "bossrifts";
 
-    public BossRifts() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        MinecraftForge.EVENT_BUS.register(this);
-
-        MinecraftForge.EVENT_BUS.register(CommonListener.class);
-        MinecraftForge.EVENT_BUS.register(ClientSetupListener.class);
+    public BossRifts(IEventBus bus) {
+        NeoForge.EVENT_BUS.register(CommonListener.class);
 
         Reg.ENTITY_TYPES.register(bus);
         Reg.SOUND_TYPES.register(bus);
