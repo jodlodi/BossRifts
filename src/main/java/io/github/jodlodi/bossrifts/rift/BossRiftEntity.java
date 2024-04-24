@@ -15,7 +15,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
-import net.minecraft.server.commands.TeleportCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
@@ -47,6 +46,7 @@ import java.util.Optional;
 
 import static net.neoforged.neoforge.event.EventHooks.onEntityTeleportCommand;
 
+@SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
 public class BossRiftEntity extends Entity {
     private static final EntityDataAccessor<Integer> DATA_WARP_POINTS = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.INT);
@@ -72,8 +72,8 @@ public class BossRiftEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(DATA_WARP_POINTS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_WARP_POINTS, 0);
     }
 
     @Override

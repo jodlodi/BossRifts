@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
@@ -19,7 +20,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class CommonListener {
 
     @SubscribeEvent
@@ -48,7 +49,7 @@ public class CommonListener {
         MinecraftServer server = pearl.getServer();
         List<BossRiftEntity> nearbyRifts = pearl.level().getEntitiesOfClass(BossRiftEntity.class, pearl.getBoundingBox().inflate(1.6D), Entity::isAlive);
         if (!nearbyRifts.isEmpty()) {
-            BossRiftEntity rift = nearbyRifts.get(0);
+            BossRiftEntity rift = nearbyRifts.getFirst();
             if (server != null) {
                 event.setCanceled(true);
                 serverPlayer.fallDistance = 0.0F;
