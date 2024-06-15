@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -102,8 +103,8 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
     public void render(BossRiftEntity rift, float yaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
         RANDOM.setSeed(31100L);
         stack.pushPose();
-        double multiplier = ((double)rift.getPoints() + partialTicks) / (double)rift.warpSpan / 20;
-        float spinn = ((rift.time + partialTicks) / 2) + (rift.revSpeed) * 2F;
+        double multiplier = rift.getPoints(partialTicks) / (double)rift.warpSpan / 20;
+        float spinn = ((rift.time + partialTicks) * 0.5F) + Mth.lerp(partialTicks, rift.revSpeed0, rift.revSpeed) * 2F;
         stack.pushPose();
         int i = OverlayTexture.NO_OVERLAY;
 
@@ -115,32 +116,32 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
 
         stack.translate(-multiplier, -multiplier, -multiplier);
         this.shellE1.render(stack, vertexconsumer, light, i);
-        stack.translate(0, multiplier * 2, 0);
+        stack.translate(0, multiplier * 2.0D, 0);
         this.shellE2.render(stack, vertexconsumer, light, i);
-        stack.translate(multiplier * 2, 0, 0);
+        stack.translate(multiplier * 2.0D, 0, 0);
         this.shellE3.render(stack, vertexconsumer, light, i);
-        stack.translate(0, multiplier * -2, 0);
+        stack.translate(0, multiplier * -2.0D, 0);
         this.shellE4.render(stack, vertexconsumer, light, i);
-        stack.translate(multiplier * -2, 0, multiplier * 2);
+        stack.translate(multiplier * -2.0D, 0, multiplier * 2.0D);
         this.shellE5.render(stack, vertexconsumer, light, i);
-        stack.translate(0, multiplier * 2, 0);
+        stack.translate(0, multiplier * 2.0D, 0);
         this.shellE6.render(stack, vertexconsumer, light, i);
-        stack.translate(multiplier * 2, 0, 0);
+        stack.translate(multiplier * 2.0D, 0, 0);
         this.shellE7.render(stack, vertexconsumer, light, i);
-        stack.translate(0, multiplier * -2, 0);
+        stack.translate(0, multiplier * -2.0D, 0);
         this.shellE8.render(stack, vertexconsumer, light, i);
 
-        stack.translate(-multiplier * 2, multiplier, -multiplier);
+        stack.translate(-multiplier * 2.0D, multiplier, -multiplier);
         this.shellC1.render(stack, vertexconsumer, light, i);
-        stack.translate(multiplier * 2, 0, 0);
+        stack.translate(multiplier * 2.0D, 0, 0);
         this.shellC2.render(stack, vertexconsumer, light, i);
         stack.translate(-multiplier, -multiplier, 0);
         this.shellC3.render(stack, vertexconsumer, light, i);
-        stack.translate(0, multiplier * 2, 0);
+        stack.translate(0, multiplier * 2.0D, 0);
         this.shellC4.render(stack, vertexconsumer, light, i);
         stack.translate(0, -multiplier, -multiplier);
         this.shellC5.render(stack, vertexconsumer, light, i);
-        stack.translate(0, 0, multiplier * 2);
+        stack.translate(0, 0, multiplier * 2.0D);
         this.shellC6.render(stack, vertexconsumer, light, i);
 
         stack.popPose();

@@ -53,7 +53,10 @@ public class BossRiftEntity extends Entity {
     public int warpSpan = 160;
     public float time;
     public float revSpeed;
+    public float revSpeed0;
     private int lastRev;
+    public int clientPoints;
+    public int clientPoints0;
     public boolean warpYesNoMaybe;
     private ServerPlayer lastToTouch;
 
@@ -62,7 +65,10 @@ public class BossRiftEntity extends Entity {
         this.blocksBuilding = true;
         this.time = 0;
         this.revSpeed = 0;
+        this.revSpeed0 = 0;
         this.lastRev = 0;
+        this.clientPoints = 0;
+        this.clientPoints0 = 0;
         this.warpYesNoMaybe = false;
     }
 
@@ -86,11 +92,15 @@ public class BossRiftEntity extends Entity {
         double thisZ = this.getZ();
 
         if (this.level().isClientSide) {
-            float revUp = (float)Math.pow(((double)getPoints() + Minecraft.getInstance().getFrameTime())  / (double)this.warpSpan, 2D);
-            this.revSpeed += (revUp / 10F) * (float)getPoints();
+            this.clientPoints0 = this.clientPoints;
+            this.clientPoints = this.entityData.get(DATA_WARP_POINTS);
+            float partialTick = Minecraft.getInstance().getPartialTick();
+            float revUp = (float)Math.pow((double)this.getPoints(partialTick) / (double)this.warpSpan, 2D);
+            this.revSpeed0 = this.revSpeed;
+            this.revSpeed += (revUp / 10F) * this.getPoints(partialTick);
             float pause = (3F / revUp);
-            if (getPoints() > 0 && Math.abs(this.lastRev - this.time) >= pause) {
-                this.level().playLocalSound(thisX, thisY + 0.25D, thisZ, Reg.RIFT_REV_UP.get(), SoundSource.BLOCKS, 0.1F + revUp / 2, revUp + (float)getPoints() / 120F - 1.5F, false);
+            if (this.getPoints(partialTick) > 0 && Math.abs(this.lastRev - this.time) >= pause) {
+                this.level().playLocalSound(thisX, thisY + 0.25D, thisZ, Reg.RIFT_REV_UP.get(), SoundSource.BLOCKS, 0.1F + revUp / 2, revUp + this.getPoints(partialTick) / 120F - 1.5F, false);
                 this.lastRev = (int)this.time;
             }
             double maxX = this.getRandomX(0.1D) + 2.5D;
@@ -122,7 +132,7 @@ public class BossRiftEntity extends Entity {
 
             List<Entity> nearbyEntities = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
             for (Entity entity : nearbyEntities) {
-                if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame) && this.random.nextInt(this.warpSpan) <= getPoints() + this.warpSpan / 3) {
+                if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame) && this.random.nextInt(this.warpSpan) <= this.getPoints(partialTick) + this.warpSpan / 3) {
                     double itemFix = 0D;
                     if (entity instanceof ItemEntity) itemFix = 0.25D;
                     this.level().addParticle(ParticleTypes.PORTAL, entity.getRandomX(0.5D - itemFix), entity.getRandomY() + itemFix, entity.getRandomZ(0.5D - itemFix), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix, -this.random.nextDouble(), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix);
@@ -131,7 +141,7 @@ public class BossRiftEntity extends Entity {
         }
 
         if (this.warpYesNoMaybe) {
-            if (this.getPoints() >= this.warpSpan) {
+            if (this.entityData.get(DATA_WARP_POINTS) >= this.warpSpan) {
                 MinecraftServer server = this.getServer();
                 if (server != null && !this.level().isClientSide) {
                     List<Entity> nearbyEntities = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
@@ -150,10 +160,10 @@ public class BossRiftEntity extends Entity {
                     server.tell(new TickTask(server.getTickCount(), () -> this.validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
                 }
             } else this.addPoints(1);
-        } else if (this.getPoints() > 0) {
+        } else if (this.entityData.get(DATA_WARP_POINTS) > 0) {
             this.addPoints(-1);
-            if (this.getPoints() > 0) this.addPoints(-1);
-            if (this.getPoints() == 0) {
+            if (this.entityData.get(DATA_WARP_POINTS) > 0) this.addPoints(-1);
+            if (this.entityData.get(DATA_WARP_POINTS) == 0) {
                 this.level().playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_CLOSE.get(), SoundSource.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
             }
         } else if (!this.level().isClientSide && RiftConfig.expireState && this.time >= RiftConfig.expireSpan) this.kill();
@@ -164,7 +174,7 @@ public class BossRiftEntity extends Entity {
     }
 
     private void addRandomStationaryParticle(double x, double y, double z) {
-        if (this.random.nextInt(this.warpSpan) < getPoints()) this.level().addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0, 0);
+        if (this.random.nextInt(this.warpSpan) < this.entityData.get(DATA_WARP_POINTS)) this.level().addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0, 0);
     }
 
     @Nonnull
@@ -268,11 +278,11 @@ public class BossRiftEntity extends Entity {
     }
 
     public void addPoints(int newPoints) {
-        this.getEntityData().set(DATA_WARP_POINTS, getPoints() + newPoints);
+        this.getEntityData().set(DATA_WARP_POINTS, this.entityData.get(DATA_WARP_POINTS) + newPoints);
     }
 
-    public int getPoints() {
-        return this.getEntityData().get(DATA_WARP_POINTS);
+    public float getPoints(float partialTick) {
+        return Mth.lerp(partialTick, this.clientPoints0, this.clientPoints);
     }
 
     @Override
