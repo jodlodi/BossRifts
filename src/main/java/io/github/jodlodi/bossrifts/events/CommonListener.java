@@ -11,7 +11,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -55,7 +54,7 @@ public class CommonListener {
                 serverPlayer.fallDistance = 0.0F;
                 serverPlayer.hurt(pearl.damageSources().fall(), event.getAttackDamage());
                 server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.sendToSpawn(server, serverPlayer, serverPlayer)));
-                server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer,false)));
+                server.tell(new net.minecraft.server.TickTask(server.getTickCount(), () -> rift.validateSpawn(serverPlayer,false)));
             }
         }
     }

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.events.ClientSetupListener;
+import io.github.jodlodi.bossrifts.registry.Reg;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -27,7 +28,7 @@ import java.util.Random;
 
 @OnlyIn(Dist.CLIENT)
 public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
-    private static final ResourceLocation RIFT_LOCATION = new ResourceLocation(BossRifts.MOD_ID,"textures/entity/boss_rift/boss_rift.png");
+    private static final ResourceLocation RIFT_LOCATION = Reg.riftResource("textures/entity/boss_rift/boss_rift.png");
     private static final RenderType RENDER_TYPE = RenderType.entityCutoutNoCull(RIFT_LOCATION);
     private static final Random RANDOM = new Random(31100L);
 

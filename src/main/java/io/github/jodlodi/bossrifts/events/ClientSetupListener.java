@@ -5,6 +5,7 @@ import io.github.jodlodi.bossrifts.registry.Reg;
 import io.github.jodlodi.bossrifts.rift.RiftRenderer;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

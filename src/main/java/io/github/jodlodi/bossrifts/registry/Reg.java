@@ -25,7 +25,7 @@ public class Reg {
 
     @Nonnull
     public static ResourceLocation riftResource(String key) {
-        return new ResourceLocation(BossRifts.MOD_ID, key);
+        return ResourceLocation.fromNamespaceAndPath(BossRifts.MOD_ID, key);
     }
 
     private static DeferredHolder<SoundEvent, SoundEvent> riftSound(String key) {

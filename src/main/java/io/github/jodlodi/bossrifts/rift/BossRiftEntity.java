@@ -2,19 +2,19 @@ package io.github.jodlodi.bossrifts.rift;
 
 import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.registry.Reg;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
@@ -34,7 +34,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 
@@ -48,6 +48,7 @@ import static net.neoforged.neoforge.event.EventHooks.onEntityTeleportCommand;
 
 @SuppressWarnings("unused")
 @ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class BossRiftEntity extends Entity {
     private static final EntityDataAccessor<Integer> DATA_WARP_POINTS = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.INT);
     public int warpSpan = 160;
@@ -94,7 +95,7 @@ public class BossRiftEntity extends Entity {
         if (this.level().isClientSide) {
             this.clientPoints0 = this.clientPoints;
             this.clientPoints = this.entityData.get(DATA_WARP_POINTS);
-            float partialTick = Minecraft.getInstance().getPartialTick();
+            float partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
             float revUp = (float)Math.pow((double)this.getPoints(partialTick) / (double)this.warpSpan, 2D);
             this.revSpeed0 = this.revSpeed;
             this.revSpeed += (revUp / 10F) * this.getPoints(partialTick);
@@ -132,7 +133,7 @@ public class BossRiftEntity extends Entity {
 
             List<Entity> nearbyEntities = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), Entity::isAlive);
             for (Entity entity : nearbyEntities) {
-                if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame) && this.random.nextInt(this.warpSpan) <= this.getPoints(partialTick) + this.warpSpan / 3) {
+                if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame) && this.random.nextInt(this.warpSpan) <= this.getPoints(partialTick) + (float) this.warpSpan / 3) {
                     double itemFix = 0D;
                     if (entity instanceof ItemEntity) itemFix = 0.25D;
                     this.level().addParticle(ParticleTypes.PORTAL, entity.getRandomX(0.5D - itemFix), entity.getRandomY() + itemFix, entity.getRandomZ(0.5D - itemFix), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix, -this.random.nextDouble(), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix);
@@ -157,7 +158,7 @@ public class BossRiftEntity extends Entity {
                         this.level().playSound(null, thisX, thisY + 0.25D, thisZ, Reg.RIFT_WARP.get(), SoundSource.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
                         server.tell(new TickTask(server.getTickCount(), () -> this.sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
                     }
-                    server.tell(new TickTask(server.getTickCount(), () -> this.validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
+                    server.tell(new TickTask(server.getTickCount(), () -> this.validateSpawn(this.lastToTouch, nearbyEntities.isEmpty())));
                 }
             } else this.addPoints(1);
         } else if (this.entityData.get(DATA_WARP_POINTS) > 0) {
@@ -193,18 +194,8 @@ public class BossRiftEntity extends Entity {
         return InteractionResult.FAIL;
     }
 
-    public void validateSpawn(MinecraftServer server, ServerPlayer serverPlayer, boolean check) {
-        BlockPos spawnPoint = serverPlayer.getRespawnPosition();
-        float viewAngle = serverPlayer.getRespawnAngle();
-        ServerLevel serverLevel = server.getLevel(serverPlayer.getRespawnDimension());
-
-        if (serverLevel != null && spawnPoint != null) {
-            Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, check);
-            if (serverLevel.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR) && !check) {
-                server.tell(new TickTask(server.getTickCount(), () ->
-                        serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F, this.random.nextLong()))));
-            }
-        }
+    public void validateSpawn(ServerPlayer player, boolean check) {
+        player.findRespawnPositionAndUseSpawnBlock(check, DimensionTransition.DO_NOTHING);
     }
 
     public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayer serverPlayer) {
@@ -214,7 +205,7 @@ public class BossRiftEntity extends Entity {
 
         Optional<Vec3> optional;
         if (spawnPoint != null) {
-            optional = Player.findRespawnPositionAndUseSpawnBlock(spawnLevel, spawnPoint, viewAngle, false, true);
+            optional = Optional.of(serverPlayer.findRespawnPositionAndUseSpawnBlock(true, DimensionTransition.DO_NOTHING).pos());
         } else optional = Optional.empty();
 
         if (optional.isEmpty()) spawnLevel = Objects.requireNonNull(server.getLevel(Level.OVERWORLD));
@@ -266,6 +257,7 @@ public class BossRiftEntity extends Entity {
         }
         if (entity instanceof AmbientCreature ambientCreature) ambientCreature.getNavigation().stop();
         if (entity instanceof ItemEntity itemEntity) itemEntity.setExtendedLifetime();
+        if (entity instanceof Player) this.level().playSound(null, dx, dy, dz, SoundEvents.PLAYER_TELEPORT, SoundSource.PLAYERS);
     }
 
     @Override
@@ -324,8 +316,7 @@ public class BossRiftEntity extends Entity {
     }
 
     @Override
-    @Nonnull
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity p_352110_) {
+        return new ClientboundAddEntityPacket(this, p_352110_);
     }
 }

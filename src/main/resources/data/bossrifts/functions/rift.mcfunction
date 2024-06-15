@@ -1,1 +1,0 @@
-execute at @s align x align y align z run summon bossrifts:boss_rift ~0.5 ~2.25 ~0.5
