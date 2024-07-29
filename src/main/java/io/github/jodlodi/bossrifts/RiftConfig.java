@@ -26,7 +26,14 @@ public class RiftConfig {
     public static boolean reusableState;
 
     @SubscribeEvent
-    static void onLoad(final ModConfigEvent event) {
+    static void onLoad(final ModConfigEvent.Loading event) {
+        expireSpan = EXPIRE_SPAN.get();
+        expireState = expireSpan != 0;
+        reusableState = REUSABLE_STATE.get();
+    }
+
+    @SubscribeEvent
+    static void onLoad(final ModConfigEvent.Reloading event) {
         expireSpan = EXPIRE_SPAN.get();
         expireState = expireSpan != 0;
         reusableState = REUSABLE_STATE.get();

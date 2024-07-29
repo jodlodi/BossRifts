@@ -304,9 +304,9 @@ public class BossRiftEntity extends Entity {
     }
 
     @Override
-    public void onAddedToWorld() {
+    public void onAddedToLevel() {
         this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), Reg.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
-        super.onAddedToWorld();
+        super.onAddedToLevel();
     }
 
     @Override
