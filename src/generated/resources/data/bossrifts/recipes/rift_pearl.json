@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#∴#",
+    "∴0∴",
+    "#∴#"
+  ],
+  "key": {
+    "#": {
+      "tag": "forge:end_stones"
+    },
+    "∴": {
+      "tag": "forge:dusts/glowstone"
+    },
+    "0": {
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "result": {
+    "item": "bossrifts:rift_pearl"
+  }
+}

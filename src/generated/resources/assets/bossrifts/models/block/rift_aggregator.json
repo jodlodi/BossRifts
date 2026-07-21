@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "bossrifts:block/rift_aggregator_top_off",
+    "bottom": "bossrifts:block/rift_aggregator_bottom",
+    "side": "bossrifts:block/rift_aggregator_side0"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#V#",
+    "#X#",
+    "#H#"
+  ],
+  "key": {
+    "#": {
+      "tag": "forge:end_stones"
+    },
+    "V": {
+      "item": "minecraft:ender_chest"
+    },
+    "X": {
+      "item": "minecraft:respawn_anchor"
+    },
+    "H": {
+      "item": "minecraft:lodestone"
+    }
+  },
+  "result": {
+    "item": "bossrifts:rift_aggregator"
+  }
+}

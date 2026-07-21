@@ -3,6 +3,7 @@ package io.github.jodlodi.bossrifts.registry;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.items.RiftPearl;
 import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraftforge.fml.RegistryObject;
@@ -18,4 +19,7 @@ public class ModItems {
 
 	public static final RegistryObject<RiftPearl> RIFT_PEARL = ITEMS.register("rift_pearl", () ->
 			new RiftPearl(new Item.Properties().tab(ItemGroup.TAB_MISC)));
+
+	public static final RegistryObject<BlockItem> RIFT_AGGREGATOR = ITEMS.register("rift_aggregator", () ->
+			new BlockItem(ModBlocks.RIFT_AGGREGATOR.get(), new Item.Properties().tab(ItemGroup.TAB_MISC)));
 }

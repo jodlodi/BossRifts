@@ -1,0 +1,12 @@
+{
+  "block.bossrifts.rift_aggregator": "Rift Aggregator",
+  "entity.bossrifts.boss_rift": "Boss Rift",
+  "entity.bossrifts.rift_pearl": "Rift Pearl",
+  "item.bossrifts.rift_pearl": "Rift Pearl",
+  "subtitles.bossrifts.entity.boss_rift.close": "Rift closes",
+  "subtitles.bossrifts.entity.boss_rift.expire": "Rift expires",
+  "subtitles.bossrifts.entity.boss_rift.open": "Rift opens",
+  "subtitles.bossrifts.entity.boss_rift.rev_up": "Rift is revving",
+  "subtitles.bossrifts.entity.boss_rift.spawn": "Rift spawns",
+  "subtitles.bossrifts.entity.boss_rift.warp": "Rift warps"
+}

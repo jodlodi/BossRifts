@@ -26,3 +26,4 @@ forge*changelog.txt
 /gradlew.bat
 /build.bat
 /setup.bat
+/run-data

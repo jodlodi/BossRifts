@@ -3,9 +3,11 @@ package io.github.jodlodi.bossrifts;
 import io.github.jodlodi.bossrifts.events.ClientSetupListener;
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
+import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.EntityType;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.ResourceLocation;
@@ -20,7 +22,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @Mod(BossRifts.MOD_ID)
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class BossRifts {
 	public static final String MOD_ID = "bossrifts";
@@ -37,6 +43,7 @@ public class BossRifts {
 
 		ModEntities.ENTITY_TYPES.register(bus);
 		ModSounds.SOUND_TYPES.register(bus);
+		ModBlocks.BLOCKS.register(bus);
 		ModItems.ITEMS.register(bus);
 
 		bus.addListener(this::configSetup);
