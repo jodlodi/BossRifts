@@ -21,6 +21,6 @@ public class ModSounds {
 	public static final RegistryObject<SoundEvent> RIFT_EXPIRE = riftSound("entity.boss_rift.expire");
 
 	private static RegistryObject<SoundEvent> riftSound(String key) {
-		return SOUND_TYPES.register(key, () -> new SoundEvent(BossRifts.riftResource(key)));
+		return SOUND_TYPES.register(key, () -> new SoundEvent(BossRifts.prefix(key)));
 	}
 }

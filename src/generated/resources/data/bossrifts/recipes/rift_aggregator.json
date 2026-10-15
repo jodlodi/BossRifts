@@ -1,16 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "#V#",
     "#X#",
+    "#0#",
     "#H#"
   ],
   "key": {
     "#": {
       "tag": "forge:end_stones"
     },
-    "V": {
-      "item": "minecraft:ender_chest"
+    "0": {
+      "item": "bossrifts:rift_pearl"
     },
     "X": {
       "item": "minecraft:respawn_anchor"

@@ -1,7 +1,5 @@
 package io.github.jodlodi.bossrifts;
 
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
-import net.minecraftforge.client.model.generators.ModelBuilder;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.common.Mod;
@@ -21,9 +19,8 @@ public class RiftConfig {
 		SPEC = pair.getRight();
 	}
 
-	public static boolean expireState;
-	public static int expireSpan;
-	public static boolean reusableState;
+	private static int expireSpan;
+	private static boolean reusableState;
 
 	public static class Server {
 		public final ConfigValue<Integer> finalExpireSpan;
@@ -40,7 +37,18 @@ public class RiftConfig {
 
 	public static void refresh() {
 		expireSpan = CONFIG.finalExpireSpan.get();
-		expireState = expireSpan != 0;
 		reusableState = CONFIG.finalReusableState.get();
+	}
+
+	public static int getExpireSpan() {
+		return expireSpan;
+	}
+
+	public static boolean canExpire() {
+		return expireSpan > 0;
+	}
+
+	public static boolean isReusable() {
+		return reusableState;
 	}
 }

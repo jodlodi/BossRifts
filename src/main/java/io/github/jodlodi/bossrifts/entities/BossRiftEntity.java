@@ -36,6 +36,7 @@ import net.minecraftforge.event.entity.living.EntityTeleportEvent.TeleportComman
 import net.minecraftforge.fml.network.FMLPlayMessages;
 import net.minecraftforge.fml.network.NetworkHooks;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.Objects;
@@ -47,6 +48,8 @@ public class BossRiftEntity extends Entity {
 	private static final DataParameter<Integer> DATA_WARP_POINTS = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
 	private static final DataParameter<Integer> DATA_WARP_POINTS_0 = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
 	public static final int WARP_SPAN = 160;
+	@Nullable
+	private BlockPos destination = null;
 	private int lastRev;
 	private float revSpeed;
 	public float rot = 0.0F;
@@ -67,6 +70,15 @@ public class BossRiftEntity extends Entity {
 	public BossRiftEntity(World world) {
 		super(ModEntities.BOSS_RIFT.get(), world);
 		this.blocksBuilding = true;
+	}
+
+	@Nullable
+	public BlockPos getDestination() {
+		return destination;
+	}
+
+	public void setDestination(@Nullable BlockPos destination) {
+		this.destination = destination;
 	}
 
 	@Override
@@ -142,14 +154,14 @@ public class BossRiftEntity extends Entity {
 						for (Entity entity : nearbyEntities) {
 							if (entity.getUUID() != this.lastToTouch.getUUID() && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity)) {
 								this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_WARP.get(), SoundCategory.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-								sendToSpawn(server, entity, this.lastToTouch);
+								this.sendToSpawn(server, entity, this.lastToTouch);
 							}
 						}
-						if (RiftConfig.reusableState) this.remove();
+						if (RiftConfig.isReusable()) this.remove();
 						else this.warpYesNoMaybe = false;
 						if (nearbyEntities.contains(this.lastToTouch.getEntity())) {
 							this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_WARP.get(), SoundCategory.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-							server.tell(new TickDelayedTask(server.getTickCount(), () -> sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
+							server.tell(new TickDelayedTask(server.getTickCount(), () -> this.sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
 						}
 						server.tell(new TickDelayedTask(server.getTickCount(), () -> validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
 					}
@@ -158,7 +170,7 @@ public class BossRiftEntity extends Entity {
 				if (this.addPoints(-Math.min(points, 2)) == 0) {
 					this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_CLOSE.get(), SoundCategory.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
 				}
-			} else if (RiftConfig.expireState && this.tickCount >= RiftConfig.expireSpan) {
+			} else if (RiftConfig.canExpire() && this.tickCount >= RiftConfig.getExpireSpan()) {
 				this.kill();
 			}
 		}
@@ -202,10 +214,14 @@ public class BossRiftEntity extends Entity {
 		}
 	}
 
-	public static Vector3d getSpawnPos(MinecraftServer server, ServerPlayerEntity serverPlayer) {
+	public Vector3d getSpawnPos(MinecraftServer server, ServerPlayerEntity serverPlayer) {
 		BlockPos spawnPoint = serverPlayer.getRespawnPosition();
 		float viewAngle = serverPlayer.getRespawnAngle();
 		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
+
+		if (this.destination != null) {
+			spawnPoint = this.destination;
+		}
 
 		if (spawnPoint != null && spawnWorld != null) {
 			Optional<Vector3d> vec3 = PlayerEntity.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
@@ -220,7 +236,7 @@ public class BossRiftEntity extends Entity {
 		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
 		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
 
-		Vector3d vector3d = getSpawnPos(server, serverPlayer);
+		Vector3d vector3d = this.getSpawnPos(server, serverPlayer);
 
 		TeleportCommand event = ForgeEventFactory.onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
 		if (event.isCanceled()) return;

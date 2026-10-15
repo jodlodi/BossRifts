@@ -1,13 +1,10 @@
 package io.github.jodlodi.bossrifts.client;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.model.ModelRenderer;
@@ -22,23 +19,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.stream.IntStream;
 
 @OnlyIn(Dist.CLIENT)
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
-	private static final ResourceLocation END_CRYSTAL_LOCATION = new ResourceLocation(BossRifts.MOD_ID, "textures/entity/boss_rift/boss_rift.png");
-	private static final RenderType RENDER_TYPE = RenderType.entityCutoutNoCull(END_CRYSTAL_LOCATION);
-	@SuppressWarnings("UnstableApiUsage")
-	private static final List<RenderType> RENDER_TYPES = IntStream.range(0, 16).mapToObj((i) -> RenderType.endPortal(i + 1)).collect(ImmutableList.toImmutableList());
-	private static final Random RANDOM = new Random(31100L);
-	private static final int TEXTURE_WIDTH = 64;
-	private static final int TEXTURE_HEIGHT = 32;
-
+public class RiftRenderer extends EntityRenderer<BossRiftEntity> implements iRiftRenderer {
 	private final ModelRenderer core;
 	private final Map<Vector3i, ModelRenderer> shell = new HashMap<>();
 
@@ -64,17 +50,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
 		}
 
 		this.core = new ModelRenderer(64, 32, 0, 0)
-				.addBox(-3.9F, -3.9F, -3.9F, 7.8F, 7.8F, 7.8F);
-	}
-
-	protected ModelRenderer createShell(int u, int v, int x, int y, int z) {
-		return new ModelRenderer(TEXTURE_WIDTH, TEXTURE_HEIGHT, u * 16, v * 8)
-				.addBox(-4 + x * 4, -4 + y * 4, -4 + z * 4, 4, 4, 4);
-	}
-
-	protected ModelRenderer createPin(int u, int x, int y, int z) {
-		return new ModelRenderer(TEXTURE_WIDTH, TEXTURE_HEIGHT, u * 8, 16)
-				.addBox(-1 + x * 3, -1 + y * 3, -1 + z * 3, 2, 2, 2);
+				.addBox(-3.0F, -3.0F, -3.0F, 6.0F, 6.0F, 6.0F);
 	}
 
 	@Override
@@ -101,7 +77,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> {
 			this.core.render(stack, buffer.getBuffer(RENDER_TYPES.get(i)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
 		}
 
-		IVertexBuilder vertexBuilder = buffer.getBuffer(RENDER_TYPE);
+		IVertexBuilder vertexBuilder = buffer.getBuffer(SHELL_TYPE);
 
 		this.shell.forEach((vector3i, modelRenderer) -> {
 			stack.pushPose();

@@ -1,16 +1,13 @@
 package io.github.jodlodi.bossrifts;
 
-import io.github.jodlodi.bossrifts.events.ClientSetupListener;
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
-import io.github.jodlodi.bossrifts.registry.ModBlocks;
-import io.github.jodlodi.bossrifts.registry.ModEntities;
-import io.github.jodlodi.bossrifts.registry.ModItems;
-import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.registry.*;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.EntityType;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -31,7 +28,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class BossRifts {
 	public static final String MOD_ID = "bossrifts";
 	public static final Logger LOGGER = LogManager.getLogger();
-	public static final Tags.IOptionalNamedTag<EntityType<?>> RIFT_BOSSES = EntityTypeTags.createOptional(riftResource("rift_bosses"));
+	public static final Tags.IOptionalNamedTag<EntityType<?>> RIFT_BOSSES = EntityTypeTags.createOptional(prefix("rift_bosses"));
 
 	public BossRifts() {
 		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -39,8 +36,8 @@ public class BossRifts {
 
 		MinecraftForge.EVENT_BUS.register(DeathListener.class);
 		MinecraftForge.EVENT_BUS.register(PearlListener.class);
-		MinecraftForge.EVENT_BUS.register(ClientSetupListener.class);
 
+		ModBlockEntities.BLOCK_ENTITIES.register(bus);
 		ModEntities.ENTITY_TYPES.register(bus);
 		ModSounds.SOUND_TYPES.register(bus);
 		ModBlocks.BLOCKS.register(bus);
@@ -50,7 +47,7 @@ public class BossRifts {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RiftConfig.SPEC);
 	}
 
-	public static ResourceLocation riftResource(String key) {
+	public static ResourceLocation prefix(String key) {
 		return new ResourceLocation(MOD_ID, key);
 	}
 

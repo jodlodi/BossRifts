@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.jodlodi.bossrifts.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "bossrifts.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "ItemRendererMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

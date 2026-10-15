@@ -1,17 +1,19 @@
 package io.github.jodlodi.bossrifts.events;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.client.RiftRenderer;
-import io.github.jodlodi.bossrifts.entities.RiftPearlEntity;
+import io.github.jodlodi.bossrifts.items.RiftPearl;
+import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
+import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.entity.SpriteRenderer;
-import net.minecraft.entity.EntityType;
-import net.minecraft.util.text.TextComponent;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -24,6 +26,14 @@ public class ClientSetupListener {
 	@SubscribeEvent
 	public static void clientSetup(FMLClientSetupEvent event) {
 		RenderingRegistry.registerEntityRenderingHandler(ModEntities.BOSS_RIFT.get(), RiftRenderer::new);
-		RenderingRegistry.registerEntityRenderingHandler(ModEntities.RIFT_PEARL.get(), manager -> new SpriteRenderer<>(manager, event.getMinecraftSupplier().get().getItemRenderer(), 1.0F, true));
+
+		ClientRegistry.bindTileEntityRenderer(ModBlockEntities.RIFT_AGGREGATOR.get(), RiftAggregatorRenderer::new);
+		RenderTypeLookup.setRenderLayer(ModBlocks.RIFT_AGGREGATOR.get(), RenderType.cutout());
+	}
+
+	@SubscribeEvent
+	public static void registerModels(ModelRegistryEvent event) {
+		ModelLoader.addSpecialModel(RiftPearl.ENTITY_MODEL);
+		ModelLoader.addSpecialModel(RiftPearl.EYE_MODEL);
 	}
 }

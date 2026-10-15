@@ -3,6 +3,7 @@
   "values": [
   ],
   "optional": [
+    "minecraft:pig",
     "twilightforest:naga",
     "twilightforest:lich",
     "twilightforest:yeti",

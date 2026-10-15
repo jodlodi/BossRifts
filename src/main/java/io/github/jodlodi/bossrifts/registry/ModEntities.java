@@ -2,11 +2,9 @@ package io.github.jodlodi.bossrifts.registry;
 
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.entities.RiftPearlEntity;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.projectile.EyeOfEnderEntity;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,12 +22,4 @@ public class ModEntities {
 					.updateInterval(1)
 					.sized(0.5F, 0.5F)
 					.build("boss_rift"));
-
-	public static final RegistryObject<EntityType<RiftPearlEntity>> RIFT_PEARL = ENTITY_TYPES.register("rift_pearl",
-			() -> EntityType.Builder.<RiftPearlEntity>of(RiftPearlEntity::new, EntityClassification.MISC)
-					.setCustomClientFactory(RiftPearlEntity::new)
-					.updateInterval(4)
-					.sized(0.25F, 0.25F)
-					.clientTrackingRange(4)
-					.build("rift_pearl"));
 }

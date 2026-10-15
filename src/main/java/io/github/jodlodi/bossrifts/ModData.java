@@ -9,6 +9,7 @@ import net.minecraft.data.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
@@ -32,7 +33,7 @@ public class ModData {
 	@SubscribeEvent
 	public static void gatherData(GatherDataEvent event) {
 		DataGenerator generator = event.getGenerator();
-		generator.addProvider(new ModBlockstates(generator, event.getExistingFileHelper()));
+		generator.addProvider(new ModBlockStates(generator, event.getExistingFileHelper()));
 		generator.addProvider(new ModItemModels(generator, event.getExistingFileHelper()));
 		generator.addProvider(new ModCrafting(generator));
 		generator.addProvider(new ModLang(generator));
@@ -56,11 +57,11 @@ public class ModData {
 					.save(consumer);
 
 			ShapedRecipeBuilder.shaped(ModItems.RIFT_AGGREGATOR.get(), 1)
-					.pattern("#V#")
 					.pattern("#X#")
+					.pattern("#0#")
 					.pattern("#H#")
 					.define('#', Ingredient.of(Tags.Items.END_STONES))
-					.define('V', Ingredient.of(Items.ENDER_CHEST))
+					.define('0', Ingredient.of(ModItems.RIFT_PEARL.get()))
 					.define('X', Ingredient.of(Items.RESPAWN_ANCHOR))
 					.define('H', Ingredient.of(Items.LODESTONE))
 					.unlockedBy("has_item", has(ModItems.RIFT_PEARL.get()))
@@ -68,17 +69,77 @@ public class ModData {
 		}
 	}
 
-	private static class ModBlockstates extends BlockStateProvider {
-		public ModBlockstates(DataGenerator gen, ExistingFileHelper exFileHelper) {
+	private static class ModBlockStates extends BlockStateProvider {
+		public ModBlockStates(DataGenerator gen, ExistingFileHelper exFileHelper) {
 			super(gen, BossRifts.MOD_ID, exFileHelper);
 		}
 
 		@Override
 		protected void registerStatesAndModels() {
-			simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.getId().getPath(), new ResourceLocation("minecraft", "block/cube_bottom_top"))
-					.texture("top", BossRifts.riftResource("block/rift_aggregator_top_off"))
-					.texture("bottom", BossRifts.riftResource("block/rift_aggregator_bottom"))
-					.texture("side", BossRifts.riftResource("block/rift_aggregator_side0"))
+			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(),  this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.getId().getPath(), "block/block")
+
+					.texture("top", BossRifts.prefix("block/rift_aggregator_top_off"))
+					.texture("inner", BossRifts.prefix("block/rift_aggregator_top"))
+					.texture("bottom", BossRifts.prefix("block/rift_aggregator_bottom"))
+					.texture("side", BossRifts.prefix("block/rift_aggregator_side0"))
+					.texture("particle", BossRifts.prefix("block/rift_aggregator_side0"))
+
+					.element()
+					.from(0.0F, 0.0F, 0.0F)
+					.to(16.0F, 14.0F, 16.0F)
+					.face(Direction.UP).texture("#inner").end()
+					.face(Direction.DOWN).texture("#bottom").end()
+					.face(Direction.NORTH).texture("#side").end()
+					.face(Direction.EAST).texture("#side").end()
+					.face(Direction.SOUTH).texture("#side").end()
+					.face(Direction.WEST).texture("#side").end()
+					.end()
+
+					.element()
+					.from(0.0F, 14.0F, 0.0F)
+					.to(16.0F, 16.0F, 2.0F)
+					.face(Direction.UP).texture("#top").end()
+					.face(Direction.NORTH).texture("#side").end()
+					.face(Direction.EAST).texture("#side").end()
+					.face(Direction.SOUTH).texture("#side").end()
+					.face(Direction.WEST).texture("#side").end()
+					.end()
+
+					.element()
+					.from(0.0F, 14.0F, 14.0F)
+					.to(16.0F, 16.0F, 16.0F)
+					.face(Direction.UP).texture("#top").end()
+					.face(Direction.NORTH).texture("#side").end()
+					.face(Direction.EAST).texture("#side").end()
+					.face(Direction.SOUTH).texture("#side").end()
+					.face(Direction.WEST).texture("#side").end()
+					.end()
+
+					.element()
+					.from(0.0F, 14.0F, 2.0F)
+					.to(2.0F, 16.0F, 14.0F)
+					.face(Direction.UP).texture("#top").end()
+					.face(Direction.NORTH).texture("#side").end()
+					.face(Direction.EAST).texture("#side").end()
+					.face(Direction.SOUTH).texture("#side").end()
+					.face(Direction.WEST).texture("#side").end()
+					.end()
+
+					.element()
+					.from(14.0F, 14.0F, 2.0F)
+					.to(16.0F, 16.0F, 14.0F)
+					.face(Direction.UP).texture("#top").end()
+					.face(Direction.NORTH).texture("#side").end()
+					.face(Direction.EAST).texture("#side").end()
+					.face(Direction.SOUTH).texture("#side").end()
+					.face(Direction.WEST).texture("#side").end()
+					.end()
+
+					.element()
+					.from(2.0F, 16.0F, 2.0F)
+					.to(14.0F, 16.0F, 14.0F)
+					.face(Direction.UP).texture("#top").end()
+					.end()
 			);
 		}
 	}
@@ -104,7 +165,7 @@ public class ModData {
 		}
 
 		private <T extends Item> ItemModelBuilder singleTex(RegistryObject<T> item) {
-			return generated(item.getId().getPath(), BossRifts.riftResource("item/" + item.getId().getPath()));
+			return generated(item.getId().getPath(), BossRifts.prefix("item/" + item.getId().getPath()));
 		}
 
 		private <T extends Block> void toBlock(RegistryObject<T> block) {
@@ -112,7 +173,7 @@ public class ModData {
 		}
 
 		private void toBlockModel(Block block, String model) {
-			toBlockModel(block, BossRifts.riftResource("block/" + model));
+			toBlockModel(block, BossRifts.prefix("block/" + model));
 		}
 
 		private void toBlockModel(Block block, ResourceLocation model) {
@@ -130,8 +191,8 @@ public class ModData {
 		protected void addTranslations() {
 			this.add(ModEntities.BOSS_RIFT.get(), "Boss Rift");
 
-			this.add(ModEntities.RIFT_PEARL.get(), "Rift Pearl");
 			this.add(ModItems.RIFT_PEARL.get(), "Rift Pearl");
+			this.add(ModItems.RIFT_PEARL.get().getDescriptionId() + ".aggregator", "Linked Rift Pearl");
 
 			this.add(ModBlocks.RIFT_AGGREGATOR.get(), "Rift Aggregator");
 
