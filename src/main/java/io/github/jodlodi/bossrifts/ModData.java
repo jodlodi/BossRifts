@@ -3,6 +3,7 @@ package io.github.jodlodi.bossrifts;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
+import io.github.jodlodi.bossrifts.registry.ModSounds;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.data.*;
@@ -11,20 +12,27 @@ import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
+import net.minecraftforge.common.data.SoundDefinition;
+import net.minecraftforge.common.data.SoundDefinitionsProvider;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -33,9 +41,12 @@ public class ModData {
 	@SubscribeEvent
 	public static void gatherData(GatherDataEvent event) {
 		DataGenerator generator = event.getGenerator();
-		generator.addProvider(new ModBlockStates(generator, event.getExistingFileHelper()));
-		generator.addProvider(new ModItemModels(generator, event.getExistingFileHelper()));
+		ExistingFileHelper helper = event.getExistingFileHelper();
+
+		generator.addProvider(new ModBlockStates(generator, helper));
+		generator.addProvider(new ModItemModels(generator, helper));
 		generator.addProvider(new ModCrafting(generator));
+		generator.addProvider(new ModSoundDefinitions(generator, helper));
 		generator.addProvider(new ModLang(generator));
 	}
 
@@ -76,7 +87,7 @@ public class ModData {
 
 		@Override
 		protected void registerStatesAndModels() {
-			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(),  this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.getId().getPath(), "block/block")
+			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.getId().getPath(), "block/block")
 
 					.texture("top", BossRifts.prefix("block/rift_aggregator_top_off"))
 					.texture("inner", BossRifts.prefix("block/rift_aggregator_top"))
@@ -182,6 +193,7 @@ public class ModData {
 	}
 
 	private static class ModLang extends LanguageProvider {
+		public static final Map<String, String> AUTO_GENERATOR = new HashMap<>();
 
 		public ModLang(DataGenerator generator) {
 			super(generator, BossRifts.MOD_ID, "en_us");
@@ -189,19 +201,91 @@ public class ModData {
 
 		@Override
 		protected void addTranslations() {
+			AUTO_GENERATOR.forEach(this::add);
 			this.add(ModEntities.BOSS_RIFT.get(), "Boss Rift");
 
 			this.add(ModItems.RIFT_PEARL.get(), "Rift Pearl");
 			this.add(ModItems.RIFT_PEARL.get().getDescriptionId() + ".aggregator", "Linked Rift Pearl");
 
 			this.add(ModBlocks.RIFT_AGGREGATOR.get(), "Rift Aggregator");
+		}
+	}
 
-			this.add("subtitles.bossrifts.entity.boss_rift.spawn", "Rift spawns");
-			this.add("subtitles.bossrifts.entity.boss_rift.open", "Rift opens");
-			this.add("subtitles.bossrifts.entity.boss_rift.close", "Rift closes");
-			this.add("subtitles.bossrifts.entity.boss_rift.rev_up", "Rift is revving");
-			this.add("subtitles.bossrifts.entity.boss_rift.warp", "Rift warps");
-			this.add("subtitles.bossrifts.entity.boss_rift.expire", "Rift expires");
+	private static class ModSoundDefinitions extends SoundDefinitionsProvider {
+
+		protected ModSoundDefinitions(DataGenerator generator, ExistingFileHelper helper) {
+			super(generator, BossRifts.MOD_ID, helper);
+		}
+
+		@Override
+		public void registerSounds() {
+			//this.generateWithExistingSound(ModSounds.RIFT_EXPIRE, SoundEvents.LODESTONE_COMPASS_LOCK, "Rift expires");
+
+			this.generateNewSoundMC(
+					ModSounds.RIFT_SPAWN,
+					"Rift spawns",
+					1.0F, 1.0F,
+					"block/respawn_anchor/set_spawn1", "block/respawn_anchor/set_spawn2", "block/respawn_anchor/set_spawn3"
+			);
+			this.generateNewSoundMC(
+					ModSounds.RIFT_OPEN,
+					"Rift opens",
+					1.0F, 1.0F,
+					"mob/evocation_illager/cast1", "mob/evocation_illager/cast2"
+			);
+			this.generateNewSoundMC(
+					ModSounds.RIFT_CLOSE,
+					"Rift closes",
+					1.0F, 1.0F,
+					"block/beacon/deactivate"
+			);
+			this.generateNewSoundMC(
+					ModSounds.RIFT_REV_UP,
+					"Rift is revving",
+					1.0F, 1.0F,
+					"mob/wither/shoot"
+			);
+			this.generateNewSoundMC(
+					ModSounds.RIFT_WARP,
+					"Rift warps",
+					0.75F, 0.75F,
+					"mob/illusion_illager/mirror_move1", "mob/illusion_illager/mirror_move2"
+			);
+			this.generateNewSoundMC(
+					ModSounds.RIFT_EXPIRE,
+					"Rift expires",
+					1.0F, 1.0F,
+					"mob/illusion_illager/prepare_mirror"
+			);
+		}
+
+		public void generateWithExistingSound(Supplier<SoundEvent> event, SoundEvent referencedSound, String subtitle) {
+			SoundDefinition definition = SoundDefinition.definition()
+					.with(SoundDefinition.Sound.sound(referencedSound.getLocation(), SoundDefinition.SoundType.EVENT));
+
+			this.createSubtitleAndLangEntry(event, definition, subtitle);
+			this.add(event, definition);
+		}
+
+		public void generateNewSoundMC(Supplier<SoundEvent> event, String subtitle, float volume, float pitch, String... baseSoundDirectory) {
+			SoundDefinition definition = SoundDefinition.definition();
+			for (String string : baseSoundDirectory) {
+				definition.with(
+						SoundDefinition.Sound
+								.sound(new ResourceLocation(string), SoundDefinition.SoundType.SOUND)
+								.volume(volume)
+								.pitch(pitch)
+				);
+			}
+			this.createSubtitleAndLangEntry(event, definition, subtitle);
+			this.add(event.get(), definition);
+		}
+
+		private void createSubtitleAndLangEntry(Supplier<SoundEvent> event, SoundDefinition definition, String subtitle) {
+			String[] splitSoundName = Objects.requireNonNull(event.get().getLocation()).getPath().split("\\.", 2);
+			String subtitleKey = "subtitles." + BossRifts.MOD_ID + "." + splitSoundName[0] + "." + splitSoundName[1];
+			definition.subtitle(subtitleKey);
+			ModLang.AUTO_GENERATOR.put(subtitleKey, subtitle);
 		}
 	}
 }

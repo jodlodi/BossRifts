@@ -1,34 +1,23 @@
-package io.github.jodlodi.bossrifts.client;
+package io.github.jodlodi.bossrifts.client.rift;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.AtomicDouble;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.jodlodi.bossrifts.BossRifts;
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.IParticleRenderType;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.model.ModelRenderer;
-import net.minecraft.particles.IParticleData;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.vector.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public interface iRiftRenderer {
+public interface iRift {
 	ResourceLocation SHELL_LOCATION = new ResourceLocation(BossRifts.MOD_ID, "textures/entity/boss_rift/boss_rift.png");
 	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
@@ -37,6 +26,11 @@ public interface iRiftRenderer {
 	@SuppressWarnings("UnstableApiUsage")
 	List<RenderType> RENDER_TYPES = IntStream.range(0, 16).mapToObj((i) -> RenderType.endPortal(i + 1)).collect(ImmutableList.toImmutableList());
 	Random RANDOM = new Random(31100L);
+
+	default ModelRenderer createCore() {
+		return new ModelRenderer(64, 32, 0, 0)
+				.addBox(-3.0F, -3.0F, -3.0F, 6.0F, 6.0F, 6.0F);
+	}
 
 	default ModelRenderer createShell(int u, int v, int x, int y, int z) {
 		return new ModelRenderer(SHELL_WIDTH, SHELL_HEIGHT, u * 16, v * 8)
@@ -52,11 +46,9 @@ public interface iRiftRenderer {
 		return Util.getMillis() / 50.0F;
 	}
 
-	float MAX = 360.0F;
-
-	default void spin(MatrixStack ms, float time, float x, float y, float z, float scale) {
-		ms.mulPose(Vector3f.XP.rotationDegrees(((time * x) % MAX) * scale));
-		ms.mulPose(Vector3f.YP.rotationDegrees(((time * y) % MAX) * scale));
-		ms.mulPose(Vector3f.ZP.rotationDegrees(((time * z) % MAX) * scale));
+	default void spin(MatrixStack ms, float x, float y, float z) {
+		ms.mulPose(Vector3f.XP.rotationDegrees(x));
+		ms.mulPose(Vector3f.YP.rotationDegrees(y));
+		ms.mulPose(Vector3f.ZP.rotationDegrees(z));
 	}
 }

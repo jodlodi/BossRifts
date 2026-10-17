@@ -2,7 +2,7 @@ package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
-import io.github.jodlodi.bossrifts.client.RiftRenderer;
+import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
 import io.github.jodlodi.bossrifts.items.RiftPearl;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
@@ -25,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ClientSetupListener {
 	@SubscribeEvent
 	public static void clientSetup(FMLClientSetupEvent event) {
-		RenderingRegistry.registerEntityRenderingHandler(ModEntities.BOSS_RIFT.get(), RiftRenderer::new);
+		RenderingRegistry.registerEntityRenderingHandler(ModEntities.BOSS_RIFT.get(), RiftEntityRenderer::new);
 
 		ClientRegistry.bindTileEntityRenderer(ModBlockEntities.RIFT_AGGREGATOR.get(), RiftAggregatorRenderer::new);
 		RenderTypeLookup.setRenderLayer(ModBlocks.RIFT_AGGREGATOR.get(), RenderType.cutout());

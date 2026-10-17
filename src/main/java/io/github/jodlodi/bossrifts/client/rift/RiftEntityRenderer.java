@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts.client;
+package io.github.jodlodi.bossrifts.client.rift;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -24,11 +24,11 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class RiftRenderer extends EntityRenderer<BossRiftEntity> implements iRiftRenderer {
+public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implements iRift {
 	private final ModelRenderer core;
 	private final Map<Vector3i, ModelRenderer> shell = new HashMap<>();
 
-	public RiftRenderer(EntityRendererManager rendererManager) {
+	public RiftEntityRenderer(EntityRendererManager rendererManager) {
 		super(rendererManager);
 		this.shadowRadius = 0.25F;
 
@@ -49,8 +49,7 @@ public class RiftRenderer extends EntityRenderer<BossRiftEntity> implements iRif
 			this.shell.put(vec, this.createPin(direction.ordinal(), vec.getX(), vec.getY(), vec.getZ()));
 		}
 
-		this.core = new ModelRenderer(64, 32, 0, 0)
-				.addBox(-3.0F, -3.0F, -3.0F, 6.0F, 6.0F, 6.0F);
+		this.core = this.createCore();
 	}
 
 	@Override

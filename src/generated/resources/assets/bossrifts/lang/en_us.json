@@ -1,7 +1,6 @@
 {
   "block.bossrifts.rift_aggregator": "Rift Aggregator",
   "entity.bossrifts.boss_rift": "Boss Rift",
-  "entity.bossrifts.rift_pearl": "Rift Pearl",
   "item.bossrifts.rift_pearl": "Rift Pearl",
   "item.bossrifts.rift_pearl.aggregator": "Linked Rift Pearl",
   "subtitles.bossrifts.entity.boss_rift.close": "Rift closes",
