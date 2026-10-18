@@ -1,56 +1,44 @@
 package io.github.jodlodi.bossrifts.items;
 
 import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.AnimUtil;
-import io.github.jodlodi.bossrifts.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModItems;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.util.AnimUtil;
+import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
+import io.github.jodlodi.bossrifts.util.iRift;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.UseAction;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.server.TicketType;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.living.EntityTeleportEvent;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 import java.util.Optional;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class RiftPearl extends Item {
+public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public static ResourceLocation ENTITY_MODEL = BossRifts.prefix("item/rift_pearl_frame");
 	public static ResourceLocation EYE_MODEL = BossRifts.prefix("item/rift_pearl_icon");
 	private final static String DIMENSION = "AggregatorDimension";
 	public final static String POSITION = "AggregatorPosition";
 	public final static String POWERED = "RiftPowered";
 
-	public final static int USE_DURATION = 300;
-	public final static int EMPOWER_DURATION = 500;
-	public final static int TRANSITION_TIME = 50;
-	public final static int SHUFFLE_OFFSET = 5;
-	public final static int COMPRESS_OFFSET = 10;
-
-	public RiftPearl(Properties properties) {
+	public RiftPearlItem(Properties properties) {
 		super(properties);
 	}
 
@@ -117,15 +105,10 @@ public class RiftPearl extends Item {
 		int ticksUsed = USE_DURATION - remaining;
 		Vector3d pos = player.getEyePosition(Minecraft.getInstance().getFrameTime());
 
-		long seed = 3626523L;
-		if (stack.getOrCreateTag().contains(RiftPearl.POSITION)) {
-			seed = NBTUtil.readBlockPos(stack.getOrCreateTag().getCompound(RiftPearl.POSITION)).asLong();
-		}
+		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
 
-		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(seed);
-
-		float now = AnimUtil.clampScaled(ticksUsed , USE_DURATION - COMPRESS_OFFSET);
-		float before =  AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
+		float now = AnimUtil.clampScaled(ticksUsed, USE_DURATION - COMPRESS_OFFSET);
+		float before = AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
 
 		if (plan.movesStarted(now) > plan.movesStarted(before)) {
 			level.playLocalSound(pos.x, pos.y, pos.z,
@@ -151,85 +134,11 @@ public class RiftPearl extends Item {
 			Vector3d pos = living.getEyePosition(1.0F);
 			level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundCategory.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
 			ServerPlayerEntity player = (ServerPlayerEntity) living;
-			this.sendToSpawn(player.server, player, player, stack);
+			this.sendToSpawn(stack, player.server, player, player);
 		}
 		Vector3d pos = living.getEyePosition(1.0F);
 		level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundCategory.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
 		return stack;
-	}
-
-	public Vector3d getSpawnPos(MinecraftServer server, ServerPlayerEntity serverPlayer, ItemStack stack) {
-		BlockPos spawnPoint = serverPlayer.getRespawnPosition();
-		float viewAngle = serverPlayer.getRespawnAngle();
-		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
-		RegistryKey<World> itemWorld = getLodestoneDimension(stack);
-		if (itemWorld != null) spawnWorld = server.getLevel(itemWorld);
-
-		if (stack.hasTag() && stack.getOrCreateTag().contains(POSITION)) {
-			spawnPoint = NBTUtil.readBlockPos(stack.getOrCreateTag().getCompound(POSITION));
-		}
-
-		if (spawnPoint != null && spawnWorld != null) {
-			Optional<Vector3d> vec3 = PlayerEntity.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
-			if (vec3.isPresent()) return vec3.get();
-		}
-
-		spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
-		return new Vector3d(spawnWorld.getSharedSpawnPos().getX() + 0.5D, spawnWorld.getSharedSpawnPos().getY(), spawnWorld.getSharedSpawnPos().getZ() + 0.5D);
-	}
-
-	public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayerEntity serverPlayer, ItemStack stack) {
-		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
-		RegistryKey<World> itemWorld = getLodestoneDimension(stack);
-		if (itemWorld != null) spawnWorld = server.getLevel(itemWorld);
-		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
-
-		Vector3d vector3d = this.getSpawnPos(server, serverPlayer, stack);
-
-		EntityTeleportEvent.TeleportCommand event = ForgeEventFactory.onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
-		if (event.isCanceled()) return;
-
-		double dx = event.getTargetX();
-		double dy = event.getTargetY();
-		double dz = event.getTargetZ();
-
-		if (entity instanceof ServerPlayerEntity) {
-			ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
-			spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
-			entity.stopRiding();
-
-			if (((ServerPlayerEntity) entity).isSleeping()) ((ServerPlayerEntity) entity).stopSleepInBed(true, true);
-			if (spawnWorld == entity.level) {
-				((ServerPlayerEntity) entity).connection.teleport(dx, dy, dz, entity.yRot, entity.xRot);
-			} else {
-				((ServerPlayerEntity) entity).teleportTo(spawnWorld, dx, dy, dz, entity.yRot, entity.xRot);
-			}
-		} else {
-			float f1 = MathHelper.wrapDegrees(entity.yRot);
-			float f = MathHelper.wrapDegrees(entity.xRot);
-
-			f = MathHelper.clamp(f, -90.0F, 90.0F);
-			if (spawnWorld == entity.level) {
-				entity.moveTo(dx, dy, dz, f1, f);
-				entity.setYHeadRot(f1);
-			} else {
-				entity.unRide();
-				Entity newEntity = entity.getType().create(spawnWorld);
-				if (newEntity != null) {
-					newEntity.restoreFrom(entity);
-					entity.remove();
-					newEntity.moveTo(dx, dy, dz, f1, f);
-					newEntity.setYHeadRot(f1);
-					spawnWorld.addFreshEntity(newEntity);
-				}
-			}
-		}
-		if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
-			entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
-			entity.setOnGround(true);
-		}
-		if (entity instanceof CreatureEntity) ((CreatureEntity) entity).getNavigation().stop();
-		if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
 	}
 
 	@Override
@@ -245,7 +154,7 @@ public class RiftPearl extends Item {
 	@Override
 	public void inventoryTick(ItemStack stack, World level, Entity entity, int slot, boolean held) {
 		stack.setEntityRepresentation(entity);
-		long powered = RiftPearl.poweredTime(stack);
+		long powered = RiftPearlItem.poweredTime(stack);
 		if (powered >= 0L) {
 			long time = level.getGameTime();
 			int soundPoint = TRANSITION_TIME / 2;
@@ -260,9 +169,20 @@ public class RiftPearl extends Item {
 		return stack.hasTag() && stack.getOrCreateTag().contains(POWERED) ? stack.getOrCreateTag().getLong(POWERED) : -1L;
 	}
 
-	@Nullable
-	public static RegistryKey<World> getLodestoneDimension(ItemStack stack) {
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(DIMENSION)) return null;
-		return World.RESOURCE_KEY_CODEC.parse(NBTDynamicOps.INSTANCE, stack.getOrCreateTag().get(DIMENSION)).result().orElse(null);
+	@Override
+	public long getSeed(ItemStack stack) {
+		return this.savedPos(stack).map(BlockPos::asLong).orElse(3626523L);
+	}
+
+	@Override
+	public Optional<BlockPos> savedPos(ItemStack stack) {
+		if (!stack.hasTag() || !stack.getOrCreateTag().contains(POSITION)) return Optional.empty();
+		return Optional.of(NBTUtil.readBlockPos(stack.getOrCreateTag().getCompound(POSITION)));
+	}
+
+	@Override
+	public Optional<RegistryKey<World>> savedWorld(ItemStack stack) {
+		if (!stack.hasTag() || !stack.getOrCreateTag().contains(DIMENSION)) return Optional.empty();
+		return World.RESOURCE_KEY_CODEC.parse(NBTDynamicOps.INSTANCE, stack.getOrCreateTag().get(DIMENSION)).result();
 	}
 }

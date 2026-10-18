@@ -3,7 +3,7 @@ package io.github.jodlodi.bossrifts.events;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
-import io.github.jodlodi.bossrifts.items.RiftPearl;
+import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
@@ -33,7 +33,7 @@ public class ClientSetupListener {
 
 	@SubscribeEvent
 	public static void registerModels(ModelRegistryEvent event) {
-		ModelLoader.addSpecialModel(RiftPearl.ENTITY_MODEL);
-		ModelLoader.addSpecialModel(RiftPearl.EYE_MODEL);
+		ModelLoader.addSpecialModel(RiftPearlItem.ENTITY_MODEL);
+		ModelLoader.addSpecialModel(RiftPearlItem.EYE_MODEL);
 	}
 }

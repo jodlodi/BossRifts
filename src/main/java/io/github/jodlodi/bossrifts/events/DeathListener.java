@@ -2,7 +2,7 @@ package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
-import io.github.jodlodi.bossrifts.items.RiftPearl;
+import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.Entity;
@@ -68,8 +68,8 @@ public class DeathListener {
 	}
 
 	public static boolean empowerPearl(ItemStack stack, long time) {
-		if (stack.getItem() instanceof RiftPearl) {
-			stack.getOrCreateTag().putLong(RiftPearl.POWERED, time);
+		if (stack.getItem() instanceof RiftPearlItem) {
+			stack.getOrCreateTag().putLong(RiftPearlItem.POWERED, time);
 			return true;
 		}
 		return false;

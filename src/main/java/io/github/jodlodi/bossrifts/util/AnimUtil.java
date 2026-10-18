@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts;
+package io.github.jodlodi.bossrifts.util;
 
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.util.math.MathHelper;

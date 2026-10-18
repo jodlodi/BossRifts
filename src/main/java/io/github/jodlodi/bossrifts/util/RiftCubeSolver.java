@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts;
+package io.github.jodlodi.bossrifts.util;
 
 import mcp.MethodsReturnNonnullByDefault;
 
@@ -9,7 +9,7 @@ import java.util.Random;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public final class RiftCubeSolver {
+public class RiftCubeSolver {
 	private static final int[][] NORMALS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
 	private static final int CACHE_SIZE = 256;
 	private static final int SHUFFLES = 24;
@@ -23,8 +23,7 @@ public final class RiftCubeSolver {
 	};
 
 	public static final class Plan {
-		private final float[] starts; // starts[i] = timeline fraction where move i begins, starts[size] = 1.0
-
+		private final float[] starts;
 		private final int[] moves;
 
 		private Plan(int[] moves) {

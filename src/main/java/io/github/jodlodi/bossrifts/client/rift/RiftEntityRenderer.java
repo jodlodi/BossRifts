@@ -12,7 +12,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.EndPortalTileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -24,7 +25,7 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implements iRift {
+public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implements iRiftRenderer<BossRiftEntity> {
 	private final ModelRenderer core;
 	private final Map<Vector3i, ModelRenderer> shell = new HashMap<>();
 
@@ -59,27 +60,74 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 	@Override
 	public void render(BossRiftEntity rift, float angle, float partialTick, MatrixStack stack, IRenderTypeBuffer buffer, int light) {
-		RANDOM.setSeed(31100L);
+		this.preRender(rift, stack, buffer, light, OverlayTexture.NO_OVERLAY, partialTick);
+		super.render(rift, angle, partialTick, stack, buffer, light);
+	}
+
+	@Override
+	public ModelRenderer getCore() {
+		return this.core;
+	}
+
+	@Override
+	public Map<Vector3i, ModelRenderer> getShell() {
+		return this.shell;
+	}
+
+	@Override
+	public long getSeed(BossRiftEntity rift) {
+		return rift.getSeed(rift);
+	}
+
+	@Override
+	public long getTime(BossRiftEntity rift) {
+		return rift.level.getGameTime();
+	}
+
+	@Override
+	public long getPower(BossRiftEntity rift) {
+		return rift.getCreation();
+	}
+
+	@Override
+	public float getCharge(BossRiftEntity rift) {
+		return rift.getPoints();
+	}
+
+	@Override
+	public float getCharge0(BossRiftEntity rift) {
+		return rift.getPoints0();
+	}
+
+	@Override
+	public void render(BossRiftEntity rift, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
 		stack.pushPose();
-		double multiplier = (double) rift.getLerpedPoints(partialTick) / (double) BossRiftEntity.WARP_SPAN / 20.0D;
+		stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale + 0.25F, 0.0D);
 
-		stack.translate(0, 0.25D, 0);
-		stack.mulPose(Vector3f.YP.rotationDegrees(rift.rot));
+		stack.pushPose();
+		stack.scale(1.5F, 1.5F, 1.5F);
 
-		for (int i = 0; i < 15; ++i) {
-			float multi;
-			if (i == 0) multi = 0.15F;
-			else multi = 2.0F / (float) (18 - i);
-			float f = (RANDOM.nextFloat() * 0.5F + 0.1F) * multi;
-			float f1 = (RANDOM.nextFloat() * 0.5F + 0.4F) * multi;
-			float f2 = (RANDOM.nextFloat() * 0.5F + 0.5F) * multi;
-			this.core.render(stack, buffer.getBuffer(RENDER_TYPES.get(i)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
-		}
+		this.spin(stack,
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * 0.125F),
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * 0.375F),
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * 0.625F)
+		);
 
 		IVertexBuilder vertexBuilder = buffer.getBuffer(SHELL_TYPE);
 
-		this.shell.forEach((vector3i, modelRenderer) -> {
+		Map<Vector3i, Quaternion> pose = null;
+		if (shuffleScale >= 0.0F) pose = this.computePose(rift, shuffleScale);
+
+		int i = 0;
+		for (Map.Entry<Vector3i, ModelRenderer> entry : this.getShell().entrySet()) {
 			stack.pushPose();
+
+			if (pose != null) stack.mulPose(pose.get(entry.getKey()));
+
+			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.1D + 0.5D) * scale + 0.5D * antiScale) * 0.125D * close * useScale;
+
+			Vector3i vector3i = entry.getKey();
+			ModelRenderer modelRenderer = entry.getValue();
 			stack.translate(
 					vector3i.getX() * multiplier,
 					vector3i.getY() * multiplier,
@@ -87,9 +135,21 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 			);
 			modelRenderer.render(stack, vertexBuilder, light, OverlayTexture.NO_OVERLAY);
 			stack.popPose();
-		});
+		}
 
+		stack.pushPose();
+		stack.scale(pearlSize, pearlSize, pearlSize);
+		for (int j = 0; j < 15; ++j) {
+			float multi;
+			if (j == 0) multi = 0.15F;
+			else multi = 2.0F / (float) (18 - j);
+			float f = (RANDOM.nextFloat() * 0.5F + 0.1F) * multi;
+			float f1 = (RANDOM.nextFloat() * 0.5F + 0.4F) * multi;
+			float f2 = (RANDOM.nextFloat() * 0.5F + 0.5F) * multi;
+			this.getCore().render(stack, buffer.getBuffer(RENDER_TYPES.get(j)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
+		}
 		stack.popPose();
-		super.render(rift, angle, partialTick, stack, buffer, light);
+		stack.popPose();
+		stack.popPose();
 	}
 }

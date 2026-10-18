@@ -1,14 +1,16 @@
 package io.github.jodlodi.bossrifts.entities;
 
 import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.util.AnimUtil;
+import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
+import io.github.jodlodi.bossrifts.util.iRift;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.item.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,41 +27,33 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.server.TicketType;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.living.EntityTeleportEvent.TeleportCommand;
 import net.minecraftforge.fml.network.FMLPlayMessages;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class BossRiftEntity extends Entity {
+public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	private static final DataParameter<Integer> DATA_WARP_POINTS = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
-	private static final DataParameter<Integer> DATA_WARP_POINTS_0 = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
-	public static final int WARP_SPAN = 160;
+	private static final DataParameter<BlockPos> CREATION = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.BLOCK_POS);
+
+	private int clientWarp = 0;
+	private int clientWarp0 = 0;
+
 	@Nullable
 	private BlockPos destination = null;
-	private int lastRev;
-	private float revSpeed;
-	public float rot = 0.0F;
 	public boolean warpYesNoMaybe;
 	private ServerPlayerEntity lastToTouch;
 
 	public BossRiftEntity(EntityType<? extends BossRiftEntity> entityType, World world) {
 		super(entityType, world);
 		this.blocksBuilding = true;
-		this.lastRev = 0;
 		this.warpYesNoMaybe = false;
 	}
 
@@ -84,30 +78,38 @@ public class BossRiftEntity extends Entity {
 	@Override
 	protected void defineSynchedData() {
 		this.getEntityData().define(DATA_WARP_POINTS, 0);
-		this.getEntityData().define(DATA_WARP_POINTS_0, 0);
+		this.getEntityData().define(CREATION, BlockPos.of(-1L));
 	}
 
 	@Override
 	public void tick() {
+		this.setCreationIfEmpty(this.level.getGameTime());
 		double multi = 2.25D;
-		int points = this.getPoints();
-		float revUp = (float) Math.pow((double) points / (double) WARP_SPAN, 2D);
+		int points = this.entityData.get(DATA_WARP_POINTS);
 
 		double thisX = this.getX();
 		double thisY = this.getY();
 		double thisZ = this.getZ();
 
 		if (this.level.isClientSide) {
-			this.revSpeed += (revUp / 10F) * (float) getPoints() + 0.5F;
-			this.rot = MathHelper.wrapDegrees(this.rot + this.revSpeed);
-			this.yRot = this.rot;
-			this.revSpeed *= 0.25F;
+			this.setPoints0(this.getPoints());
+			this.setPoints(this.entityData.get(DATA_WARP_POINTS));
 
-			float pause = (3F / revUp);
-			if (points > 0 && Math.abs(this.lastRev - this.tickCount) >= pause) {
-				this.level.playLocalSound(thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_REV_UP.get(), SoundCategory.BLOCKS, 0.1F + revUp / 2, revUp + (float) points / 120F - 1.5F, false);
-				this.lastRev = this.tickCount;
+			RiftCubeSolver.Plan plan = RiftCubeSolver.plan(this.getSeed(this));
+
+			float now = AnimUtil.clampScaled(this.getPoints(), RiftPearlItem.USE_DURATION - RiftPearlItem.COMPRESS_OFFSET);
+			float before = AnimUtil.scaled(this.getPoints0(), RiftPearlItem.USE_DURATION - RiftPearlItem.COMPRESS_OFFSET);
+
+			if (plan.movesStarted(now) != plan.movesStarted(before)) {
+				this.level.playLocalSound(thisX, thisY, thisZ,
+						ModSounds.RIFT_REV_UP.get(), SoundCategory.PLAYERS, 0.25F + 0.5F * now, 0.8F + 0.9F * now, false);
 			}
+
+			if (AnimUtil.justFinished(this.getPoints(), RiftPearlItem.USE_DURATION - RiftPearlItem.SHUFFLE_OFFSET - 2)) {
+				this.level.playLocalSound(thisX, thisY, thisZ,
+						ModSounds.RIFT_CLOSE.get(), SoundCategory.PLAYERS, 1.0F, this.level.random.nextFloat() * 0.5F + 0.8F, false);
+			}
+
 			double maxX = this.getRandomX(0.1D) + 2.5D;
 			double maxY = this.getRandomY(0.1D) + 2.75D;
 			double maxZ = this.getRandomZ(0.1D) + 2.5D;
@@ -137,33 +139,32 @@ public class BossRiftEntity extends Entity {
 
 			List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
 			for (Entity entity : nearbyEntities) {
-				if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity) && this.random.nextInt(WARP_SPAN) <= points + WARP_SPAN / 3) {
+				if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity) && this.random.nextInt(USE_DURATION) <= points + USE_DURATION / 3) {
 					double itemFix = 0D;
 					if (entity instanceof ItemEntity) itemFix = 0.25D;
 					this.level.addParticle(ParticleTypes.PORTAL, entity.getRandomX(0.5D - itemFix), entity.getRandomY() + itemFix, entity.getRandomZ(0.5D - itemFix), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix, -this.random.nextDouble(), (this.random.nextDouble() - 0.5D) * 2.0D - itemFix);
 				}
 			}
 		} else {
-			this.getEntityData().set(DATA_WARP_POINTS_0, points);
-
 			if (this.warpYesNoMaybe) {
-				if (points >= WARP_SPAN) {
+				if (points >= USE_DURATION) {
 					MinecraftServer server = this.getServer();
 					if (server != null) {
 						List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(multi).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
 						for (Entity entity : nearbyEntities) {
 							if (entity.getUUID() != this.lastToTouch.getUUID() && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity)) {
 								this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_WARP.get(), SoundCategory.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-								this.sendToSpawn(server, entity, this.lastToTouch);
+								this.sendToSpawn(this, server, entity, this.lastToTouch);
 							}
 						}
 						if (RiftConfig.isReusable()) this.remove();
 						else this.warpYesNoMaybe = false;
 						if (nearbyEntities.contains(this.lastToTouch.getEntity())) {
 							this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_WARP.get(), SoundCategory.BLOCKS, 1F, this.random.nextFloat() * 0.4F + 0.5F);
-							server.tell(new TickDelayedTask(server.getTickCount(), () -> this.sendToSpawn(server, this.lastToTouch, this.lastToTouch)));
+							server.tell(new TickDelayedTask(server.getTickCount(), () -> this.sendToSpawn(this, server, this.lastToTouch, this.lastToTouch)));
 						}
 						server.tell(new TickDelayedTask(server.getTickCount(), () -> validateSpawn(server, this.lastToTouch, nearbyEntities.isEmpty())));
+						this.entityData.set(DATA_WARP_POINTS, 0);
 					}
 				} else this.addPoints(1);
 			} else if (points > 0) {
@@ -182,7 +183,8 @@ public class BossRiftEntity extends Entity {
 
 	private void addRandomStationaryParticle(double x, double y, double z) {
 		BasicParticleType particleType = ParticleTypes.SMOKE;
-		if (this.random.nextInt(WARP_SPAN) < this.getPoints()) this.level.addParticle(particleType, x, y, z, 0, 0, 0);
+		if (this.random.nextInt(USE_DURATION) < this.entityData.get(DATA_WARP_POINTS))
+			this.level.addParticle(particleType, x, y, z, 0, 0, 0);
 	}
 
 	@Override
@@ -214,88 +216,18 @@ public class BossRiftEntity extends Entity {
 		}
 	}
 
-	public Vector3d getSpawnPos(MinecraftServer server, ServerPlayerEntity serverPlayer) {
-		BlockPos spawnPoint = serverPlayer.getRespawnPosition();
-		float viewAngle = serverPlayer.getRespawnAngle();
-		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
-
-		if (this.destination != null) {
-			spawnPoint = this.destination;
-		}
-
-		if (spawnPoint != null && spawnWorld != null) {
-			Optional<Vector3d> vec3 = PlayerEntity.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
-			if (vec3.isPresent()) return vec3.get();
-		}
-
-		spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
-		return new Vector3d(spawnWorld.getSharedSpawnPos().getX() + 0.5D, spawnWorld.getSharedSpawnPos().getY(), spawnWorld.getSharedSpawnPos().getZ() + 0.5D);
-	}
-
-	public void sendToSpawn(MinecraftServer server, Entity entity, ServerPlayerEntity serverPlayer) {
-		ServerWorld spawnWorld = server.getLevel(serverPlayer.getRespawnDimension());
-		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
-
-		Vector3d vector3d = this.getSpawnPos(server, serverPlayer);
-
-		TeleportCommand event = ForgeEventFactory.onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
-		if (event.isCanceled()) return;
-
-		double dx = event.getTargetX();
-		double dy = event.getTargetY();
-		double dz = event.getTargetZ();
-
-		if (entity instanceof ServerPlayerEntity) {
-			ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
-			spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
-			entity.stopRiding();
-
-			if (((ServerPlayerEntity) entity).isSleeping()) ((ServerPlayerEntity) entity).stopSleepInBed(true, true);
-			if (spawnWorld == entity.level) {
-				((ServerPlayerEntity) entity).connection.teleport(dx, dy, dz, entity.yRot, entity.xRot);
-			} else {
-				((ServerPlayerEntity) entity).teleportTo(spawnWorld, dx, dy, dz, entity.yRot, entity.xRot);
-			}
-		} else {
-			float f1 = MathHelper.wrapDegrees(entity.yRot);
-			float f = MathHelper.wrapDegrees(entity.xRot);
-
-			f = MathHelper.clamp(f, -90.0F, 90.0F);
-			if (spawnWorld == entity.level) {
-				entity.moveTo(dx, dy, dz, f1, f);
-				entity.setYHeadRot(f1);
-			} else {
-				entity.unRide();
-				Entity newEntity = entity.getType().create(spawnWorld);
-				if (newEntity != null) {
-					newEntity.restoreFrom(entity);
-					entity.remove();
-					newEntity.moveTo(dx, dy, dz, f1, f);
-					newEntity.setYHeadRot(f1);
-					spawnWorld.addFreshEntity(newEntity);
-				}
-			}
-		}
-		if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).isFallFlying()) {
-			entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
-			entity.setOnGround(true);
-		}
-		if (entity instanceof CreatureEntity) ((CreatureEntity) entity).getNavigation().stop();
-		if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
-	}
-
 	@Override
 	protected void addAdditionalSaveData(CompoundNBT tag) {
 		tag.putInt("tick_count", this.tickCount);
 		tag.putInt("warp_points", this.getEntityData().get(DATA_WARP_POINTS));
-		tag.putInt("warp_points_0", this.getEntityData().get(DATA_WARP_POINTS_0));
+		tag.putLong("creation", this.getCreation());
 	}
 
 	@Override
 	protected void readAdditionalSaveData(CompoundNBT tag) {
 		this.tickCount = tag.getInt("tick_count");
 		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt("warp_points"));
-		this.getEntityData().set(DATA_WARP_POINTS_0, tag.getInt("warp_points_0"));
+		this.setCreation(tag.getLong("creation"));
 	}
 
 	@Override
@@ -308,21 +240,38 @@ public class BossRiftEntity extends Entity {
 	}
 
 	public int addPoints(int add) {
-		int newPoints = this.getPoints() + add;
-		this.setPoints(newPoints);
+		int newPoints = this.entityData.get(DATA_WARP_POINTS) + add;
+		this.entityData.set(DATA_WARP_POINTS, newPoints);
 		return newPoints;
 	}
 
 	public void setPoints(int points) {
-		this.getEntityData().set(DATA_WARP_POINTS, points);
+		this.clientWarp = points;
 	}
 
 	public int getPoints() {
-		return this.getEntityData().get(DATA_WARP_POINTS);
+		return this.clientWarp;
 	}
 
-	public float getLerpedPoints(float partialTick) {
-		return MathHelper.lerp(partialTick, this.getEntityData().get(DATA_WARP_POINTS_0), this.getEntityData().get(DATA_WARP_POINTS));
+	public void setPoints0(int points) {
+		this.clientWarp0 = points;
+	}
+
+	public int getPoints0() {
+		return this.clientWarp0;
+	}
+
+	public void setCreation(long creation) {
+		this.entityData.set(CREATION, BlockPos.of(creation));
+	}
+
+	public long getCreation() {
+		return this.entityData.get(CREATION).asLong();
+	}
+
+	public void setCreationIfEmpty(long creation) {
+		long current = this.getCreation();
+		if (current == -1L) this.setCreation(creation);
 	}
 
 	@Override
@@ -342,6 +291,7 @@ public class BossRiftEntity extends Entity {
 
 	@Override
 	public void onAddedToWorld() {
+		this.setCreationIfEmpty(this.level.getGameTime());
 		this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundCategory.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
 		super.onAddedToWorld();
 	}
@@ -355,5 +305,20 @@ public class BossRiftEntity extends Entity {
 	@Override
 	public IPacket<?> getAddEntityPacket() {
 		return NetworkHooks.getEntitySpawningPacket(this);
+	}
+
+	@Override
+	public long getSeed(BossRiftEntity rift) {
+		return this.getUUID().getMostSignificantBits();
+	}
+
+	@Override
+	public Optional<BlockPos> savedPos(BossRiftEntity rift) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<RegistryKey<World>> savedWorld(BossRiftEntity rift) {
+		return Optional.empty();
 	}
 }

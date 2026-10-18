@@ -31,7 +31,7 @@ public class PearlListener {
 				event.setCanceled(true);
 				serverPlayer.fallDistance = 0.0F;
 				serverPlayer.hurt(DamageSource.FALL, event.getAttackDamage());
-				server.tell(new TickDelayedTask(server.getTickCount(), () -> rift.sendToSpawn(server, serverPlayer.getEntity(), serverPlayer)));
+				server.tell(new TickDelayedTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, serverPlayer.getEntity(), serverPlayer)));
 				server.tell(new TickDelayedTask(server.getTickCount(), () -> rift.validateSpawn(server, serverPlayer, false)));
 			}
 		}
