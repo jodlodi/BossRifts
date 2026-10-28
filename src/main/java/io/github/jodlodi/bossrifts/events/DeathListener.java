@@ -1,9 +1,11 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.registry.ModItems;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -26,52 +28,53 @@ import java.util.List;
 public class DeathListener {
 	@SubscribeEvent
 	public static void livingEntityDeath(LivingDeathEvent event) {
-		LivingEntity entity = event.getEntityLiving();
-		if (entity.getType().is(BossRifts.RIFT_BOSSES) && !entity.level.isClientSide()) {
+		LivingEntity dying = event.getEntityLiving();
+		if (dying.getType().is(BossRifts.RIFT_BOSSES) && !dying.level.isClientSide()) {
 			DamageSource source = event.getSource();
+			if (!RiftConfig.isV1()) triggerV2(dying, source);
+			else triggerV1(dying);
+		}
+	}
 
-			List<PlayerEntity> responsible = new ArrayList<>();
+	public static void triggerV2(LivingEntity dying, DamageSource source) {
+		List<PlayerEntity> responsible = new ArrayList<>();
 
-			if (source.getDirectEntity() instanceof PlayerEntity) responsible.add((PlayerEntity) source.getDirectEntity());
-			else if (source.getEntity() instanceof PlayerEntity) responsible.add((PlayerEntity) source.getEntity());
+		if (source.getDirectEntity() instanceof PlayerEntity) responsible.add((PlayerEntity) source.getDirectEntity());
+		else if (source.getEntity() instanceof PlayerEntity) responsible.add((PlayerEntity) source.getEntity());
 
-			for (Entity in : entity.level.getEntities(entity, entity.getBoundingBox().inflate(32), EntityPredicates.ENTITY_STILL_ALIVE)) {
-				if (in instanceof PlayerEntity) responsible.add((PlayerEntity) in);
+		for (Entity in : dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), EntityPredicates.ENTITY_STILL_ALIVE)) {
+			if (in instanceof PlayerEntity) responsible.add((PlayerEntity) in);
+		}
+
+		for (PlayerEntity player : responsible) findAndEmpowerPearl(player);
+	}
+
+	public static void triggerV1(LivingEntity dying) {
+		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> BossRifts.RIFT_BOSSES.contains(entity.getType())).isEmpty())
+			return;
+
+		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level);
+		if (bossRift != null) {
+			ItemStack stack = bossRift.getItem();
+			RiftPearlItem.empowerPearl(stack, dying.level.getGameTime());
+			bossRift.setItem(stack);
+
+			BlockPos pos = dying.blockPosition().above();
+			if (dying.level.getBlockState(pos).isCollisionShapeFullBlock(dying.level, pos)) {
+				dying.level.removeBlock(pos, false);
 			}
-
-			for (PlayerEntity player : responsible) {
-				findAndEmpowerPearl(player);
-			}
-
-			if (true) return;
-
-			BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(entity.level);
-			if (bossRift != null) {
-				BlockPos pos = entity.blockPosition().above();
-				if (entity.level.getBlockState(pos).isCollisionShapeFullBlock(entity.level, pos)) {
-					entity.level.removeBlock(pos, false);
-				}
-				bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
-				entity.level.addFreshEntity(bossRift);
-			}
+			bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
+			dying.level.addFreshEntity(bossRift);
 		}
 	}
 
 	public static void findAndEmpowerPearl(PlayerEntity player) {
 		long time = player.level.getGameTime();
-		if (empowerPearl(player.getMainHandItem(), time)) return;
-		if (empowerPearl(player.getOffhandItem(), time)) return;
+		if (RiftPearlItem.empowerPearl(player.getMainHandItem(), time)) return;
+		if (RiftPearlItem.empowerPearl(player.getOffhandItem(), time)) return;
 
 		for (ItemStack stack : player.inventory.items) {
-			if (empowerPearl(stack, time)) return;
+			if (RiftPearlItem.empowerPearl(stack, time)) return;
 		}
-	}
-
-	public static boolean empowerPearl(ItemStack stack, long time) {
-		if (stack.getItem() instanceof RiftPearlItem) {
-			stack.getOrCreateTag().putLong(RiftPearlItem.POWERED, time);
-			return true;
-		}
-		return false;
 	}
 }

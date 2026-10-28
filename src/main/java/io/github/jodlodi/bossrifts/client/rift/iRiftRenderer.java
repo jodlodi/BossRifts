@@ -3,6 +3,7 @@ package io.github.jodlodi.bossrifts.client.rift;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
@@ -80,13 +81,15 @@ public interface iRiftRenderer<T> {
 		float diff = exactTime - powered;
 
 		if (powered >= 0 && diff > 0) {
-			if (diff <= RiftPearlItem.EMPOWER_DURATION) {
+			if (diff <= RiftConfig.empowerDuration()) {
 				scale = MathHelper.clamp(1.0F - (diff / RiftPearlItem.TRANSITION_TIME), 0.0F, 1.0F);
 			} else {
-				diff -= RiftPearlItem.EMPOWER_DURATION;
+				diff -= RiftConfig.empowerDuration();
 				scale = MathHelper.clamp(diff / RiftPearlItem.TRANSITION_TIME, 0.0F, 1.0F);
 			}
 		}
+
+		if (charge >= 0.0F) scale = 0.0F;
 
 		double scalar = 3.0D;
 		double cut = 1.05D;

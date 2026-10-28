@@ -21,15 +21,16 @@ import net.minecraft.world.server.TicketType;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.living.EntityTeleportEvent;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public interface iRift<T> {
 	int USE_DURATION = 300;
-	int EMPOWER_DURATION = 500;
 	int TRANSITION_TIME = 50;
 	int SHUFFLE_OFFSET = 5;
 	int COMPRESS_OFFSET = 10;
@@ -40,8 +41,12 @@ public interface iRift<T> {
 
 	Optional<RegistryKey<World>> savedWorld(T t);
 
-	default void sendToSpawn(T t, MinecraftServer server, Entity entity, ServerPlayerEntity serverPlayer) {
-		ServerWorld spawnWorld = this.savedWorld(t).map(server::getLevel).orElse(server.getLevel(serverPlayer.getRespawnDimension()));
+	default void sendToSpawn(T t, MinecraftServer server, Entity entity, @Nullable UUID serverPlayer) {
+		this.sendToSpawn(t, server, entity, serverPlayer == null ? null : server.getPlayerList().getPlayer(serverPlayer));
+	}
+
+	default void sendToSpawn(T t, MinecraftServer server, Entity entity, @Nullable ServerPlayerEntity serverPlayer) {
+		ServerWorld spawnWorld = serverPlayer != null ? this.savedWorld(t).map(server::getLevel).orElse(server.getLevel(serverPlayer.getRespawnDimension())) : null;
 		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(World.OVERWORLD));
 
 		Vector3d vector3d = this.getSpawnPos(t, spawnWorld, serverPlayer);
@@ -92,9 +97,9 @@ public interface iRift<T> {
 		if (entity instanceof ItemEntity) ((ItemEntity) entity).setExtendedLifetime();
 	}
 
-	default Vector3d getSpawnPos(T t, ServerWorld spawnWorld, ServerPlayerEntity serverPlayer) {
-		BlockPos spawnPoint = this.savedPos(t).orElse(serverPlayer.getRespawnPosition());
-		float viewAngle = serverPlayer.getRespawnAngle();
+	default Vector3d getSpawnPos(T t, ServerWorld spawnWorld, @Nullable ServerPlayerEntity serverPlayer) {
+		BlockPos spawnPoint = serverPlayer != null ? this.savedPos(t).orElse(serverPlayer.getRespawnPosition()) : null;
+		float viewAngle = serverPlayer != null ? serverPlayer.getRespawnAngle() : 0.0F;
 
 		if (spawnPoint != null) {
 			Optional<Vector3d> vec3 = PlayerEntity.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);

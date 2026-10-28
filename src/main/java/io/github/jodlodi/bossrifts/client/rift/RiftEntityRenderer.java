@@ -3,10 +3,16 @@ package io.github.jodlodi.bossrifts.client.rift;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
+import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ModelManager;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.EndPortalTileEntityRenderer;
@@ -86,7 +92,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 	@Override
 	public long getPower(BossRiftEntity rift) {
-		return rift.getCreation();
+		return RiftPearlItem.poweredTime(rift.getItem());
 	}
 
 	@Override
@@ -102,7 +108,9 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 	@Override
 	public void render(BossRiftEntity rift, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
 		stack.pushPose();
-		stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale + 0.25F, 0.0D);
+		stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale + 0.25D, 0.0D);
+
+		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
 
 		stack.pushPose();
 		stack.scale(1.5F, 1.5F, 1.5F);
@@ -124,7 +132,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 			if (pose != null) stack.mulPose(pose.get(entry.getKey()));
 
-			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.1D + 0.5D) * scale + 0.5D * antiScale) * 0.125D * close * useScale;
+			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.1D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
 
 			Vector3i vector3i = entry.getKey();
 			ModelRenderer modelRenderer = entry.getValue();
@@ -138,7 +146,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		}
 
 		stack.pushPose();
-		stack.scale(pearlSize, pearlSize, pearlSize);
+		stack.scale(portalSize, portalSize, portalSize);
 		for (int j = 0; j < 15; ++j) {
 			float multi;
 			if (j == 0) multi = 0.15F;
@@ -149,6 +157,32 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 			this.getCore().render(stack, buffer.getBuffer(RENDER_TYPES.get(j)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
 		}
 		stack.popPose();
+		stack.popPose();
+
+		stack.pushPose();
+		IBakedModel riftSprite = manager.getModel(RiftPearlItem.EYE_MODEL);
+
+		this.spin(stack,
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.625F),
+				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.125F)
+		);
+		stack.scale(pearlSize * 0.85F, pearlSize * 0.85F, pearlSize * 0.85F);
+		stack.translate(-0.5D, -0.5D, -0.5D);
+
+		Minecraft.getInstance().getItemRenderer().renderModelLists(
+				riftSprite,
+				rift.getItem(),
+				0xf000f0,
+				overlay,
+				stack,
+				ItemRenderer.getFoilBufferDirect(
+						buffer,
+						RenderTypeLookup.getRenderType(rift.getItem(), true),
+						true,
+						rift.getItem().hasFoil()
+				)
+		);
 		stack.popPose();
 		stack.popPose();
 	}

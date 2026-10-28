@@ -1,7 +1,10 @@
 package io.github.jodlodi.bossrifts.items;
 
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
+import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
@@ -34,7 +37,7 @@ import java.util.Optional;
 public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public static ResourceLocation ENTITY_MODEL = BossRifts.prefix("item/rift_pearl_frame");
 	public static ResourceLocation EYE_MODEL = BossRifts.prefix("item/rift_pearl_icon");
-	private final static String DIMENSION = "AggregatorDimension";
+	public final static String DIMENSION = "AggregatorDimension";
 	public final static String POSITION = "AggregatorPosition";
 	public final static String POWERED = "RiftPowered";
 
@@ -66,7 +69,35 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public ActionResultType useOn(ItemUseContext context) {
 		World level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
-		if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
+
+		if (context.isSecondaryUseActive()) {
+			ItemStack stack = context.getItemInHand();
+			PlayerEntity player = context.getPlayer();
+			long powered = poweredTime(stack);
+
+			if (powered >= 0 && player != null) {
+				long diff = player.level.getGameTime() - powered;
+				if (diff > RiftConfig.empowerDuration() || diff < TRANSITION_TIME) {
+					return ActionResultType.PASS;
+				}
+			}
+
+			Direction face = context.getClickedFace();
+			BlockPos relative = pos.relative(face, 2);
+			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative))
+				relative = pos.relative(face, 1);
+			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative)) return ActionResultType.FAIL;
+
+			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level);
+			if (rift != null) {
+				rift.moveTo(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D);
+				rift.setItem(context.getItemInHand());
+				if (player instanceof ServerPlayerEntity) rift.startRevving((ServerPlayerEntity) player);
+
+				if (player != null && !player.abilities.instabuild) context.getItemInHand().shrink(1);
+				return level.addFreshEntity(rift) ? ActionResultType.SUCCESS : ActionResultType.FAIL;
+			} else return ActionResultType.FAIL;
+		} else if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
 			level.playSound(null, pos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0F, 1.0F);
 			PlayerEntity player = context.getPlayer();
 			if (player == null) return super.useOn(context);
@@ -101,7 +132,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	@Override
 	public void onUsingTick(ItemStack stack, LivingEntity player, int remaining) {
 		World level = player.level;
-		if (!level.isClientSide) return;
 		int ticksUsed = USE_DURATION - remaining;
 		Vector3d pos = player.getEyePosition(Minecraft.getInstance().getFrameTime());
 
@@ -124,16 +154,44 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	@Override
 	public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		player.startUsingItem(hand);
-		return ActionResult.consume(stack);
+		long powered = poweredTime(stack);
+
+		if (powered >= 0) {
+			long diff = player.level.getGameTime() - powered;
+			if (diff <= RiftConfig.empowerDuration()) {
+				if (diff >= TRANSITION_TIME) {
+					player.startUsingItem(hand);
+					return ActionResult.consume(stack);
+				} else return ActionResult.pass(stack);
+			} else {
+				diff -= RiftConfig.empowerDuration();
+				if (diff <= TRANSITION_TIME) return ActionResult.pass(stack);
+			}
+		}
+
+		double cost = RiftConfig.getExpCost();
+		if (cost > 0.0D) {
+			BlockPos portalPos = NBTUtil.readBlockPos(stack.getOrCreateTag().getCompound(RiftPearlItem.POSITION));
+			BlockPos playerPos = player.blockPosition();
+			double dis = Math.sqrt(playerPos.distSqr(portalPos)) / 16.0D;
+			int price = (int) (cost * dis);
+
+			if (player.totalExperience >= price || player.abilities.instabuild) {
+				if (!player.abilities.instabuild) player.giveExperiencePoints(-price);
+				empowerPearl(stack, level.getGameTime());
+				return ActionResult.success(stack);
+			}
+		}
+
+		return ActionResult.pass(stack);
 	}
 
 	@Override
 	public ItemStack finishUsingItem(ItemStack stack, World level, LivingEntity living) {
 		if (living instanceof ServerPlayerEntity) {
+			ServerPlayerEntity player = (ServerPlayerEntity) living;
 			Vector3d pos = living.getEyePosition(1.0F);
 			level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundCategory.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
-			ServerPlayerEntity player = (ServerPlayerEntity) living;
 			this.sendToSpawn(stack, player.server, player, player);
 		}
 		Vector3d pos = living.getEyePosition(1.0F);
@@ -167,6 +225,14 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 	public static long poweredTime(ItemStack stack) {
 		return stack.hasTag() && stack.getOrCreateTag().contains(POWERED) ? stack.getOrCreateTag().getLong(POWERED) : -1L;
+	}
+
+	public static boolean empowerPearl(ItemStack stack, long time) {
+		if (stack.getItem() instanceof RiftPearlItem) {
+			stack.getOrCreateTag().putLong(POWERED, time);
+			return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -97,7 +97,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		Entity entity = renderInfo.getStack().getEntityRepresentation();
 		if (entity instanceof PlayerEntity) {
 			PlayerEntity player = (PlayerEntity) entity;
-			if (player.isUsingItem() && ItemStack.isSame(player.getUseItem(), renderInfo.getStack())) {
+			if (player.isUsingItem() && player.getUseItem().equals(renderInfo.getStack())) {
 				return RiftPearlItem.USE_DURATION - player.getUseItemRemainingTicks();
 			}
 		}
@@ -112,7 +112,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	@Override
 	public void render(RenderInfo renderInfo, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
 		stack.pushPose();
-		stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
+		if (renderInfo.isDynamic()) stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
 
 		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
 
@@ -169,11 +169,14 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		IBakedModel riftSprite = manager.getModel(RiftPearlItem.EYE_MODEL);
 		riftSprite = ForgeHooksClient.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
 
-		this.spin(stack,
-				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
-				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.625F),
-				MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.125F)
-		);
+		if (renderInfo.isDynamic()) {
+			this.spin(stack,
+					MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
+					MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.625F),
+					MathHelper.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.125F)
+			);
+		} else pearlSize *= 0.75F;
+
 		stack.scale(pearlSize, pearlSize, pearlSize);
 		stack.translate(-0.5D, -0.5D, -0.5D);
 
@@ -217,6 +220,10 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 		public ItemCameraTransforms.TransformType getType() {
 			return this.type;
+		}
+
+		public boolean isDynamic() {
+			return this.type != ItemCameraTransforms.TransformType.GUI && this.type != ItemCameraTransforms.TransformType.FIXED;
 		}
 
 		public boolean isLeftHandHackery() {

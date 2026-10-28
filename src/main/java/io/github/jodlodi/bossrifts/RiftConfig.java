@@ -1,5 +1,7 @@
 package io.github.jodlodi.bossrifts;
 
+import io.github.jodlodi.bossrifts.util.AnimUtil;
+import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.common.Mod;
@@ -19,36 +21,48 @@ public class RiftConfig {
 		SPEC = pair.getRight();
 	}
 
-	private static int expireSpan;
-	private static boolean reusableState;
-
 	public static class Server {
-		public final ConfigValue<Integer> finalExpireSpan;
-		public final ConfigValue<Boolean> finalReusableState;
+		public final ConfigValue<Boolean> legacyModeConfig;
+		public final ConfigValue<Integer> expireSpanConfig;
+		public final ConfigValue<Boolean> oneTimeUse;
+		public final ConfigValue<Double> expCost;
 
 		private Server(ForgeConfigSpec.Builder builder) {
-			builder.comment("How long should the Rift take to naturally expire? (20 ticks is 1 second)" +
-					"\nIf you type in the number 0, the Rift will never naturally expire.");
-			finalExpireSpan = builder.define("How many ticks to Rifts last?: ", 2400);
+			builder.comment("Should the mod behave like it did in 1.0? In which Rifts would automatically appear when a boss is killed instead of being items?" +
+					"\nThe Rift Pearl item serves no purpose on 1.0. It's up to the modpack maker to either give it one or use a mod to remove it.");
+			this.legacyModeConfig = builder.define("Enable legacy behaviour?: ", false);
+
+			builder.comment("\nHow long should a Rift remain charged for? (20 ticks is 1 second)" +
+					"\nIf you type in the number -1, the Rift will never naturally expire.");
+			this.expireSpanConfig = builder.define("How many ticks to Rifts last?: ", AnimUtil.minutesToTicks(5));
+
 			builder.comment("\nShould the Rift disappear after being used once? (Using an Ender Pearl to use a rift lets you bypass this)");
-			finalReusableState = builder.define("Should the Rift disappear on use?: ", false);
+			this.oneTimeUse = builder.define("Do Rift pearls disappear upon use? : ", true);
+
+			builder.comment("\nShould using activating a Rift Pearl cost exp instead of killing a boss?");
+			this.expCost = builder.define("Exp cost per chunk of distance, negative value disables this in favour of default behaviour: ", -1.0D);
 		}
 	}
 
-	public static void refresh() {
-		expireSpan = CONFIG.finalExpireSpan.get();
-		reusableState = CONFIG.finalReusableState.get();
+	public static boolean isV1() {
+		return CONFIG.legacyModeConfig.get();
 	}
 
-	public static int getExpireSpan() {
-		return expireSpan;
+	public static boolean isExpired(long time) {
+		int span = CONFIG.expireSpanConfig.get();
+		if (span < 0) return false;
+		return empowerDuration() < time;
 	}
 
-	public static boolean canExpire() {
-		return expireSpan > 0;
+	public static int empowerDuration() {
+		return Math.max(CONFIG.expireSpanConfig.get(), 0) + iRift.TRANSITION_TIME;
 	}
 
-	public static boolean isReusable() {
-		return reusableState;
+	public static boolean isOneTimeUse() {
+		return CONFIG.oneTimeUse.get();
+	}
+
+	public static double getExpCost() {
+		return CONFIG.expCost.get();
 	}
 }

@@ -43,15 +43,10 @@ public class BossRifts {
 		ModBlocks.BLOCKS.register(bus);
 		ModItems.ITEMS.register(bus);
 
-		bus.addListener(this::configSetup);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RiftConfig.SPEC);
 	}
 
 	public static ResourceLocation prefix(String key) {
 		return new ResourceLocation(MOD_ID, key);
-	}
-
-	private void configSetup(final FMLCommonSetupEvent event) {
-		RiftConfig.refresh();
 	}
 }
