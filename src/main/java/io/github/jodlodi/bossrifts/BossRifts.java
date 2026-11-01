@@ -2,15 +2,16 @@ package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
+import io.github.jodlodi.bossrifts.network.ModPacketHandler;
 import io.github.jodlodi.bossrifts.registry.*;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.EntityType;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -24,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Mod(BossRifts.MOD_ID)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BossRifts {
 	public static final String MOD_ID = "bossrifts";
 	public static final Logger LOGGER = LogManager.getLogger();
@@ -44,6 +45,11 @@ public class BossRifts {
 		ModItems.ITEMS.register(bus);
 
 		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RiftConfig.SPEC);
+	}
+
+	@SubscribeEvent
+	public static void init(FMLCommonSetupEvent evt) {
+		ModPacketHandler.init();
 	}
 
 	public static ResourceLocation prefix(String key) {

@@ -24,7 +24,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetupListener {
 	@SubscribeEvent
-	public static void clientSetup(FMLClientSetupEvent event) {
+	public static void onClientSetup(FMLClientSetupEvent event) {
 		RenderingRegistry.registerEntityRenderingHandler(ModEntities.BOSS_RIFT.get(), RiftEntityRenderer::new);
 
 		ClientRegistry.bindTileEntityRenderer(ModBlockEntities.RIFT_AGGREGATOR.get(), RiftAggregatorRenderer::new);
@@ -32,7 +32,7 @@ public class ClientSetupListener {
 	}
 
 	@SubscribeEvent
-	public static void registerModels(ModelRegistryEvent event) {
+	public static void onModelRegister(ModelRegistryEvent event) {
 		ModelLoader.addSpecialModel(RiftPearlItem.ENTITY_MODEL);
 		ModelLoader.addSpecialModel(RiftPearlItem.EYE_MODEL);
 	}

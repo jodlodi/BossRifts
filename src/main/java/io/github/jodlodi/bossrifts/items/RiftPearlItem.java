@@ -3,6 +3,8 @@ package io.github.jodlodi.bossrifts.items;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
+import io.github.jodlodi.bossrifts.network.ModPacketHandler;
+import io.github.jodlodi.bossrifts.network.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
@@ -12,6 +14,7 @@ import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,9 +29,16 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.network.PacketDistributor;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -40,6 +50,9 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public final static String DIMENSION = "AggregatorDimension";
 	public final static String POSITION = "AggregatorPosition";
 	public final static String POWERED = "RiftPowered";
+
+	public static @Nullable BlockPos respawnPosition = null;
+	public static @Nullable RegistryKey<World> respawnDimension = null;
 
 	public RiftPearlItem(Properties properties) {
 		super(properties);
@@ -70,7 +83,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		World level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 
-		if (context.isSecondaryUseActive()) {
+		if (context.isSecondaryUseActive() && !RiftConfig.isV1()) {
 			ItemStack stack = context.getItemInHand();
 			PlayerEntity player = context.getPlayer();
 			long powered = poweredTime(stack);
@@ -154,6 +167,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	@Override
 	public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
+		if (RiftConfig.isV1()) return ActionResult.pass(stack);
 		long powered = poweredTime(stack);
 
 		if (powered >= 0) {
@@ -169,21 +183,36 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			}
 		}
 
-		double cost = RiftConfig.getExpCost();
-		if (cost > 0.0D) {
-			BlockPos portalPos = NBTUtil.readBlockPos(stack.getOrCreateTag().getCompound(RiftPearlItem.POSITION));
-			BlockPos playerPos = player.blockPosition();
-			double dis = Math.sqrt(playerPos.distSqr(portalPos)) / 16.0D;
-			int price = (int) (cost * dis);
+		if (player instanceof ServerPlayerEntity) {
+			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+			int price = this.getPrice(
+					serverPlayer.blockPosition(),
+					stack,
+					serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
+			);
 
-			if (player.totalExperience >= price || player.abilities.instabuild) {
-				if (!player.abilities.instabuild) player.giveExperiencePoints(-price);
+			if (price > -1 && (player.totalExperience >= price || player.abilities.instabuild)) {
+				if (!player.abilities.instabuild) player.giveExperienceLevels(-price);
 				empowerPearl(stack, level.getGameTime());
 				return ActionResult.success(stack);
 			}
 		}
 
 		return ActionResult.pass(stack);
+	}
+
+	@Override
+	public void appendHoverText(ItemStack stack, @Nullable World level, List<ITextComponent> list, ITooltipFlag flag) {
+		if (stack.getEntityRepresentation() != null && !RiftConfig.isV1()) {
+			int price = this.getPrice(
+					stack.getEntityRepresentation().blockPosition(),
+					stack,
+					respawnPosition != null ? respawnPosition : BlockPos.ZERO
+			);
+			if (price > -1) {
+				list.add(new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)));
+			}
+		}
 	}
 
 	@Override

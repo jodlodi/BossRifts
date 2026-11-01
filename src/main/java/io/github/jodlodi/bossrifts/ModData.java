@@ -1,5 +1,6 @@
 package io.github.jodlodi.bossrifts;
 
+import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
@@ -13,7 +14,6 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
@@ -203,6 +203,7 @@ public class ModData {
 		protected void addTranslations() {
 			AUTO_GENERATOR.forEach(this::add);
 			this.add(ModEntities.BOSS_RIFT.get(), "Boss Rift");
+			this.add(BossRiftEntity.COST, "§7EXP cost: [%s§7]");
 
 			this.add(ModItems.RIFT_PEARL.get(), "Rift Pearl");
 			this.add(ModItems.RIFT_PEARL.get().getDescriptionId() + ".aggregator", "Linked Rift Pearl");

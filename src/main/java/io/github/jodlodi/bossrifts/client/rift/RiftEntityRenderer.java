@@ -6,6 +6,7 @@ import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.RenderTypeLookup;
@@ -18,11 +19,19 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.EndPortalTileEntityRenderer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.ForgeHooksClient;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
@@ -185,5 +194,38 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		);
 		stack.popPose();
 		stack.popPose();
+
+		if (Minecraft.getInstance().hitResult instanceof EntityRayTraceResult && Minecraft.getInstance().player != null) {
+			EntityRayTraceResult result = (EntityRayTraceResult) Minecraft.getInstance().hitResult;
+			if (rift.equals(result.getEntity())) {
+				int price = rift.getPrice(
+						rift.blockPosition(),
+						rift,
+						RiftPearlItem.respawnPosition != null ? RiftPearlItem.respawnPosition : BlockPos.ZERO
+				);
+
+				if (price > -1) {
+					this.renderCost(rift, new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)), stack, buffer, light);
+				}
+			}
+		}
+	}
+
+	protected void renderCost(BossRiftEntity rift, ITextComponent component, MatrixStack stack, IRenderTypeBuffer buffer, int light) {
+		if (ForgeHooksClient.isNameplateInRenderDistance(rift, this.entityRenderDispatcher.distanceToSqr(rift))) {
+			stack.pushPose();
+
+			stack.translate(0.0D, rift.getBbHeight() + 0.75F, 0.0D);
+			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+			stack.scale(-0.025F, -0.025F, 0.025F);
+			Matrix4f matrix4f = stack.last().pose();
+			int opacity = (int)(0.85 * 255.0F) << 24;
+			FontRenderer fontrenderer = this.getFont();
+			float f2 = (float)(-fontrenderer.width(component) / 2);
+			fontrenderer.drawInBatch(component, f2, 0.0F, 553648127, false, matrix4f, buffer, true, opacity, light);
+			fontrenderer.drawInBatch(component, f2, 0.0F, -1, false, matrix4f, buffer, false, 0, light);
+
+			stack.popPose();
+		}
 	}
 }

@@ -3,6 +3,7 @@
   "entity.bossrifts.boss_rift": "Boss Rift",
   "item.bossrifts.rift_pearl": "Rift Pearl",
   "item.bossrifts.rift_pearl.aggregator": "Linked Rift Pearl",
+  "msg.boss_rifts.exp.cost": "\u00A77EXP cost: [%s\u00A77]",
   "subtitles.bossrifts.entity.boss_rift.close": "Rift closes",
   "subtitles.bossrifts.entity.boss_rift.expire": "Rift expires",
   "subtitles.bossrifts.entity.boss_rift.open": "Rift opens",

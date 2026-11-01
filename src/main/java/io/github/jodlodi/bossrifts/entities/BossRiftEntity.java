@@ -14,7 +14,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.item.ItemFrameEntity;
-import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -47,9 +46,10 @@ import java.util.UUID;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
-	private static final DataParameter<Integer> DATA_WARP_POINTS = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
-	private static final DataParameter<ItemStack> DATA_ITEM = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.ITEM_STACK);
+	protected static final DataParameter<Integer> DATA_WARP_POINTS = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.INT);
+	protected static final DataParameter<ItemStack> DATA_ITEM = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.ITEM_STACK);
 	protected static final DataParameter<Optional<UUID>> DATA_OWNERUUID_ID = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.OPTIONAL_UUID);
+	public static final String COST = "msg.boss_rifts.exp.cost";
 	private static final double RANGE = 2.5D;
 
 	private int clientWarp = 0;
@@ -271,6 +271,18 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	public ActionResultType interact(PlayerEntity player, Hand hand) {
 		if (!this.isRevving() && player instanceof ServerPlayerEntity) {
 			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+			int price = this.getPrice(
+					serverPlayer.blockPosition(),
+					this,
+					serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
+			);
+
+			if (price > -1) {
+				if (player.totalExperience >= price || player.abilities.instabuild) {
+					if (!player.abilities.instabuild) player.giveExperienceLevels(-price);
+				} else return ActionResultType.FAIL;
+			}
+
 			this.startRevving(serverPlayer);
 			this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_OPEN.get(), SoundCategory.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
 			return ActionResultType.SUCCESS;

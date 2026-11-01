@@ -20,7 +20,7 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class PearlListener {
 	@SubscribeEvent
-	public static void playerEnderPearl(EntityTeleportEvent.EnderPearl event) {
+	public static void onPlayerPearl(EntityTeleportEvent.EnderPearl event) {
 		ServerPlayerEntity serverPlayer = event.getPlayer();
 		EnderPearlEntity pearl = event.getPearlEntity();
 		MinecraftServer server = pearl.getServer();

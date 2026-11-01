@@ -5,7 +5,6 @@ import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
-import io.github.jodlodi.bossrifts.registry.ModItems;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -27,7 +26,7 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class DeathListener {
 	@SubscribeEvent
-	public static void livingEntityDeath(LivingDeathEvent event) {
+	public static void onLivingEntityDeath(LivingDeathEvent event) {
 		LivingEntity dying = event.getEntityLiving();
 		if (dying.getType().is(BossRifts.RIFT_BOSSES) && !dying.level.isClientSide()) {
 			DamageSource source = event.getSource();
@@ -37,6 +36,8 @@ public class DeathListener {
 	}
 
 	public static void triggerV2(LivingEntity dying, DamageSource source) {
+		if (RiftConfig.getExpCost() >= 0.0F) return;
+
 		List<PlayerEntity> responsible = new ArrayList<>();
 
 		if (source.getDirectEntity() instanceof PlayerEntity) responsible.add((PlayerEntity) source.getDirectEntity());

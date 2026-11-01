@@ -1,5 +1,6 @@
 package io.github.jodlodi.bossrifts.util;
 
+import io.github.jodlodi.bossrifts.RiftConfig;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.Entity;
@@ -7,8 +8,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
@@ -107,5 +106,15 @@ public interface iRift<T> {
 		}
 
 		return new Vector3d(spawnWorld.getSharedSpawnPos().getX() + 0.5D, spawnWorld.getSharedSpawnPos().getY(), spawnWorld.getSharedSpawnPos().getZ() + 0.5D);
+	}
+
+	default int getPrice(BlockPos pos, T t, BlockPos or) {
+		double cost = RiftConfig.getExpCost();
+		if (cost > 0.0D) {
+			BlockPos spawn = this.savedPos(t).orElse(or);
+			double dis = Math.sqrt(pos.distSqr(spawn)) / 16.0D;
+			return (int) (cost * dis);
+		}
+		return -1;
 	}
 }

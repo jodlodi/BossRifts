@@ -28,19 +28,19 @@ public class RiftConfig {
 		public final ConfigValue<Double> expCost;
 
 		private Server(ForgeConfigSpec.Builder builder) {
-			builder.comment("Should the mod behave like it did in 1.0? In which Rifts would automatically appear when a boss is killed instead of being items?" +
-					"\nThe Rift Pearl item serves no purpose on 1.0. It's up to the modpack maker to either give it one or use a mod to remove it.");
-			this.legacyModeConfig = builder.define("Enable legacy behaviour?: ", false);
+			builder.comment("Should the mod behave like it did in 1.0? In which Rifts would automatically appear when a boss is killed instead of being items?");
+			this.legacyModeConfig = builder.define("Enable legacy behavior?: ", false);
 
-			builder.comment("\nHow long should a Rift remain charged for? (20 ticks is 1 second)" +
+			builder.comment("How long should a Rift remain charged for? (20 ticks is 1 second)" +
 					"\nIf you type in the number -1, the Rift will never naturally expire.");
 			this.expireSpanConfig = builder.define("How many ticks to Rifts last?: ", AnimUtil.minutesToTicks(5));
 
-			builder.comment("\nShould the Rift disappear after being used once? (Using an Ender Pearl to use a rift lets you bypass this)");
+			builder.comment("Should the Rift disappear after being used once? (Using an Ender Pearl to use a rift lets you bypass this)");
 			this.oneTimeUse = builder.define("Do Rift pearls disappear upon use? : ", true);
 
-			builder.comment("\nShould using activating a Rift Pearl cost exp instead of killing a boss?");
-			this.expCost = builder.define("Exp cost per chunk of distance, negative value disables this in favour of default behaviour: ", -1.0D);
+			builder.comment("Should using activating a Rift Pearl cost exp instead of killing a boss?" +
+					"\nIf legacy behavior is enabled, a rift will both require a killed boss and a exp cost to activate.");
+			this.expCost = builder.define("Level cost per chunk of distance, negative value disables this in favour of default behavior: ", -1.0D);
 		}
 	}
 
