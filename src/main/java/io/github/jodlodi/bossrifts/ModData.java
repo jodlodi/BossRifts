@@ -1,6 +1,8 @@
 package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
+import io.github.jodlodi.bossrifts.items.RiftAggregatorItem;
+import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
@@ -8,12 +10,14 @@ import io.github.jodlodi.bossrifts.registry.ModSounds;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.data.*;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
@@ -27,6 +31,7 @@ import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +52,7 @@ public class ModData {
 		generator.addProvider(new ModItemModels(generator, helper));
 		generator.addProvider(new ModCrafting(generator));
 		generator.addProvider(new ModSoundDefinitions(generator, helper));
+		generator.addProvider(new ModEntityTags(generator, helper));
 		generator.addProvider(new ModLang(generator));
 	}
 
@@ -203,12 +209,89 @@ public class ModData {
 		protected void addTranslations() {
 			AUTO_GENERATOR.forEach(this::add);
 			this.add(ModEntities.BOSS_RIFT.get(), "Boss Rift");
+
 			this.add(BossRiftEntity.COST, "§7EXP cost: [%s§7]");
+			this.add(RiftAggregatorItem.TOOLTIP, "§7Can be used as a spawn point.");
+			this.add(RiftPearlItem.TOOLTIP_UNLINKED, "§7Use on a Rift Aggregator to link.");
+			this.add(RiftPearlItem.TOOLTIP_V1_LINKED, "§7Use on a Rift to set destination to link.");
+			this.add(RiftPearlItem.TOOLTIP_MODERN_1, "§7Hold-use to warp.");
+			this.add(RiftPearlItem.TOOLTIP_MODERN_2, "§7Sneak-use on block to place Rift.");
 
 			this.add(ModItems.RIFT_PEARL.get(), "Rift Pearl");
 			this.add(ModItems.RIFT_PEARL.get().getDescriptionId() + ".aggregator", "Linked Rift Pearl");
 
 			this.add(ModBlocks.RIFT_AGGREGATOR.get(), "Rift Aggregator");
+		}
+	}
+
+	private static class ModEntityTags extends EntityTypeTagsProvider {
+
+		public ModEntityTags(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper) {
+			super(generator, BossRifts.MOD_ID, existingFileHelper);
+		}
+
+		@Override
+		protected void addTags() {
+			this.tag(BossRifts.LEGACY_BOSSES)
+					.addOptional(new ResourceLocation("twilightforest", "lich"))
+					.addOptional(new ResourceLocation("twilightforest", "lich"))
+					.addOptional(new ResourceLocation("twilightforest", "yeti"))
+					.addOptional(new ResourceLocation("twilightforest", "snow_queen"))
+					.addOptional(new ResourceLocation("twilightforest", "minoshroom"))
+					.addOptional(new ResourceLocation("twilightforest", "hydra"))
+					.addOptional(new ResourceLocation("twilightforest", "knight_phantom"))
+					.addOptional(new ResourceLocation("twilightforest", "ur_ghast"))
+					.addOptional(new ResourceLocation("atum", "pharaoh"))
+					.addOptional(new ResourceLocation("mowziesmobs", "barako"))
+					.addOptional(new ResourceLocation("mowziesmobs", "ferrous_wroughtnaut"))
+					.addOptional(new ResourceLocation("mowziesmobs", "frostmaw"))
+					.addOptional(new ResourceLocation("aoa3", "baroness"))
+					.addOptional(new ResourceLocation("aoa3", "clunkhead"))
+					.addOptional(new ResourceLocation("aoa3", "craexxeus"))
+					.addOptional(new ResourceLocation("aoa3", "crystocore"))
+					.addOptional(new ResourceLocation("aoa3", "creep"))
+					.addOptional(new ResourceLocation("aoa3", "dracyon"))
+					.addOptional(new ResourceLocation("aoa3", "elusive"))
+					.addOptional(new ResourceLocation("aoa3", "graw"))
+					.addOptional(new ResourceLocation("aoa3", "hive_king"))
+					.addOptional(new ResourceLocation("aoa3", "kror"))
+					.addOptional(new ResourceLocation("aoa3", "mechbot"))
+					.addOptional(new ResourceLocation("aoa3", "okazor"))
+					.addOptional(new ResourceLocation("aoa3", "shadowlord"))
+					.addOptional(new ResourceLocation("aoa3", "skeletron"))
+					.addOptional(new ResourceLocation("aoa3", "vinocorne"))
+					.addOptional(new ResourceLocation("aoa3", "voxxulon"))
+					.addOptional(new ResourceLocation("aoa3", "flash"))
+					.addOptional(new ResourceLocation("aoa3", "red_guardian"))
+					.addOptional(new ResourceLocation("aoa3", "green_guardian"))
+					.addOptional(new ResourceLocation("aoa3", "blue_guardian"))
+					.addOptional(new ResourceLocation("aoa3", "yellow_guardian"))
+					.addOptional(new ResourceLocation("gaiadimension", "malachite_guard"))
+					.addOptional(new ResourceLocation("blue_skies", "alchemist"))
+					.addOptional(new ResourceLocation("blue_skies", "arachnarch"))
+					.addOptional(new ResourceLocation("blue_skies", "starlit_crusher"))
+					.addOptional(new ResourceLocation("blue_skies", "summoner"))
+					.addOptional(new ResourceLocation("stalwart_dungeons", "awful_ghast"))
+					.addOptional(new ResourceLocation("stalwart_dungeons", "nether_keeper"))
+					.addOptional(new ResourceLocation("stalwart_dungeons", "shelterer_without_armor"))
+					.addOptional(new ResourceLocation("dungeonsmod", "king"))
+					.addOptional(new ResourceLocation("dungeonsmod", "deserted"))
+					.addOptional(new ResourceLocation("dungeonsmod", "crawler"))
+					.addOptional(new ResourceLocation("dungeonsmod", "ironslime"))
+					.addOptional(new ResourceLocation("dungeonsmod", "kraken"))
+					.addOptional(new ResourceLocation("dungeonsmod", "voidmaster"))
+					.addOptional(new ResourceLocation("forestcraft", "beequeen"))
+					.addOptional(new ResourceLocation("forestcraft", "iguana_king"))
+					.addOptional(new ResourceLocation("cataclysm", "ender_golem"))
+					.addOptional(new ResourceLocation("cataclysm", "ender_guardian"))
+					.addOptional(new ResourceLocation("cataclysm", "ignis"))
+					.addOptional(new ResourceLocation("cataclysm", "ignited_revenant"))
+					.addOptional(new ResourceLocation("cataclysm", "netherite_monstrosity"));
+
+			this.tag(BossRifts.RIFT_BOSSES).add(
+					EntityType.WITHER,
+					EntityType.ENDER_DRAGON
+			).addTag(BossRifts.LEGACY_BOSSES);
 		}
 	}
 
@@ -220,8 +303,6 @@ public class ModData {
 
 		@Override
 		public void registerSounds() {
-			//this.generateWithExistingSound(ModSounds.RIFT_EXPIRE, SoundEvents.LODESTONE_COMPASS_LOCK, "Rift expires");
-
 			this.generateNewSoundMC(
 					ModSounds.RIFT_SPAWN,
 					"Rift spawns",
@@ -258,6 +339,9 @@ public class ModData {
 					1.0F, 1.0F,
 					"mob/illusion_illager/prepare_mirror"
 			);
+
+			this.generateWithExistingSound(ModSounds.RIFT_AGGREGATOR_AMBIENT, SoundEvents.RESPAWN_ANCHOR_AMBIENT, "Rift Aggregator whooshes");
+			this.generateWithExistingSound(ModSounds.RIFT_AGGREGATOR_SET_SPAWN, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, "Rift Aggregator sets spawn");
 		}
 
 		public void generateWithExistingSound(Supplier<SoundEvent> event, SoundEvent referencedSound, String subtitle) {

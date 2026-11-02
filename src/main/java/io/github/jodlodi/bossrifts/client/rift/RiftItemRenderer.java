@@ -138,7 +138,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 			if (pose != null) stack.mulPose(pose.get(entry.getKey()));
 
-			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.1D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
+			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.2D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
 
 			Vector3i vector3i = entry.getKey();
 			ModelRenderer modelRenderer = entry.getValue();

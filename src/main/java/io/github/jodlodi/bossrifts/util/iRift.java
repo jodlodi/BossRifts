@@ -110,6 +110,7 @@ public interface iRift<T> {
 
 	default int getPrice(BlockPos pos, T t, BlockPos or) {
 		double cost = RiftConfig.getExpCost();
+		if (MathHelper.equal(cost, 0.0D)) return 0;
 		if (cost > 0.0D) {
 			BlockPos spawn = this.savedPos(t).orElse(or);
 			double dis = Math.sqrt(pos.distSqr(spawn)) / 16.0D;

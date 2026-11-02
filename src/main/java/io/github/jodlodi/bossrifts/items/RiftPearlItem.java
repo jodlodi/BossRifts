@@ -3,8 +3,6 @@ package io.github.jodlodi.bossrifts.items;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
-import io.github.jodlodi.bossrifts.network.ModPacketHandler;
-import io.github.jodlodi.bossrifts.network.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
@@ -34,7 +32,6 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,11 +42,15 @@ import java.util.Optional;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class RiftPearlItem extends Item implements iRift<ItemStack> {
-	public static ResourceLocation ENTITY_MODEL = BossRifts.prefix("item/rift_pearl_frame");
-	public static ResourceLocation EYE_MODEL = BossRifts.prefix("item/rift_pearl_icon");
-	public final static String DIMENSION = "AggregatorDimension";
-	public final static String POSITION = "AggregatorPosition";
-	public final static String POWERED = "RiftPowered";
+	public static final ResourceLocation ENTITY_MODEL = BossRifts.prefix("item/rift_pearl_frame");
+	public static final ResourceLocation EYE_MODEL = BossRifts.prefix("item/rift_pearl_icon");
+	public static final String TOOLTIP_UNLINKED = "tooltip.boss_rifts.rift_pearl.v1_unlinked";
+	public static final String TOOLTIP_V1_LINKED = "tooltip.boss_rifts.rift_pearl.v1_linked";
+	public static final String TOOLTIP_MODERN_1 = "tooltip.boss_rifts.rift_pearl.modern.1";
+	public static final String TOOLTIP_MODERN_2 = "tooltip.boss_rifts.rift_pearl.modern.2";
+	public static final String DIMENSION = "AggregatorDimension";
+	public static final String POSITION = "AggregatorPosition";
+	public static final String POWERED = "RiftPowered";
 
 	public static @Nullable BlockPos respawnPosition = null;
 	public static @Nullable RegistryKey<World> respawnDimension = null;
@@ -192,7 +193,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			);
 
 			if (price > -1 && (player.totalExperience >= price || player.abilities.instabuild)) {
-				if (!player.abilities.instabuild) player.giveExperienceLevels(-price);
+				if (!player.abilities.instabuild && price > 0) player.giveExperienceLevels(-price);
 				empowerPearl(stack, level.getGameTime());
 				return ActionResult.success(stack);
 			}
@@ -203,14 +204,29 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable World level, List<ITextComponent> list, ITooltipFlag flag) {
-		if (stack.getEntityRepresentation() != null && !RiftConfig.isV1()) {
-			int price = this.getPrice(
-					stack.getEntityRepresentation().blockPosition(),
-					stack,
-					respawnPosition != null ? respawnPosition : BlockPos.ZERO
-			);
-			if (price > -1) {
-				list.add(new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)));
+		if (!isAggregatorPearl(stack)) list.add(new TranslationTextComponent(TOOLTIP_UNLINKED));
+		if (RiftConfig.isV1()) {
+			if (isAggregatorPearl(stack)) list.add(new TranslationTextComponent(TOOLTIP_V1_LINKED));
+		} else {
+			long powered = poweredTime(stack);
+
+			if (powered >= 0 && level != null) {
+				long diff = level.getGameTime() - powered;
+				if (diff <= RiftConfig.empowerDuration() && diff >= TRANSITION_TIME) {
+					list.add(new TranslationTextComponent(TOOLTIP_MODERN_1));
+					list.add(new TranslationTextComponent(TOOLTIP_MODERN_2));
+				}
+			}
+
+			if (stack.getEntityRepresentation() != null) {
+				int price = this.getPrice(
+						stack.getEntityRepresentation().blockPosition(),
+						stack,
+						respawnPosition != null ? respawnPosition : BlockPos.ZERO
+				);
+				if (price > 0) {
+					list.add(new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)));
+				}
 			}
 		}
 	}

@@ -46,5 +46,23 @@
     "sounds": [
       "mob/illusion_illager/prepare_mirror"
     ]
+  },
+  "block.boss_rift.rift_aggregator.ambient": {
+    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.ambient",
+    "sounds": [
+      {
+        "name": "block.respawn_anchor.ambient",
+        "type": "event"
+      }
+    ]
+  },
+  "block.boss_rift.rift_aggregator.set_spawn": {
+    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.set_spawn",
+    "sounds": [
+      {
+        "name": "block.respawn_anchor.set_spawn",
+        "type": "event"
+      }
+    ]
   }
 }

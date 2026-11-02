@@ -1,6 +1,9 @@
 package io.github.jodlodi.bossrifts.blocks;
 
+import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.registry.ModParticles;
+import io.github.jodlodi.bossrifts.registry.ModSounds;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
@@ -58,11 +61,11 @@ public class RiftAggregatorBlock extends Block {
 	public ActionResultType use(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
 		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem) return ActionResultType.PASS;
 
-		if (player instanceof ServerPlayerEntity) {
+		if (player instanceof ServerPlayerEntity && this.isPossibleToRespawnInThis()) {
 			ServerPlayerEntity serverplayerentity = (ServerPlayerEntity) player;
 			if (serverplayerentity.getRespawnDimension() != level.dimension() || !pos.equals(serverplayerentity.getRespawnPosition())) {
 				serverplayerentity.setRespawnPosition(level.dimension(), pos, 0.0F, false, true);
-				level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_SET_SPAWN.get(), SoundCategory.BLOCKS, 1.0F, 1.0F);
 				return ActionResultType.SUCCESS;
 			}
 		}
@@ -72,7 +75,7 @@ public class RiftAggregatorBlock extends Block {
 
 	@Override
 	public boolean isPossibleToRespawnInThis() {
-		return true;
+		return RiftConfig.canSetSpawn();
 	}
 
 	@Override
@@ -83,7 +86,7 @@ public class RiftAggregatorBlock extends Block {
 	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState state, World level, BlockPos pos, Random random) {
 		if (random.nextInt(100) == 0) {
-			level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_AMBIENT, SoundCategory.BLOCKS, 1.0F, 1.0F);
+			level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_AMBIENT.get(), SoundCategory.BLOCKS, 1.0F, 1.0F);
 		}
 
 		if (random.nextInt(4) != 0) return;
@@ -92,6 +95,6 @@ public class RiftAggregatorBlock extends Block {
 		double y = (double)pos.getY() + 1.0D;
 		double z = (double)pos.getZ() + 0.5D + (0.5D - random.nextDouble());
 		double yV = (double)random.nextFloat() * 0.04D;
-		level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0D, yV, 0.0D);
+		level.addParticle(ModParticles.RIFT_SMOKE.get(), x, y, z, 0.0D, yV, 0.0D);
 	}
 }

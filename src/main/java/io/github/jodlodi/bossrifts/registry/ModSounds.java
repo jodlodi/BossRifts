@@ -20,6 +20,9 @@ public class ModSounds {
 	public static final RegistryObject<SoundEvent> RIFT_WARP = riftSound("entity.boss_rift.warp");
 	public static final RegistryObject<SoundEvent> RIFT_EXPIRE = riftSound("entity.boss_rift.expire");
 
+	public static final RegistryObject<SoundEvent> RIFT_AGGREGATOR_AMBIENT = riftSound("block.boss_rift.rift_aggregator.ambient");
+	public static final RegistryObject<SoundEvent> RIFT_AGGREGATOR_SET_SPAWN = riftSound("block.boss_rift.rift_aggregator.set_spawn");
+
 	private static RegistryObject<SoundEvent> riftSound(String key) {
 		return SOUND_TYPES.register(key, () -> new SoundEvent(BossRifts.prefix(key)));
 	}

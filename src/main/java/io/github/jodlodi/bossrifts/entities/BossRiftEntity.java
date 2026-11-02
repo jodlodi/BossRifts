@@ -4,6 +4,7 @@ import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
+import io.github.jodlodi.bossrifts.registry.ModParticles;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
@@ -50,7 +51,6 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	protected static final DataParameter<ItemStack> DATA_ITEM = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.ITEM_STACK);
 	protected static final DataParameter<Optional<UUID>> DATA_OWNERUUID_ID = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.OPTIONAL_UUID);
 	public static final String COST = "msg.boss_rifts.exp.cost";
-	private static final double RANGE = 2.5D;
 
 	private int clientWarp = 0;
 	private int clientWarp0 = 0;
@@ -164,31 +164,35 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 						ModSounds.RIFT_CLOSE.get(), SoundCategory.PLAYERS, 1.0F, this.level.random.nextFloat() * 0.5F + 0.8F, false);
 			}
 
-			double maxX = this.getRandomX(0.1D) + RANGE;
-			double maxY = this.getRandomY(0.1D) + RANGE + 0.25D;
-			double maxZ = this.getRandomZ(0.1D) + RANGE;
-			double minX = this.getRandomX(0.1D) - RANGE;
-			double minY = this.getRandomY(0.1D) - RANGE - 0.25D;
-			double minZ = this.getRandomZ(0.1D) - RANGE;
+			double range = RiftConfig.getRange();
+			int count = (int) (range / 3.0D) + 1;
 
-			addRandomStationaryParticle(AnimUtil.random(this.random, -RANGE, RANGE) + thisX, maxY, maxZ);
-			addRandomStationaryParticle(AnimUtil.random(this.random, -RANGE, RANGE) + thisX, maxY, minZ);
-			addRandomStationaryParticle(AnimUtil.random(this.random, -RANGE, RANGE) + thisX, minY, maxZ);
-			addRandomStationaryParticle(AnimUtil.random(this.random, -RANGE, RANGE) + thisX, minY, minZ);
+			for (int i = 0; i < count; i++) {
+				double maxX = this.getRandomX(0.1D) + range;
+				double maxY = this.getRandomY(0.1D) + range + 0.25D;
+				double maxZ = this.getRandomZ(0.1D) + range;
+				double minX = this.getRandomX(0.1D) - range;
+				double minY = this.getRandomY(0.1D) - range - 0.25D;
+				double minZ = this.getRandomZ(0.1D) - range;
 
-			addRandomStationaryParticle(maxX, AnimUtil.random(this.random, -RANGE, RANGE) + thisY, maxZ);
-			addRandomStationaryParticle(maxX, AnimUtil.random(this.random, -RANGE, RANGE) + thisY, minZ);
-			addRandomStationaryParticle(minX, AnimUtil.random(this.random, -RANGE, RANGE) + thisY, maxZ);
-			addRandomStationaryParticle(minX, AnimUtil.random(this.random, -RANGE, RANGE) + thisY, minZ);
+				addRandomStationaryParticle(AnimUtil.random(this.random, -range, range) + thisX, maxY, maxZ);
+				addRandomStationaryParticle(AnimUtil.random(this.random, -range, range) + thisX, maxY, minZ);
+				addRandomStationaryParticle(AnimUtil.random(this.random, -range, range) + thisX, minY, maxZ);
+				addRandomStationaryParticle(AnimUtil.random(this.random, -range, range) + thisX, minY, minZ);
 
-			addRandomStationaryParticle(maxX, maxY, AnimUtil.random(this.random, -RANGE, RANGE) + thisZ);
-			addRandomStationaryParticle(maxX, minY, AnimUtil.random(this.random, -RANGE, RANGE) + thisZ);
-			addRandomStationaryParticle(minX, maxY, AnimUtil.random(this.random, -RANGE, RANGE) + thisZ);
-			addRandomStationaryParticle(minX, minY, AnimUtil.random(this.random, -RANGE, RANGE) + thisZ);
+				addRandomStationaryParticle(maxX, AnimUtil.random(this.random, -range, range) + thisY, maxZ);
+				addRandomStationaryParticle(maxX, AnimUtil.random(this.random, -range, range) + thisY, minZ);
+				addRandomStationaryParticle(minX, AnimUtil.random(this.random, -range, range) + thisY, maxZ);
+				addRandomStationaryParticle(minX, AnimUtil.random(this.random, -range, range) + thisY, minZ);
 
+				addRandomStationaryParticle(maxX, maxY, AnimUtil.random(this.random, -range, range) + thisZ);
+				addRandomStationaryParticle(maxX, minY, AnimUtil.random(this.random, -range, range) + thisZ);
+				addRandomStationaryParticle(minX, maxY, AnimUtil.random(this.random, -range, range) + thisZ);
+				addRandomStationaryParticle(minX, minY, AnimUtil.random(this.random, -range, range) + thisZ);
+			}
 			addRandomStationaryParticle(thisX - 0.5D + this.random.nextDouble(), thisY + 0.25D, thisZ - 0.5D + this.random.nextDouble());
 
-			List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(RANGE - 0.25D).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
+			List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(range - 0.25D).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
 			for (Entity entity : nearbyEntities) {
 				if (!(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity) && this.random.nextInt(USE_DURATION) <= points + USE_DURATION / 3) {
 					double itemFix = 0D;
@@ -205,7 +209,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 						ServerPlayerEntity player = lastTo != null ? server.getPlayerList().getPlayer(lastTo) : null;
 						boolean worked = false;
 
-						List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(RANGE - 0.25D).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
+						List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(RiftConfig.getRange() - 0.25D).move(0, 0.2D, 0), EntityPredicates.ENTITY_STILL_ALIVE);
 						for (Entity entity : nearbyEntities) {
 							if (!entity.getUUID().equals(lastTo) && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrameEntity)) {
 								this.sendToSpawn(this, server, entity, lastTo);
@@ -262,7 +266,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	}
 
 	private void addRandomStationaryParticle(double x, double y, double z) {
-		BasicParticleType particleType = ParticleTypes.SMOKE;
+		BasicParticleType particleType = ModParticles.RIFT_SMOKE.get();
 		if (this.random.nextInt(USE_DURATION) < this.entityData.get(DATA_WARP_POINTS))
 			this.level.addParticle(particleType, x, y, z, 0, 0, 0);
 	}
@@ -279,11 +283,15 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 			if (price > -1) {
 				if (player.totalExperience >= price || player.abilities.instabuild) {
-					if (!player.abilities.instabuild) player.giveExperienceLevels(-price);
+					if (!player.abilities.instabuild && price > 0) player.giveExperienceLevels(-price);
 				} else return ActionResultType.FAIL;
 			}
 
 			this.startRevving(serverPlayer);
+			ItemStack stack = player.getItemInHand(hand);
+			if (stack.getItem() instanceof RiftPearlItem) this.setItem(stack);
+			else this.setItem(new ItemStack(ModItems.RIFT_PEARL.get()));
+
 			this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_OPEN.get(), SoundCategory.BLOCKS, 0.8F, this.random.nextFloat() * 0.4F + 0.4F);
 			return ActionResultType.SUCCESS;
 		}
@@ -340,6 +348,11 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	@Override
 	public void onAddedToWorld() {
 		this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundCategory.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
+		ItemStack stack = this.getItem();
+		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POWERED)) {
+			RiftPearlItem.empowerPearl(stack, this.level.getGameTime());
+			this.setItem(stack);
+		}
 		super.onAddedToWorld();
 	}
 

@@ -2,6 +2,7 @@ package io.github.jodlodi.bossrifts.client.rift;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import mcp.MethodsReturnNonnullByDefault;
@@ -141,7 +142,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 			if (pose != null) stack.mulPose(pose.get(entry.getKey()));
 
-			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.1D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
+			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.2D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
 
 			Vector3i vector3i = entry.getKey();
 			ModelRenderer modelRenderer = entry.getValue();
@@ -195,7 +196,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		stack.popPose();
 		stack.popPose();
 
-		if (Minecraft.getInstance().hitResult instanceof EntityRayTraceResult && Minecraft.getInstance().player != null) {
+		if (RiftConfig.isV1() && Minecraft.getInstance().hitResult instanceof EntityRayTraceResult && Minecraft.getInstance().player != null) {
 			EntityRayTraceResult result = (EntityRayTraceResult) Minecraft.getInstance().hitResult;
 			if (rift.equals(result.getEntity())) {
 				int price = rift.getPrice(

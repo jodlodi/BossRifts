@@ -7,10 +7,15 @@ import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.registry.ModParticles;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.client.particle.SmokeParticle;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -35,5 +40,11 @@ public class ClientSetupListener {
 	public static void onModelRegister(ModelRegistryEvent event) {
 		ModelLoader.addSpecialModel(RiftPearlItem.ENTITY_MODEL);
 		ModelLoader.addSpecialModel(RiftPearlItem.EYE_MODEL);
+	}
+
+	@SubscribeEvent
+	public static void registerFactories(ParticleFactoryRegisterEvent event) {
+		ParticleManager particles = Minecraft.getInstance().particleEngine;
+		particles.register(ModParticles.RIFT_SMOKE.get(), SmokeParticle.Factory::new);
 	}
 }
