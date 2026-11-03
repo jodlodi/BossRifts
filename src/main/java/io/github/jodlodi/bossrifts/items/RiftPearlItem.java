@@ -11,7 +11,6 @@ import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -147,7 +146,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public void onUsingTick(ItemStack stack, LivingEntity player, int remaining) {
 		World level = player.level;
 		int ticksUsed = USE_DURATION - remaining;
-		Vector3d pos = player.getEyePosition(Minecraft.getInstance().getFrameTime());
+		Vector3d pos = player.getEyePosition(1.0F);
 
 		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
 
