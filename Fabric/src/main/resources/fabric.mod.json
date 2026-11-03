@@ -1,0 +1,39 @@
+{
+    "schemaVersion": 1,
+    "id": "modid",
+    "version": "${version}",
+  
+    "name": "Boss Rifts",
+    "description": "Kill bosses while holding a Rift pearl to empower it, allowing you to teleport back home.",
+    "authors": [
+      "jodlodi"
+    ],
+    "contact": {
+      "homepage": "https://fabricmc.net/",
+      "sources": "https://github.com/FabricMC/fabric-example-mod"
+    },
+  
+    "license": "CC0-1.0",
+    "icon": "assets/modid/icon.png",
+  
+    "environment": "*",
+    "entrypoints": {
+      "main": [
+        "io.github.jodlodi.bossrifts.ExampleMod"
+      ]
+    },
+    "mixins": [
+      "modid.mixins.json"
+    ],
+  
+    "depends": {
+      "fabricloader": ">=0.11.3",
+      "fabric": "*",
+      "minecraft": "1.17.x",
+      "java": ">=16"
+    },
+    "suggests": {
+      "another-mod": "*"
+    }
+  }
+  
