@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.items;
 
-import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.BlockItem;
@@ -23,6 +23,6 @@ public class RiftAggregatorItem extends BlockItem {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
-		if (RiftConfig.canSetSpawn()) list.add(new TranslatableComponent(TOOLTIP));
+		if (Services.CONFIG.canSetSpawn()) list.add(new TranslatableComponent(TOOLTIP));
 	}
 }

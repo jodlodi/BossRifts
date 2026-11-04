@@ -19,7 +19,7 @@
     "environment": "*",
     "entrypoints": {
       "main": [
-        "io.github.jodlodi.bossrifts.ExampleMod"
+        "io.github.jodlodi.bossrifts.BossRifts"
       ]
     },
     "mixins": [

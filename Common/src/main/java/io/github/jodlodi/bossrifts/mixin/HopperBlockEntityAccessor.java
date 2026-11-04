@@ -20,6 +20,9 @@ public interface HopperBlockEntityAccessor {
 	@Invoker("isOnCooldown")
 	boolean invokeIsOnCooldown();
 
+	@Invoker("setCooldown")
+	void invokeSetCooldown(int cooldown);
+
 	@Invoker("tryMoveItems")
 	static boolean invokeTryMoveItems(Level level, BlockPos pos, BlockState state, HopperBlockEntity entity, BooleanSupplier supplier) {
 		throw new RuntimeException();

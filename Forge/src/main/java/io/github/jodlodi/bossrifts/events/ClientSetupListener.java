@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.events;
 
-import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
@@ -27,7 +27,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientSetupListener {
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {

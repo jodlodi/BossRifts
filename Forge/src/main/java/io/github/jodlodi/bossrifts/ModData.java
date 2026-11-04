@@ -7,6 +7,7 @@ import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -31,7 +32,6 @@ import net.minecraftforge.common.data.SoundDefinition;
 import net.minecraftforge.common.data.SoundDefinitionsProvider;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.jspecify.annotations.NullMarked;
 
@@ -43,7 +43,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModData {
 	@SubscribeEvent
 	public static void gatherData(GatherDataEvent event) {
@@ -66,11 +66,11 @@ public class ModData {
 		@Override
 		protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
 			ShapedRecipeBuilder.shaped(ModItems.RIFT_PEARL.get(), 1)
-					.pattern("#∴#")
-					.pattern("∴0∴")
-					.pattern("#∴#")
+					.pattern("#X#")
+					.pattern("X0X")
+					.pattern("#X#")
 					.define('#', Ingredient.of(Tags.Items.END_STONES))
-					.define('∴', Ingredient.of(Tags.Items.DUSTS_GLOWSTONE))
+					.define('X', Ingredient.of(Tags.Items.DUSTS_GLOWSTONE))
 					.define('0', Ingredient.of(Items.ENDER_EYE))
 					.unlockedBy("has_item", has(Items.ENDER_EYE))
 					.save(consumer);
@@ -90,18 +90,17 @@ public class ModData {
 
 	private static class ModBlockStates extends BlockStateProvider {
 		public ModBlockStates(DataGenerator gen, ExistingFileHelper exFileHelper) {
-			super(gen, BossRifts.MOD_ID, exFileHelper);
+			super(gen, Constants.MOD_ID, exFileHelper);
 		}
 
 		@Override
 		protected void registerStatesAndModels() {
-			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.getId().getPath(), "block/block")
-
-					.texture("top", BossRifts.prefix("block/rift_aggregator_top_off"))
-					.texture("inner", BossRifts.prefix("block/rift_aggregator_top"))
-					.texture("bottom", BossRifts.prefix("block/rift_aggregator_bottom"))
-					.texture("side", BossRifts.prefix("block/rift_aggregator_side0"))
-					.texture("particle", BossRifts.prefix("block/rift_aggregator_side0"))
+			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.id().getPath(), "block/block")
+					.texture("top", Constants.prefix("block/rift_aggregator_top_off"))
+					.texture("inner", Constants.prefix("block/rift_aggregator_top"))
+					.texture("bottom", Constants.prefix("block/rift_aggregator_bottom"))
+					.texture("side", Constants.prefix("block/rift_aggregator_side0"))
+					.texture("particle", Constants.prefix("block/rift_aggregator_side0"))
 
 					.element()
 					.from(0.0F, 0.0F, 0.0F)
@@ -166,7 +165,7 @@ public class ModData {
 	private static class ModItemModels extends ItemModelProvider {
 
 		public ModItemModels(DataGenerator generator, ExistingFileHelper existingFileHelper) {
-			super(generator, BossRifts.MOD_ID, existingFileHelper);
+			super(generator, Constants.MOD_ID, existingFileHelper);
 		}
 
 		@Override
@@ -183,16 +182,16 @@ public class ModData {
 			return builder;
 		}
 
-		private <T extends Item> ItemModelBuilder singleTex(RegistryObject<T> item) {
-			return generated(item.getId().getPath(), BossRifts.prefix("item/" + item.getId().getPath()));
+		private <T extends Item> ItemModelBuilder singleTex(MultiSupplier<T> item) {
+			return generated(item.id().getPath(), Constants.prefix("item/" + item.id().getPath()));
 		}
 
-		private <T extends Block> void toBlock(RegistryObject<T> block) {
+		private <T extends Block> void toBlock(MultiSupplier<T> block) {
 			toBlockModel(block.get(), Objects.requireNonNull(block.get().getRegistryName()).getPath());
 		}
 
 		private void toBlockModel(Block block, String model) {
-			toBlockModel(block, BossRifts.prefix("block/" + model));
+			toBlockModel(block, Constants.prefix("block/" + model));
 		}
 
 		private void toBlockModel(Block block, ResourceLocation model) {
@@ -204,7 +203,7 @@ public class ModData {
 		public static final Map<String, String> AUTO_GENERATOR = new HashMap<>();
 
 		public ModLang(DataGenerator generator) {
-			super(generator, BossRifts.MOD_ID, "en_us");
+			super(generator, Constants.MOD_ID, "en_us");
 		}
 
 		@Override
@@ -229,7 +228,7 @@ public class ModData {
 	private static class ModEntityTags extends EntityTypeTagsProvider {
 
 		public ModEntityTags(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper) {
-			super(generator, BossRifts.MOD_ID, existingFileHelper);
+			super(generator, Constants.MOD_ID, existingFileHelper);
 		}
 
 		@Override
@@ -300,7 +299,7 @@ public class ModData {
 	private static class ModSoundDefinitions extends SoundDefinitionsProvider {
 
 		protected ModSoundDefinitions(DataGenerator generator, ExistingFileHelper helper) {
-			super(generator, BossRifts.MOD_ID, helper);
+			super(generator, Constants.MOD_ID, helper);
 		}
 
 		@Override
@@ -370,7 +369,7 @@ public class ModData {
 
 		private void createSubtitleAndLangEntry(Supplier<SoundEvent> event, SoundDefinition definition, String subtitle) {
 			String[] splitSoundName = Objects.requireNonNull(event.get().getLocation()).getPath().split("\\.", 2);
-			String subtitleKey = "subtitles." + BossRifts.MOD_ID + "." + splitSoundName[0] + "." + splitSoundName[1];
+			String subtitleKey = "subtitles." + Constants.MOD_ID + "." + splitSoundName[0] + "." + splitSoundName[1];
 			definition.subtitle(subtitleKey);
 			ModLang.AUTO_GENERATOR.put(subtitleKey, subtitle);
 		}

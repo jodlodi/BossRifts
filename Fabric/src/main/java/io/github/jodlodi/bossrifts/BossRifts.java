@@ -1,9 +1,8 @@
 package io.github.jodlodi.bossrifts;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 
-public class ExampleMod implements ModInitializer {
+public class BossRifts implements ModInitializer {
     
     @Override
     public void onInitialize() {
@@ -18,6 +17,5 @@ public class ExampleMod implements ModInitializer {
         
         // Some code like events require special initialization from the
         // loader specific code.
-        ItemTooltipCallback.EVENT.register(CommonClass::onItemTooltip);
     }
 }

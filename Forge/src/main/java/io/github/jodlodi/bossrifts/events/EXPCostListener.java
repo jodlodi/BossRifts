@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.events;
 
-import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.network.ModPacketHandler;
 import io.github.jodlodi.bossrifts.network.SendRespawnDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,7 +14,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Optional;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class EXPCostListener {
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {

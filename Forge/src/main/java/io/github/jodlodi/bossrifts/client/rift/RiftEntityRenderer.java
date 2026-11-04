@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
-import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -192,7 +192,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		stack.popPose();
 		stack.popPose();
 
-		if (RiftConfig.isV1() && Minecraft.getInstance().hitResult instanceof EntityHitResult result && Minecraft.getInstance().player != null) {
+		if (Services.CONFIG.isV1() && Minecraft.getInstance().hitResult instanceof EntityHitResult result && Minecraft.getInstance().player != null) {
 			if (rift.equals(result.getEntity())) {
 				int price = rift.getPrice(
 						rift.blockPosition(),

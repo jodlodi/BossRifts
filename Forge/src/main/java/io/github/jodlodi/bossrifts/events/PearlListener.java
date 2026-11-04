@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.events;
 
-import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
@@ -16,7 +16,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.List;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class PearlListener {
 	@SubscribeEvent
 	public static void onPlayerPearl(EntityTeleportEvent.EnderPearl event) {

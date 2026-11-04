@@ -78,7 +78,7 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":Common")
-    compileOnly 'org.jspecify:jspecify:1.0.0'
+    implementation 'org.jspecify:jspecify:1.0.0'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

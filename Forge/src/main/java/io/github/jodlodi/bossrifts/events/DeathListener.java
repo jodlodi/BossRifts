@@ -1,9 +1,9 @@
 package io.github.jodlodi.bossrifts.events;
 
-import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,20 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class DeathListener {
 	@SubscribeEvent
 	public static void onLivingEntityDeath(LivingDeathEvent event) {
 		LivingEntity dying = event.getEntityLiving();
-		if (dying.getType().is(RiftConfig.getTag()) && !dying.level.isClientSide()) {
+		if (dying.getType().is(Services.CONFIG.getTag()) && !dying.level.isClientSide()) {
 			DamageSource source = event.getSource();
-			if (!RiftConfig.isV1()) triggerV2(dying, source);
+			if (!Services.CONFIG.isV1()) triggerV2(dying, source);
 			else triggerV1(dying);
 		}
 	}
 
 	public static void triggerV2(LivingEntity dying, DamageSource source) {
-		if (RiftConfig.getExpCost() >= 0.0F) return;
+		if (Services.CONFIG.getExpCost() >= 0.0F) return;
 
 		List<Player> responsible = new ArrayList<>();
 
@@ -48,8 +48,9 @@ public class DeathListener {
 	}
 
 	public static void triggerV1(LivingEntity dying) {
-		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> RiftConfig.getTag().contains(entity.getType())).isEmpty())
+		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> Services.CONFIG.getTag().contains(entity.getType())).isEmpty()) {
 			return;
+		}
 
 		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level);
 		if (bossRift != null) {

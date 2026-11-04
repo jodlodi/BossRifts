@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.items.VanillaInventoryCodeHooks;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class RiftAggregatorBlockEntity extends BlockEntity {
 		BlockEntity entity = this.level.getBlockEntity(this.worldPosition.below());
 		if (entity instanceof HopperBlockEntity hopper) {
 			if (!((HopperBlockEntityAccessor) hopper).invokeIsOnCooldown()) {
-				hopper.setCooldown(0);
+				((HopperBlockEntityAccessor) hopper).invokeSetCooldown(0);
 				HopperBlockEntityAccessor.invokeTryMoveItems(this.level, hopper.getBlockPos(), hopper.getBlockState(), hopper, () -> suckInItems(this.level, hopper, this));
 			}
 		} else {
@@ -48,9 +47,6 @@ public class RiftAggregatorBlockEntity extends BlockEntity {
 	}
 
 	public static boolean suckInItems(Level level, HopperBlockEntity hopper, RiftAggregatorBlockEntity aggregator) {
-		Boolean forgeHook = VanillaInventoryCodeHooks.extractHook(level, hopper);
-		if (forgeHook != null) return forgeHook;
-
 		Container inventory = HopperBlockEntity.getContainerAt(level, hopper.getBlockPos());
 		if (inventory != null) {
 			Direction direction = Direction.DOWN;

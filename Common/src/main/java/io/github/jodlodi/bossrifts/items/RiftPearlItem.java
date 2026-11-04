@@ -1,8 +1,8 @@
 package io.github.jodlodi.bossrifts.items;
 
-import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
+import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModItems;
@@ -46,8 +46,8 @@ import java.util.Optional;
 
 @NullMarked
 public class RiftPearlItem extends Item implements iRift<ItemStack> {
-	public static final ResourceLocation ENTITY_MODEL = BossRifts.prefix("item/rift_pearl_frame");
-	public static final ResourceLocation EYE_MODEL = BossRifts.prefix("item/rift_pearl_icon");
+	public static final ResourceLocation ENTITY_MODEL = Constants.prefix("item/rift_pearl_frame");
+	public static final ResourceLocation EYE_MODEL = Constants.prefix("item/rift_pearl_icon");
 	public static final String TOOLTIP_UNLINKED = "tooltip.boss_rifts.rift_pearl.v1_unlinked";
 	public static final String TOOLTIP_V1_LINKED = "tooltip.boss_rifts.rift_pearl.v1_linked";
 	public static final String TOOLTIP_MODERN_1 = "tooltip.boss_rifts.rift_pearl.modern.1";
@@ -74,11 +74,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	@Override
-	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		return slotChanged;
-	}
-
-	@Override
 	public boolean isFoil(ItemStack stack) {
 		return isAggregatorPearl(stack) || super.isFoil(stack);
 	}
@@ -88,14 +83,18 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 
-		if (context.isSecondaryUseActive() && !RiftConfig.isV1()) {
+		if (context.getPlayer() instanceof ServerPlayer serverPlayer) {
+			serverPlayer.displayClientMessage(new TextComponent("WA " + Services.PLATFORM.getPlatformName()), true);
+		}
+
+		if (context.isSecondaryUseActive() && !Services.CONFIG.isV1()) {
 			ItemStack stack = context.getItemInHand();
 			Player player = context.getPlayer();
 			long powered = poweredTime(stack);
 
 			if (powered >= 0 && player != null) {
 				long diff = player.level.getGameTime() - powered;
-				if (diff > RiftConfig.empowerDuration() || diff < TRANSITION_TIME) {
+				if (diff > Services.CONFIG.empowerDuration() || diff < TRANSITION_TIME) {
 					return InteractionResult.PASS;
 				}
 			}
@@ -142,12 +141,11 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 	private void addLodestoneTags(ResourceKey<Level> key, BlockPos pos, CompoundTag tag) {
 		tag.put(POSITION, NbtUtils.writeBlockPos(pos));
-		Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, key).resultOrPartial(BossRifts.LOGGER::error).ifPresent((inbt) -> tag.put(DIMENSION, inbt));
+		Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, key).resultOrPartial(Constants.LOG::error).ifPresent((inbt) -> tag.put(DIMENSION, inbt));
 	}
 
 	@Override
-	public void onUsingTick(ItemStack stack, LivingEntity player, int remaining) {
-		Level level = player.level;
+	public void onUseTick(Level level, LivingEntity player, ItemStack stack, int remaining) {
 		int ticksUsed = USE_DURATION - remaining;
 		Vec3 pos = player.getEyePosition(1.0F);
 
@@ -170,18 +168,18 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (RiftConfig.isV1()) return InteractionResultHolder.pass(stack);
+		if (Services.CONFIG.isV1()) return InteractionResultHolder.pass(stack);
 		long powered = poweredTime(stack);
 
 		if (powered >= 0) {
 			long diff = player.level.getGameTime() - powered;
-			if (diff <= RiftConfig.empowerDuration()) {
+			if (diff <= Services.CONFIG.empowerDuration()) {
 				if (diff >= TRANSITION_TIME) {
 					player.startUsingItem(hand);
 					return InteractionResultHolder.consume(stack);
 				} else return InteractionResultHolder.pass(stack);
 			} else {
-				diff -= RiftConfig.empowerDuration();
+				diff -= Services.CONFIG.empowerDuration();
 				if (diff <= TRANSITION_TIME) return InteractionResultHolder.pass(stack);
 			}
 		}
@@ -206,14 +204,14 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
 		if (!isAggregatorPearl(stack)) list.add(new TranslatableComponent(TOOLTIP_UNLINKED));
-		if (RiftConfig.isV1()) {
+		if (Services.CONFIG.isV1()) {
 			if (isAggregatorPearl(stack)) list.add(new TranslatableComponent(TOOLTIP_V1_LINKED));
 		} else {
 			long powered = poweredTime(stack);
 
 			if (powered >= 0 && level != null) {
 				long diff = level.getGameTime() - powered;
-				if (diff <= RiftConfig.empowerDuration() && diff >= TRANSITION_TIME) {
+				if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
 					list.add(new TranslatableComponent(TOOLTIP_MODERN_1));
 					list.add(new TranslatableComponent(TOOLTIP_MODERN_2));
 				}

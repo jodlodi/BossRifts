@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.util;
 
-import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -16,8 +16,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
@@ -47,24 +45,19 @@ public interface iRift<T> {
 		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(Level.OVERWORLD));
 
 		Vec3 vector3d = this.getSpawnPos(t, spawnWorld, serverPlayer);
-
-		EntityTeleportEvent.TeleportCommand event = ForgeEventFactory.onEntityTeleportCommand(entity, vector3d.x, vector3d.y, vector3d.z);
-		if (event.isCanceled()) return;
-
-		double dx = event.getTargetX();
-		double dy = event.getTargetY();
-		double dz = event.getTargetZ();
+		Vec3 mod = Services.EVENT.onTeleport(entity, vector3d);
+		if (mod == null) return;
 
 		if (entity instanceof ServerPlayer player) {
-			ChunkPos chunkpos = new ChunkPos(new BlockPos(dx, dy, dz));
+			ChunkPos chunkpos = new ChunkPos(new BlockPos(mod.x, mod.y, mod.z));
 			spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
 			entity.stopRiding();
 
 			if (player.isSleeping()) player.stopSleepInBed(true, true);
 			if (spawnWorld == entity.level) {
-				player.connection.teleport(dx, dy, dz, entity.getYRot(), entity.getXRot());
+				player.connection.teleport(mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
 			} else {
-				player.teleportTo(spawnWorld, dx, dy, dz, entity.getYRot(), entity.getXRot());
+				player.teleportTo(spawnWorld, mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
 			}
 		} else {
 			float f1 = Mth.wrapDegrees(entity.getYRot());
@@ -72,7 +65,7 @@ public interface iRift<T> {
 
 			f = Mth.clamp(f, -90.0F, 90.0F);
 			if (spawnWorld == entity.level) {
-				entity.moveTo(dx, dy, dz, f1, f);
+				entity.moveTo(mod.x, mod.y, mod.z, f1, f);
 				entity.setYHeadRot(f1);
 			} else {
 				entity.unRide();
@@ -80,7 +73,7 @@ public interface iRift<T> {
 				if (newEntity != null) {
 					newEntity.restoreFrom(entity);
 					entity.remove(Entity.RemovalReason.DISCARDED);
-					newEntity.moveTo(dx, dy, dz, f1, f);
+					newEntity.moveTo(mod.x, mod.y, mod.z, f1, f);
 					newEntity.setYHeadRot(f1);
 					spawnWorld.addFreshEntity(newEntity);
 				}
@@ -107,7 +100,7 @@ public interface iRift<T> {
 	}
 
 	default int getPrice(BlockPos pos, T t, BlockPos or) {
-		double cost = RiftConfig.getExpCost();
+		double cost = Services.CONFIG.getExpCost();
 		if (Mth.equal(cost, 0.0D)) return 0;
 		if (cost > 0.0D) {
 			BlockPos spawn = this.savedPos(t).orElse(or);

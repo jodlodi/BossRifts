@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.network;
 
-import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.Constants;
 import net.minecraftforge.fmllegacy.network.NetworkRegistry;
 import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
 import org.jspecify.annotations.NullMarked;
@@ -9,7 +9,7 @@ import org.jspecify.annotations.NullMarked;
 public class ModPacketHandler {
 	private static final String PROTOCOL_VERSION = "1";
 	public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-			BossRifts.prefix("channel"),
+			Constants.prefix("channel"),
 			() -> PROTOCOL_VERSION,
 			PROTOCOL_VERSION::equals,
 			PROTOCOL_VERSION::equals

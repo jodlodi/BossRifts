@@ -1,7 +1,7 @@
 package io.github.jodlodi.bossrifts.blocks;
 
-import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModParticles;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -9,22 +9,17 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 import java.util.Random;
 
 @NullMarked
@@ -62,12 +57,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 
 	@Override
 	public boolean isPossibleToRespawnInThis() {
-		return RiftConfig.canSetSpawn();
-	}
-
-	@Override
-	public Optional<Vec3> getRespawnPosition(BlockState state, EntityType<?> type, LevelReader level, BlockPos pos, float orientation, @Nullable LivingEntity entity) {
-		return Optional.of(Vec3.atBottomCenterOf(pos.above()));
+		return Services.CONFIG.canSetSpawn();
 	}
 
 	@Override

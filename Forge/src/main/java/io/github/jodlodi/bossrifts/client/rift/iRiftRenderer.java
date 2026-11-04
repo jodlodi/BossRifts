@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
-import io.github.jodlodi.bossrifts.BossRifts;
-import io.github.jodlodi.bossrifts.RiftConfig;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -32,8 +32,8 @@ import java.util.stream.IntStream;
 
 @NullMarked
 public interface iRiftRenderer<T> {
-	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(BossRifts.prefix("boss_rift"), "main");
-	ResourceLocation SHELL_LOCATION = new ResourceLocation(BossRifts.MOD_ID, "textures/entity/boss_rift/boss_rift.png");
+	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("boss_rift"), "main");
+	ResourceLocation SHELL_LOCATION = new ResourceLocation(Constants.MOD_ID, "textures/entity/boss_rift/boss_rift.png");
 	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
 	int SHELL_HEIGHT = 32;
@@ -117,10 +117,10 @@ public interface iRiftRenderer<T> {
 		float diff = exactTime - powered;
 
 		if (powered >= 0 && diff > 0) {
-			if (diff <= RiftConfig.empowerDuration()) {
+			if (diff <= Services.CONFIG.empowerDuration()) {
 				scale = AnimUtil.clamp(1.0F - (diff / RiftPearlItem.TRANSITION_TIME));
 			} else {
-				diff -= RiftConfig.empowerDuration();
+				diff -= Services.CONFIG.empowerDuration();
 				scale = AnimUtil.clamp(diff / RiftPearlItem.TRANSITION_TIME);
 			}
 		}

@@ -1,11 +1,14 @@
-package io.github.jodlodi.bossrifts;
+package io.github.jodlodi.bossrifts.platform;
 
+import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.Constants;
+import io.github.jodlodi.bossrifts.platform.services.IConfigHelper;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.iRift;
+import net.minecraft.tags.Tag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jspecify.annotations.NullMarked;
@@ -14,8 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
-public class RiftConfig {
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
+public class ForgeConfigHelper implements IConfigHelper {
 	public static final Server CONFIG;
 	public static final ForgeConfigSpec SPEC;
 
@@ -64,37 +67,44 @@ public class RiftConfig {
 		}
 	}
 
-	public static boolean isV1() {
+	@Override
+	public boolean isV1() {
 		return CONFIG.legacyModeConfig.get();
 	}
-
-	public static boolean isExpired(long time) {
+	@Override
+	public boolean isExpired(long time) {
 		int span = CONFIG.expireSpanConfig.get();
 		if (span < 0) return false;
 		return empowerDuration() < time;
 	}
 
-	public static int empowerDuration() {
+	@Override
+	public int empowerDuration() {
 		return Math.max(CONFIG.expireSpanConfig.get(), 0) + iRift.TRANSITION_TIME;
 	}
 
-	public static boolean isOneTimeUse() {
+	@Override
+	public boolean isOneTimeUse() {
 		return CONFIG.oneTimeUse.get();
 	}
 
-	public static double getExpCost() {
+	@Override
+	public double getExpCost() {
 		return CONFIG.expCost.get();
 	}
 
-	public static double getRange() {
+	@Override
+	public double getRange() {
 		return CONFIG.range.get();
 	}
 
-	public static Tags.IOptionalNamedTag<EntityType<?>> getTag() {
-		return isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
+	@Override
+	public Tag<EntityType<?>> getTag() {
+		return this.isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
 	}
 
-	public static boolean canSetSpawn() {
+	@Override
+	public boolean canSetSpawn() {
 		return CONFIG.riftAggregatorSetSpawn.get();
 	}
 }

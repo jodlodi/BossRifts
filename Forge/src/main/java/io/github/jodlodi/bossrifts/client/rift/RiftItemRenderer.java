@@ -1,12 +1,13 @@
 package io.github.jodlodi.bossrifts.client.rift;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
-import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -40,7 +41,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 					int u = z + y * 2;
 					this.shell.put(
 							new Vec3i(x * 2 - 1, y * 2 - 1, z * 2 - 1),
-							RiftAggregatorRenderer.build(iRiftRenderer.createShell(u, x, x, y, z))
+							build(iRiftRenderer.createShell(u, x, x, y, z))
 					);
 				}
 			}
@@ -48,15 +49,20 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 		for (Direction direction : Direction.values()) {
 			Vec3i vec = direction.getNormal();
-			this.shell.put(vec, RiftAggregatorRenderer.build(iRiftRenderer.createPin(direction.ordinal(), vec.getX(), vec.getY(), vec.getZ())));
+			this.shell.put(vec, build(iRiftRenderer.createPin(direction.ordinal(), vec.getX(), vec.getY(), vec.getZ())));
 		}
 
-		this.core = RiftAggregatorRenderer.build(iRiftRenderer.createCore());
+		this.core = build(iRiftRenderer.createCore());
 	}
 
 	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemTransforms.TransformType type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		float partialTick = Minecraft.getInstance().isPaused() ? 0.0F : Minecraft.getInstance().getFrameTime();
 		INSTANCE.preRender(new RenderInfo(stack, pearl, type, leftHandHackery), ms, buffer, light, overlay, partialTick);
+	}
+
+	@SuppressWarnings("UnstableApiUsage")
+	public static ModelPart build(CubeListBuilder builder) {
+		return new ModelPart(builder.getCubes().stream().map((definition) -> definition.bake(SHELL_WIDTH, SHELL_HEIGHT)).collect(ImmutableList.toImmutableList()), new HashMap<>());
 	}
 
 	@Override

@@ -1,8 +1,7 @@
 package io.github.jodlodi.bossrifts.entities;
 
-import io.github.jodlodi.bossrifts.RiftConfig;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
-import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModItems;
 import io.github.jodlodi.bossrifts.registry.ModParticles;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
@@ -38,9 +37,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.fmllegacy.network.FMLPlayMessages;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
@@ -63,15 +59,13 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	public BossRiftEntity(EntityType<? extends BossRiftEntity> entityType, Level world) {
 		super(entityType, world);
 		this.blocksBuilding = true;
-	}
 
-	public BossRiftEntity(FMLPlayMessages.SpawnEntity spawnEntity, Level level) {
-		this(level);
-	}
-
-	public BossRiftEntity(Level world) {
-		super(ModEntities.BOSS_RIFT.get(), world);
-		this.blocksBuilding = true;
+		this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
+		ItemStack stack = this.getItem();
+		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POWERED)) {
+			RiftPearlItem.empowerPearl(stack, this.level.getGameTime());
+			this.setItem(stack);
+		}
 	}
 
 	public boolean isRevving() {
@@ -79,7 +73,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	}
 
 	public void stopRevving() {
-		if (RiftConfig.isV1()) this.revving = false;
+		if (Services.CONFIG.isV1()) this.revving = false;
 	}
 
 	public void startRevving(ServerPlayer player) {
@@ -136,7 +130,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	}
 
 	@Override
-	public ItemStack getPickedResult(HitResult target) {
+	public ItemStack getPickResult() {
 		return this.getItem();
 	}
 
@@ -167,7 +161,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 						ModSounds.RIFT_CLOSE.get(), SoundSource.PLAYERS, 1.0F, this.level.random.nextFloat() * 0.5F + 0.8F, false);
 			}
 
-			double range = RiftConfig.getRange();
+			double range = Services.CONFIG.getRange();
 			int count = (int) (range / 3.0D) + 1;
 
 			for (int i = 0; i < count; i++) {
@@ -212,7 +206,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 						ServerPlayer player = lastTo != null ? server.getPlayerList().getPlayer(lastTo) : null;
 						boolean worked = false;
 
-						List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(RiftConfig.getRange() - 0.25D).move(0, 0.2D, 0), Entity::isAlive);
+						List<Entity> nearbyEntities = this.level.getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(Services.CONFIG.getRange() - 0.25D).move(0, 0.2D, 0), Entity::isAlive);
 						for (Entity entity : nearbyEntities) {
 							if (!entity.getUUID().equals(lastTo) && !(entity instanceof BossRiftEntity) && !(entity instanceof ItemFrame)) {
 								this.sendToSpawn(this, server, entity, lastTo);
@@ -220,9 +214,9 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 							}
 						}
 
-						if (RiftConfig.isOneTimeUse()) this.kill();
+						if (Services.CONFIG.isOneTimeUse()) this.kill();
 						else {
-							if (RiftConfig.isV1()) this.stopRevving();
+							if (Services.CONFIG.isV1()) this.stopRevving();
 							else {
 								ItemEntity item = this.spawnAtLocation(this.getItem());
 								if (item != null) {
@@ -252,8 +246,8 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 					this.level.playSound(null, thisX, thisY + 0.25D, thisZ, ModSounds.RIFT_CLOSE.get(), SoundSource.BLOCKS, 0.3F, this.random.nextFloat() * 0.4F + 0.4F);
 				}
 			} else {
-				if (RiftConfig.isExpired(this.level.getGameTime() - RiftPearlItem.poweredTime(this.getItem()) - (RiftPearlItem.TRANSITION_TIME / 2))) {
-					if (RiftConfig.isV1()) {
+				if (Services.CONFIG.isExpired(this.level.getGameTime() - RiftPearlItem.poweredTime(this.getItem()) - (RiftPearlItem.TRANSITION_TIME / 2))) {
+					if (Services.CONFIG.isV1()) {
 						this.kill();
 					} else {
 						this.spawnAtLocation(this.getItem());
@@ -342,15 +336,13 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 		return true;
 	}
 
-	@Override
-	public void onAddedToWorld() {
+	public void spawn() {
 		this.level.playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
 		ItemStack stack = this.getItem();
 		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POWERED)) {
 			RiftPearlItem.empowerPearl(stack, this.level.getGameTime());
 			this.setItem(stack);
 		}
-		super.onAddedToWorld();
 	}
 
 	@Override
@@ -361,7 +353,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 	@Override
 	public Packet<?> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
+		return Services.PLATFORM.getAddEntityPacket(this);
 	}
 
 	@Override
