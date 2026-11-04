@@ -5,12 +5,19 @@ plugins {
 
 archivesBaseName = "${mod_name}-common-${minecraft_version}"
 
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+def commonResourcesDir = layout.buildDirectory.dir('generated/commonResources')
+def syncCommonResources = tasks.register('syncCommonResources', Sync) {
+    from sourceSets.main.resources
+    into commonResourcesDir
+}
+
 minecraft {
     version(minecraft_version)
     accessWideners(file("src/main/resources/${mod_id}.accesswidener"))
     runs {
         if (project.hasProperty('common_runs_enabled') ? project.findProperty('common_runs_enabled').toBoolean() : true) {
-
             server(project.hasProperty('common_server_run_name') ? project.findProperty('common_server_run_name') : 'vanilla_server') {
                 workingDirectory(this.file("run"))
             }
@@ -24,4 +31,22 @@ minecraft {
 dependencies {
     implementation 'org.jspecify:jspecify:1.0.0'
     compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.4'
+}
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources(commonResourcesDir) {
+        builtBy syncCommonResources
+    }
 }
