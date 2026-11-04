@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts.mixin;
+package io.github.jodlodi.bossrifts.mixin.accessor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

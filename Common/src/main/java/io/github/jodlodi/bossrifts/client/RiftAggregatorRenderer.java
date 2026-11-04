@@ -40,8 +40,6 @@ public class RiftAggregatorRenderer implements BlockEntityRenderer<RiftAggregato
 
 	@Override
 	public void render(RiftAggregatorBlockEntity entity, float partialTick, PoseStack stack, MultiBufferSource buffer, int light, int overlay) {
-		stack.pushPose();
 		this.core.render(stack, buffer.getBuffer(RenderType.endPortal()), light, OverlayTexture.NO_OVERLAY);
-		stack.popPose();
 	}
 }

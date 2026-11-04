@@ -18,6 +18,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
@@ -33,14 +34,12 @@ import java.util.stream.IntStream;
 @NullMarked
 public interface iRiftRenderer<T> {
 	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("boss_rift"), "main");
-	ResourceLocation SHELL_LOCATION = new ResourceLocation(Constants.MOD_ID, "textures/entity/boss_rift/boss_rift.png");
+	ResourceLocation SHELL_LOCATION = Constants.prefix("textures/entity/boss_rift/boss_rift.png");
+	ResourceLocation ENTITY_MODEL = Constants.prefix("item/rift_pearl_frame");
+	ResourceLocation EYE_MODEL = Constants.prefix("item/rift_pearl_icon");
 	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
 	int SHELL_HEIGHT = 32;
-
-	@SuppressWarnings("UnstableApiUsage")
-	List<RenderType> RENDER_TYPES = IntStream.range(0, 16).mapToObj((i) -> RenderType.endPortal()).collect(ImmutableList.toImmutableList());
-	Random RANDOM = new Random(31100L);
 
 	ModelPart getCore();
 
@@ -108,7 +107,6 @@ public interface iRiftRenderer<T> {
 	float getCharge0(T t);
 
 	default void preRender(T t, PoseStack stack, MultiBufferSource buffer, int light, int overlay, float partialTick) {
-		RANDOM.setSeed(31100L);
 		float exactTime = this.getTime(t) + partialTick;
 		float charge = Mth.lerp(partialTick, this.getCharge0(t), this.getCharge(t));
 

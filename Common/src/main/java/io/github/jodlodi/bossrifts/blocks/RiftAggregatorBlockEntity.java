@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.blocks;
 
-import io.github.jodlodi.bossrifts.mixin.HopperBlockEntityAccessor;
+import io.github.jodlodi.bossrifts.mixin.accessor.HopperBlockEntityAccessor;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

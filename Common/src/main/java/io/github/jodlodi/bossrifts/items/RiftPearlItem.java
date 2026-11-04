@@ -20,7 +20,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -46,8 +45,6 @@ import java.util.Optional;
 
 @NullMarked
 public class RiftPearlItem extends Item implements iRift<ItemStack> {
-	public static final ResourceLocation ENTITY_MODEL = Constants.prefix("item/rift_pearl_frame");
-	public static final ResourceLocation EYE_MODEL = Constants.prefix("item/rift_pearl_icon");
 	public static final String TOOLTIP_UNLINKED = "tooltip.boss_rifts.rift_pearl.v1_unlinked";
 	public static final String TOOLTIP_V1_LINKED = "tooltip.boss_rifts.rift_pearl.v1_linked";
 	public static final String TOOLTIP_MODERN_1 = "tooltip.boss_rifts.rift_pearl.modern.1";

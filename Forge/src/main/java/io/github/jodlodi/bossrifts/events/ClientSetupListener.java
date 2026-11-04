@@ -4,7 +4,6 @@ import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
-import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
@@ -38,8 +37,8 @@ public class ClientSetupListener {
 
 	@SubscribeEvent
 	public static void onModelRegister(ModelRegistryEvent event) {
-		ModelLoader.addSpecialModel(RiftPearlItem.ENTITY_MODEL);
-		ModelLoader.addSpecialModel(RiftPearlItem.EYE_MODEL);
+		ModelLoader.addSpecialModel(iRiftRenderer.ENTITY_MODEL);
+		ModelLoader.addSpecialModel(iRiftRenderer.EYE_MODEL);
 	}
 
 	@SubscribeEvent

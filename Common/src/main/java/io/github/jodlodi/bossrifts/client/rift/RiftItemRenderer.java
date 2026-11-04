@@ -5,12 +5,15 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
+import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -22,7 +25,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.ForgeHooksClient;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
@@ -119,8 +121,8 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
 
 		stack.pushPose();
-		BakedModel riftFrame = manager.getModel(RiftPearlItem.ENTITY_MODEL);
-		ForgeHooksClient.handleCameraTransforms(stack, riftFrame, renderInfo.getType(), renderInfo.isLeftHandHackery());
+		BakedModel riftFrame = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.ENTITY_MODEL);
+		Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftFrame, renderInfo.getType(), renderInfo.isLeftHandHackery());
 		stack.scale(1.5F, 1.5F, 1.5F);
 
 		this.spin(stack,
@@ -155,21 +157,14 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 		stack.pushPose();
 		stack.scale(portalSize, portalSize, portalSize);
-		for (int j = 0; j < 15; ++j) {
-			float multi;
-			if (j == 0) multi = 0.15F;
-			else multi = 2.0F / (float) (18 - j);
-			float f = (RANDOM.nextFloat() * 0.5F + 0.1F) * multi;
-			float f1 = (RANDOM.nextFloat() * 0.5F + 0.4F) * multi;
-			float f2 = (RANDOM.nextFloat() * 0.5F + 0.5F) * multi;
-			this.getCore().render(stack, buffer.getBuffer(RENDER_TYPES.get(j)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
-		}
+		this.getCore().render(stack, buffer.getBuffer(RenderType.endPortal()), light, OverlayTexture.NO_OVERLAY);
 		stack.popPose();
+
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = manager.getModel(RiftPearlItem.EYE_MODEL);
-		riftSprite = ForgeHooksClient.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
+		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.EYE_MODEL);
+		riftSprite = Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
 
 		if (renderInfo.isDynamic()) {
 			this.spin(stack,
@@ -182,7 +177,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		stack.scale(pearlSize, pearlSize, pearlSize);
 		stack.translate(-0.5D, -0.5D, -0.5D);
 
-		Minecraft.getInstance().getItemRenderer().renderModelLists(
+		((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).invokeRenderModelLists(
 				riftSprite,
 				renderInfo.getStack(),
 				0xf000f0,

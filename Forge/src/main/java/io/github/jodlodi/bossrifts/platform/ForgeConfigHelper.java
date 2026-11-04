@@ -37,28 +37,33 @@ public class ForgeConfigHelper implements IConfigHelper {
 		public final ConfigValue<Boolean> riftAggregatorSetSpawn;
 
 		private Server(ForgeConfigSpec.Builder builder) {
-			builder.comment("Should the mod behave like it did in mod version 1.0?" +
-					"\nWith this, instead of being items, rifts appear as entities when tagged bosses are slayed.");
+			builder.comment("""
+					Should the mod behave like it did in mod version 1.0?
+					With this, instead of being items, rifts appear as entities when tagged bosses are slayed.""");
 			this.legacyModeConfig = builder.define(of("Enable legacy mode:"), false);
 
-			builder.comment("How long should a Rift remain charged for? (20 ticks is 1 second)" +
-					"\nAlternatively, a negative value makes it never expire.");
+			builder.comment("""
+					How long should a Rift remain charged for? (20 ticks is 1 second)
+					Alternatively, a negative value makes it never expire.""");
 			this.expireSpanConfig = builder.define(of("Rift empowerment tick count:"), AnimUtil.minutesToTicks(5));
 
-			builder.comment("Should a Rift be one time use?" +
-					"\nThe item will not leave your inventory upon use. On legacy mode, the Rift entity will remain there after it's use, until it expires.");
+			builder.comment("""
+					Should a Rift be one time use?
+					The item will not leave your inventory upon use. On legacy mode, the Rift entity will remain there after it's use, until it expires.""");
 			this.oneTimeUse = builder.define(of("Rift is one time use:"), true);
 
-			builder.comment("Should activating a Rift Pearl cost exp instead of killing a boss?" +
-					"\nIf legacy behavior is enabled, a rift will both require a killed boss and an exp cost to activate." +
-					"\nA negative value disables this. A positive number indicates the level cost per chunk. 0 makes rifts free to use.");
+			builder.comment("""
+					Should activating a Rift Pearl cost exp instead of killing a boss?
+					If legacy behavior is enabled, a rift will both require a killed boss and an exp cost to activate.
+					A negative value disables this. A positive number indicates the level cost per chunk. 0 makes rifts free to use.""");
 			this.expCost = builder.define(of("Level cost per chunk:"), -1.0D);
 
 			builder.comment("When placed as en entity, or when playing on legacy mode, how big of a range should a Rift have?");
 			this.range = builder.defineInRange(of("Rift entity range (in blocks):"), 2.5D, 1.0D, 32.0D);
 
-			builder.comment("Should the Rift Aggregators be usable as spawn points?" +
-					"\nWith this setting off, they still have a use as locations you can link a Rift Pearl to.");
+			builder.comment("""
+					Should the Rift Aggregators be usable as spawn points?
+					With this setting off, they still have a use as locations you can link a Rift Pearl to.""");
 			this.riftAggregatorSetSpawn = builder.define(of("Rift Aggregator spawn setting:"), true);
 		}
 
@@ -71,6 +76,7 @@ public class ForgeConfigHelper implements IConfigHelper {
 	public boolean isV1() {
 		return CONFIG.legacyModeConfig.get();
 	}
+
 	@Override
 	public boolean isExpired(long time) {
 		int span = CONFIG.expireSpanConfig.get();

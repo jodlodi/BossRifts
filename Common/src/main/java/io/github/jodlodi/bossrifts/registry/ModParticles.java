@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.registry;
 
-import io.github.jodlodi.bossrifts.mixin.SimpleParticleTypeAccessor;
+import io.github.jodlodi.bossrifts.mixin.accessor.SimpleParticleTypeAccessor;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.particles.SimpleParticleType;

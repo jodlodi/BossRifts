@@ -6,6 +6,7 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
 import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -13,6 +14,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -28,16 +30,12 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ForgeHooksClient;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @NullMarked
-@OnlyIn(Dist.CLIENT)
 public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implements iRiftRenderer<BossRiftEntity> {
 	private final ModelPart core;
 	private final Map<Vec3i, ModelPart> shell = new HashMap<>();
@@ -153,20 +151,13 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 		stack.pushPose();
 		stack.scale(portalSize, portalSize, portalSize);
-		for (int j = 0; j < 15; ++j) {
-			float multi;
-			if (j == 0) multi = 0.15F;
-			else multi = 2.0F / (float) (18 - j);
-			float f = (RANDOM.nextFloat() * 0.5F + 0.1F) * multi;
-			float f1 = (RANDOM.nextFloat() * 0.5F + 0.4F) * multi;
-			float f2 = (RANDOM.nextFloat() * 0.5F + 0.5F) * multi;
-			this.getCore().render(stack, buffer.getBuffer(RENDER_TYPES.get(j)), light, OverlayTexture.NO_OVERLAY, f, f1, f2, 1);
-		}
+		this.getCore().render(stack, buffer.getBuffer(RenderType.endPortal()), light, OverlayTexture.NO_OVERLAY);
 		stack.popPose();
+
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = manager.getModel(RiftPearlItem.EYE_MODEL);
+		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.EYE_MODEL);
 
 		this.spin(stack,
 				Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
@@ -176,7 +167,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		stack.scale(pearlSize * 0.85F, pearlSize * 0.85F, pearlSize * 0.85F);
 		stack.translate(-0.5D, -0.5D, -0.5D);
 
-		Minecraft.getInstance().getItemRenderer().renderModelLists(
+		((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).invokeRenderModelLists(
 				riftSprite,
 				rift.getItem(),
 				0xf000f0,
@@ -208,16 +199,16 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 	}
 
 	protected void renderCost(BossRiftEntity rift, Component component, PoseStack stack, MultiBufferSource buffer, int light) {
-		if (ForgeHooksClient.isNameplateInRenderDistance(rift, this.entityRenderDispatcher.distanceToSqr(rift))) {
+		if (Services.CLIENT_HOOKS.isNameplateInRenderDistance(rift, this.entityRenderDispatcher.distanceToSqr(rift))) {
 			stack.pushPose();
 
 			stack.translate(0.0D, rift.getBbHeight() + 0.75F, 0.0D);
 			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
 			stack.scale(-0.025F, -0.025F, 0.025F);
 			Matrix4f matrix4f = stack.last().pose();
-			int opacity = (int)(0.85 * 255.0F) << 24;
+			int opacity = (int) (0.85 * 255.0F) << 24;
 			Font font = this.getFont();
-			float f2 = (float)(-font.width(component) / 2);
+			float f2 = (float) (-font.width(component) / 2);
 			font.drawInBatch(component, f2, 0.0F, 553648127, false, matrix4f, buffer, true, opacity, light);
 			font.drawInBatch(component, f2, 0.0F, -1, false, matrix4f, buffer, false, 0, light);
 

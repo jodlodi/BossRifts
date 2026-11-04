@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts.mixin;
+package io.github.jodlodi.bossrifts.mixin.accessor;
 
 import net.minecraft.core.particles.SimpleParticleType;
 import org.spongepowered.asm.mixin.Mixin;

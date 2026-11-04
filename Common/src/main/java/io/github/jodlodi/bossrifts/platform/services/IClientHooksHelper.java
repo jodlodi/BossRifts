@@ -1,0 +1,21 @@
+package io.github.jodlodi.bossrifts.platform.services;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
+public interface IClientHooksHelper {
+
+	BakedModel handleCameraTransforms(PoseStack matrixStack, BakedModel model, ItemTransforms.TransformType cameraTransformType, boolean leftHandHackery);
+
+	boolean isNameplateInRenderDistance(Entity entity, double squareDistance);
+
+	BakedModel getModel(ModelManager manager, ResourceLocation modelLocation);
+}

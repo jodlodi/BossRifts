@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "id": "modid",
+    "id": "bossrifts",
     "version": "${version}",
   
     "name": "Boss Rifts",
@@ -14,16 +14,20 @@
     },
   
     "license": "CC0-1.0",
-    "icon": "assets/modid/icon.png",
+    "icon": "rift_logo.png",
   
     "environment": "*",
     "entrypoints": {
       "main": [
         "io.github.jodlodi.bossrifts.BossRifts"
+      ],
+      "client": [
+        "io.github.jodlodi.bossrifts.client.ClientInit"
       ]
     },
     "mixins": [
-      "modid.mixins.json"
+      "bossrifts.mixins.json",
+      "bossrifts.fabric.mixins.json"
     ],
   
     "depends": {

@@ -5,11 +5,12 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "bossrifts.refmap.json",
   "mixins": [
-    "HopperBlockEntityAccessor",
     "PlayerMixin",
-    "SimpleParticleTypeAccessor"
+    "accessor.HopperBlockEntityAccessor",
+    "accessor.SimpleParticleTypeAccessor"
   ],
   "client": [
+    "accessor.ItemRendererAccessor"
   ],
   "server": [],
   "injectors": {

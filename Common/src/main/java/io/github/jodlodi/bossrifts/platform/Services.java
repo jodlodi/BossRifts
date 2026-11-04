@@ -1,10 +1,7 @@
 package io.github.jodlodi.bossrifts.platform;
 
 import io.github.jodlodi.bossrifts.Constants;
-import io.github.jodlodi.bossrifts.platform.services.IConfigHelper;
-import io.github.jodlodi.bossrifts.platform.services.IEventHelper;
-import io.github.jodlodi.bossrifts.platform.services.IPlatformHelper;
-import io.github.jodlodi.bossrifts.platform.services.IRegistryHelper;
+import io.github.jodlodi.bossrifts.platform.services.*;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ServiceLoader;
@@ -15,6 +12,7 @@ public class Services {
     public static final IRegistryHelper REGISTRY = load(IRegistryHelper.class);
     public static final IConfigHelper CONFIG = load(IConfigHelper.class);
     public static final IEventHelper EVENT = load(IEventHelper.class);
+    public static final IClientHooksHelper CLIENT_HOOKS = load(IClientHooksHelper.class);
 
     public static <T> T load(Class<T> clazz) {
         final T loadedService = ServiceLoader.load(clazz)
