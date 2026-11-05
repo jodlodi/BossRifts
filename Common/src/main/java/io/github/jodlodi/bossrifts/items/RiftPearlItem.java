@@ -80,10 +80,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 
-		if (context.getPlayer() instanceof ServerPlayer serverPlayer) {
-			serverPlayer.displayClientMessage(new TextComponent("WA " + Services.PLATFORM.getPlatformName()), true);
-		}
-
 		if (context.isSecondaryUseActive() && !Services.CONFIG.isV1()) {
 			ItemStack stack = context.getItemInHand();
 			Player player = context.getPlayer();

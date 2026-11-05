@@ -2,6 +2,7 @@ package io.github.jodlodi.bossrifts.client;
 
 import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
+import io.github.jodlodi.bossrifts.platform.FabricNetworkHelper;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
 import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
@@ -14,7 +15,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.particle.SmokeParticle;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.entity.EntityRenderers;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -32,7 +32,6 @@ public class ClientInit implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(iRiftRenderer.BOSS_RIFT_MODEL, iRiftRenderer::createBodyLayer);
 		EntityModelLayerRegistry.registerModelLayer(RiftAggregatorRenderer.AGGREGATOR_RIFT_MODEL, RiftAggregatorRenderer::createLayer);
 
-		var type = ModParticles.RIFT_SMOKE.get();
-		System.out.println("rift_smoke id = " + net.minecraft.core.Registry.PARTICLE_TYPE.getKey(type));
+		FabricNetworkHelper.ModPacketHandler.init();
 	}
 }

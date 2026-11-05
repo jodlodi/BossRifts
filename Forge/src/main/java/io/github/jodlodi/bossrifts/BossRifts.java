@@ -2,7 +2,7 @@ package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
-import io.github.jodlodi.bossrifts.network.ModPacketHandler;
+import io.github.jodlodi.bossrifts.platform.ForgeNetworkHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeRegistryHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
 import net.minecraft.tags.EntityTypeTags;
@@ -44,6 +44,6 @@ public class BossRifts {
 
 	@SubscribeEvent
 	public static void init(FMLCommonSetupEvent evt) {
-		ModPacketHandler.init();
+		ForgeNetworkHelper.init();
 	}
 }

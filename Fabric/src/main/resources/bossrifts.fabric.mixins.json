@@ -4,6 +4,11 @@
   "package": "io.github.jodlodi.bossrifts.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "LivingEntityMixin",
+    "PersistentEntitySectionManagerMixin",
+    "PlayerListMixin",
+    "ServerPlayerMixin",
+    "ThrownEnderpearlMixin"
   ],
   "client": [
     "ModelBakeryMixin"
