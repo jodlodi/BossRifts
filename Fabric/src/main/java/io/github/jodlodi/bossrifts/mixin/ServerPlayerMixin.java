@@ -20,6 +20,7 @@ import java.util.Optional;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
+
 	@Inject(method = "setRespawnPosition", at = @At(value = "HEAD"))
 	private void onSetRespawnPosition(ResourceKey<Level> resourceKey, @Nullable BlockPos blockPos, float f, boolean bl, boolean bl2, CallbackInfo ci) {
 		Services.NETWORK.sendToClient((ServerPlayer) (Object) this, new SendRespawnDataPacket(

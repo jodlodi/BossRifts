@@ -5,10 +5,12 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "LivingEntityMixin",
+    "MinecraftServerMixin",
     "PersistentEntitySectionManagerMixin",
     "PlayerListMixin",
     "ServerPlayerMixin",
-    "ThrownEnderpearlMixin"
+    "ThrownEnderpearlMixin",
+    "accessor.LevelResourceAccessor"
   ],
   "client": [
     "ModelBakeryMixin"

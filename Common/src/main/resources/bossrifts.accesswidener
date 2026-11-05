@@ -3,3 +3,7 @@ accessWidener v1 named
 # BlockEntitySupplier
 accessible class net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier
 accessible method net/minecraft/client/renderer/blockentity/BlockEntityRenderers register (Lnet/minecraft/world/level/block/entity/BlockEntityType;Lnet/minecraft/client/renderer/blockentity/BlockEntityRendererProvider;)V
+accessible class net/minecraft/tags/StaticTagHelper$Wrapper
+accessible field net/minecraft/tags/StaticTagHelper wrappers Ljava/util/List;
+accessible method net/minecraft/tags/StaticTagHelper$Wrapper <init> (Lnet/minecraft/resources/ResourceLocation;)V
+accessible field net/minecraft/tags/EntityTypeTags HELPER Lnet/minecraft/tags/StaticTagHelper;

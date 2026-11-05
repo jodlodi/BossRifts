@@ -4,6 +4,7 @@ import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.Tag;
 import net.minecraft.world.damagesource.DamageSource;
@@ -19,6 +20,14 @@ import java.util.List;
 
 @NullMarked
 public interface IConfigHelper {
+	boolean DEFAULT_LEGACY_MODE = false;
+	int DEFAULT_EXPIRE_SPAN = AnimUtil.minutesToTicks(5);
+	boolean DEFAULT_ONE_TIME_USE = true;
+	double DEFAULT_EXP_COST = -1.0D;
+	double DEFAULT_RANGE = 2.5D;
+	boolean DEFAULT_RIFT_AGGREGATOR_SET_SPAWN = true;
+	double MIN_RANGE = 1.0D;
+	double MAX_RANGE = 32.0D;
 
 	boolean isV1();
 

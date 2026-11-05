@@ -7,7 +7,7 @@
   ],
   "key": {
     "#": {
-      "tag": "forge:end_stones"
+      "item": "minecraft:end_stone"
     },
     "0": {
       "item": "bossrifts:rift_pearl"

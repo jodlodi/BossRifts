@@ -1,6 +1,8 @@
 package io.github.jodlodi.bossrifts.mixin;
 
+import io.github.jodlodi.bossrifts.network.client.ClientBoundConfigPacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
+import io.github.jodlodi.bossrifts.platform.FabricConfigHelper;
 import io.github.jodlodi.bossrifts.platform.Services;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public abstract class PlayerListMixin {
 	@Inject(method = "placeNewPlayer", at = @At(value = "TAIL"))
 	private void onPlaceNewPlayer(Connection connection, ServerPlayer serverPlayer, CallbackInfo ci) {
+		Services.NETWORK.sendToClient(serverPlayer, new ClientBoundConfigPacket(FabricConfigHelper.getHelper().saveToTag()));
 		Services.NETWORK.sendToClient(serverPlayer, new SendRespawnDataPacket(
 				Optional.ofNullable(serverPlayer.getRespawnPosition()),
 				Optional.of(serverPlayer.getRespawnDimension())
