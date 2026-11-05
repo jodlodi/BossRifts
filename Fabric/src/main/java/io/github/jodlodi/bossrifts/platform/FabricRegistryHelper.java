@@ -51,7 +51,7 @@ public class FabricRegistryHelper implements IRegistryHelper {
 
 	private static <T extends G, G> MultiSupplier<T> register(Registry<G> registry, String id, Supplier<T> supplier) {
 		ResourceLocation location = Constants.prefix(id);
-		Registry.register(registry, location, supplier.get());
-		return new MultiSupplier<>(supplier, location);
+		T t = Registry.register(registry, location, supplier.get());
+		return new MultiSupplier<>(() -> t, location);
 	}
 }

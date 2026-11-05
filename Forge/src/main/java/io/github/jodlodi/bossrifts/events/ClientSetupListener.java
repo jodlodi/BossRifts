@@ -37,8 +37,8 @@ public class ClientSetupListener {
 
 	@SubscribeEvent
 	public static void onModelRegister(ModelRegistryEvent event) {
-		ModelLoader.addSpecialModel(iRiftRenderer.ENTITY_MODEL);
-		ModelLoader.addSpecialModel(iRiftRenderer.EYE_MODEL);
+		ModelLoader.addSpecialModel(iRiftRenderer.FRAME_MODEL);
+		ModelLoader.addSpecialModel(iRiftRenderer.PEARL_MODEL);
 	}
 
 	@SubscribeEvent

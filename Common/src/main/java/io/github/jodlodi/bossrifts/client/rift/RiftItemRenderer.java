@@ -121,7 +121,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
 
 		stack.pushPose();
-		BakedModel riftFrame = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.ENTITY_MODEL);
+		BakedModel riftFrame = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.FRAME_MODEL);
 		Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftFrame, renderInfo.getType(), renderInfo.isLeftHandHackery());
 		stack.scale(1.5F, 1.5F, 1.5F);
 
@@ -163,7 +163,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.EYE_MODEL);
+		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.PEARL_MODEL);
 		riftSprite = Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
 
 		if (renderInfo.isDynamic()) {

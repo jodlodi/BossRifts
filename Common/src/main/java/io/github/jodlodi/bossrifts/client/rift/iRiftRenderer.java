@@ -1,6 +1,5 @@
 package io.github.jodlodi.bossrifts.client.rift;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
@@ -18,7 +17,6 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
@@ -26,17 +24,14 @@ import net.minecraft.util.Mth;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.stream.IntStream;
 
 @NullMarked
 public interface iRiftRenderer<T> {
 	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("boss_rift"), "main");
 	ResourceLocation SHELL_LOCATION = Constants.prefix("textures/entity/boss_rift/boss_rift.png");
-	ResourceLocation ENTITY_MODEL = Constants.prefix("item/rift_pearl_frame");
-	ResourceLocation EYE_MODEL = Constants.prefix("item/rift_pearl_icon");
+	ResourceLocation FRAME_MODEL = Constants.prefix("item/rift_pearl_frame");
+	ResourceLocation PEARL_MODEL = Constants.prefix("item/rift_pearl_icon");
 	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
 	int SHELL_HEIGHT = 32;

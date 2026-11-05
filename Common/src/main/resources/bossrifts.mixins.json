@@ -10,6 +10,7 @@
     "accessor.SimpleParticleTypeAccessor"
   ],
   "client": [
+    "ItemRendererMixin",
     "accessor.ItemRendererAccessor"
   ],
   "server": [],
