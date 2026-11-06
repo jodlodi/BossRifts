@@ -14,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -73,5 +75,10 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 		double z = (double)pos.getZ() + 0.5D + (0.5D - random.nextDouble());
 		double yV = (double)random.nextFloat() * 0.04D;
 		level.addParticle(ModParticles.RIFT_SMOKE.get(), x, y, z, 0.0D, yV, 0.0D);
+	}
+
+	@Override
+	public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+		return Services.EVENT::tickAggregator;
 	}
 }
