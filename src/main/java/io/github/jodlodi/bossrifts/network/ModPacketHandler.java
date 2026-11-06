@@ -22,5 +22,6 @@ public class ModPacketHandler {
 	public static void init() {
 		int id = 0;
 		CHANNEL.messageBuilder(SendRespawnDataPacket.class, id++).encoder(SendRespawnDataPacket::encode).decoder(SendRespawnDataPacket::decode).consumer(SendRespawnDataPacket.Handler::onMessage).add();
+		CHANNEL.messageBuilder(ClearRiftCachePacket.class, id++).encoder(ClearRiftCachePacket::encode).decoder(ClearRiftCachePacket::decode).consumer(ClearRiftCachePacket.Handler::onMessage).add();
 	}
 }

@@ -25,6 +25,7 @@ import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -164,10 +165,31 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		}
 	}
 
+	private BlockPos getRespawnPosition(PlayerEntity player) {
+		if (player instanceof ServerPlayerEntity) {
+			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+			return serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO;
+		} else return respawnPosition != null ? respawnPosition : BlockPos.ZERO;
+	}
+
 	@Override
 	public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (RiftConfig.isV1()) return ActionResult.pass(stack);
+
+		int price = this.getPrice(
+				player.blockPosition(),
+				stack,
+				getRespawnPosition(player)
+		);
+
+		if (price > -1) {
+			if (player.experienceLevel >= price || player.abilities.instabuild) {
+				player.startUsingItem(hand);
+				return ActionResult.consume(stack);
+			} else return ActionResult.fail(stack);
+		}
+
 		long powered = poweredTime(stack);
 
 		if (powered >= 0) {
@@ -183,21 +205,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			}
 		}
 
-		if (player instanceof ServerPlayerEntity) {
-			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-			int price = this.getPrice(
-					serverPlayer.blockPosition(),
-					stack,
-					serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
-			);
-
-			if (price > -1 && (player.totalExperience >= price || player.abilities.instabuild)) {
-				if (!player.abilities.instabuild && price > 0) player.giveExperienceLevels(-price);
-				empowerPearl(stack, level.getGameTime());
-				return ActionResult.success(stack);
-			}
-		}
-
 		return ActionResult.pass(stack);
 	}
 
@@ -207,6 +214,32 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		if (RiftConfig.isV1()) {
 			if (isAggregatorPearl(stack)) list.add(new TranslationTextComponent(TOOLTIP_V1_LINKED));
 		} else {
+			double cost = RiftConfig.getExpCost();
+			if (MathHelper.equal(cost, 0.0F)) {
+				list.add(new TranslationTextComponent(TOOLTIP_MODERN_1));
+				list.add(new TranslationTextComponent(TOOLTIP_MODERN_2));
+				return;
+			} else {
+				Entity entity = stack.getEntityRepresentation();
+				if (cost >= 0.0F && entity instanceof PlayerEntity) {
+					PlayerEntity player = (PlayerEntity) entity;
+					int price = this.getPrice(
+							player.blockPosition(),
+							stack,
+							respawnPosition != null ? respawnPosition : BlockPos.ZERO
+					);
+
+					if (price > -1) {
+						if (player.experienceLevel >= price || player.abilities.instabuild) {
+							list.add(new TranslationTextComponent(TOOLTIP_MODERN_1));
+							list.add(new TranslationTextComponent(TOOLTIP_MODERN_2));
+						}
+						list.add(new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)));
+						return;
+					}
+				}
+			}
+
 			long powered = poweredTime(stack);
 
 			if (powered >= 0 && level != null) {
@@ -216,28 +249,33 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 					list.add(new TranslationTextComponent(TOOLTIP_MODERN_2));
 				}
 			}
-
-			if (stack.getEntityRepresentation() != null) {
-				int price = this.getPrice(
-						stack.getEntityRepresentation().blockPosition(),
-						stack,
-						respawnPosition != null ? respawnPosition : BlockPos.ZERO
-				);
-				if (price > 0) {
-					list.add(new TranslationTextComponent(BossRiftEntity.COST, new StringTextComponent(String.valueOf(price)).withStyle(TextFormatting.GREEN)));
-				}
-			}
 		}
 	}
 
 	@Override
 	public ItemStack finishUsingItem(ItemStack stack, World level, LivingEntity living) {
+		if (living instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) living;
+			int price = this.getPrice(
+					player.blockPosition(),
+					stack,
+					getRespawnPosition(player)
+			);
+
+			if (price > -1) {
+				if (player.experienceLevel >= price || player.abilities.instabuild) {
+					if (!player.abilities.instabuild && price > 0) player.giveExperienceLevels(-price);
+				} else return stack;
+			}
+		}
+
 		if (living instanceof ServerPlayerEntity) {
 			ServerPlayerEntity player = (ServerPlayerEntity) living;
 			Vector3d pos = living.getEyePosition(1.0F);
 			level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundCategory.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
 			this.sendToSpawn(stack, player.server, player, player);
 		}
+
 		Vector3d pos = living.getEyePosition(1.0F);
 		level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundCategory.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
 		return stack;

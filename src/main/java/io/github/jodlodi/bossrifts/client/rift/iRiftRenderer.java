@@ -71,11 +71,7 @@ public interface iRiftRenderer<T> {
 
 	float getCharge0(T t);
 
-	default void preRender(T t, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay, float partialTick) {
-		RANDOM.setSeed(31100L);
-		float exactTime = this.getTime(t) + partialTick;
-		float charge = MathHelper.lerp(partialTick, this.getCharge0(t), this.getCharge(t));
-
+	default float calculateScale(T t, float exactTime) {
 		float scale = 1.0F;
 		long powered = this.getPower(t);
 		float diff = exactTime - powered;
@@ -89,7 +85,15 @@ public interface iRiftRenderer<T> {
 			}
 		}
 
-		if (charge >= 0.0F) scale = 0.0F;
+		return scale;
+	}
+
+	default void preRender(T t, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay, float partialTick) {
+		RANDOM.setSeed(31100L);
+		float exactTime = this.getTime(t) + partialTick;
+		float charge = MathHelper.lerp(partialTick, this.getCharge0(t), this.getCharge(t));
+
+		float scale = charge >= 0.0F ? 0.0F : this.calculateScale(t, exactTime);
 
 		double scalar = 3.0D;
 		double cut = 1.05D;

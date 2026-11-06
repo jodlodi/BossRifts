@@ -2,7 +2,9 @@ package io.github.jodlodi.bossrifts.client.rift;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.datafixers.util.Pair;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.util.AnimUtil;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -18,6 +20,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3i;
@@ -30,6 +33,7 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderInfo> {
+	public static final Map<ItemStack, Pair<Long, Boolean>> STACK_MAP = new HashMap<>();
 	private static final RiftItemRenderer INSTANCE = new RiftItemRenderer();
 	private final ModelRenderer core;
 	private final Map<Vector3i, ModelRenderer> shell = new HashMap<>();
@@ -107,6 +111,41 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	@Override
 	public float getCharge0(RenderInfo renderInfo) {
 		return this.getCharge(renderInfo) - 1;
+	}
+
+	@Override
+	public float calculateScale(RenderInfo renderInfo, float exactTime) {
+		Entity entity = renderInfo.getStack().getEntityRepresentation();
+		if (entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity) entity;
+			int price = renderInfo.getPearl().getPrice(
+					player.blockPosition(),
+					renderInfo.stack,
+					RiftPearlItem.respawnPosition != null ? RiftPearlItem.respawnPosition : BlockPos.ZERO
+			);
+
+			if (price > -1) {
+				boolean open = player.experienceLevel >= price || player.abilities.instabuild;
+
+				if (!STACK_MAP.containsKey(renderInfo.getStack())) {
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+				} else if (open == STACK_MAP.get(renderInfo.getStack()).getSecond()) {
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+				}
+
+				float scale = 1.0F;
+				long powered = STACK_MAP.get(renderInfo.getStack()).getFirst();
+				float diff = exactTime - powered;
+
+				if (diff > 0) {
+					if (open) scale = AnimUtil.clamp(1.0F - (diff / RiftPearlItem.TRANSITION_TIME));
+					else scale = AnimUtil.clamp(diff / RiftPearlItem.TRANSITION_TIME);
+				}
+
+				return scale;
+			}
+		}
+		return iRiftRenderer.super.calculateScale(renderInfo, exactTime);
 	}
 
 	@Override

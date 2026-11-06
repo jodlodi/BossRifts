@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.BossRifts;
+import io.github.jodlodi.bossrifts.network.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.ModPacketHandler;
 import io.github.jodlodi.bossrifts.network.SendRespawnDataPacket;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @ParametersAreNonnullByDefault
 @Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
 public class EXPCostListener {
+
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getPlayer() instanceof ServerPlayerEntity) {
@@ -24,6 +26,7 @@ public class EXPCostListener {
 					Optional.ofNullable(player.getRespawnPosition()),
 					Optional.of(player.getRespawnDimension())
 			));
+			ModPacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new ClearRiftCachePacket());
 		}
 	}
 

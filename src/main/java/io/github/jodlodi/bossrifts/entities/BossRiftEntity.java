@@ -282,7 +282,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 			);
 
 			if (price > -1) {
-				if (player.totalExperience >= price || player.abilities.instabuild) {
+				if (player.experienceLevel >= price || player.abilities.instabuild) {
 					if (!player.abilities.instabuild && price > 0) player.giveExperienceLevels(-price);
 				} else return ActionResultType.FAIL;
 			}
