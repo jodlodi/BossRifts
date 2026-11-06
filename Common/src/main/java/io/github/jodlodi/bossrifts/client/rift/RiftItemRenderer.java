@@ -3,10 +3,12 @@ package io.github.jodlodi.bossrifts.client.rift;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Quaternion;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
 import io.github.jodlodi.bossrifts.platform.Services;
+import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
@@ -19,6 +21,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
@@ -32,6 +35,7 @@ import java.util.Map;
 
 @NullMarked
 public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderInfo> {
+	public static final Map<ItemStack, Pair<Long, Boolean>> STACK_MAP = new HashMap<>();
 	private static final RiftItemRenderer INSTANCE = new RiftItemRenderer();
 	private final ModelPart core;
 	private final Map<Vec3i, ModelPart> shell = new HashMap<>();
@@ -101,8 +105,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 	@Override
 	public float getCharge(RenderInfo renderInfo) {
-		Entity entity = renderInfo.getStack().getEntityRepresentation();
-		if (entity instanceof Player player && player.isUsingItem() && player.getUseItem().equals(renderInfo.getStack())) {
+		if (renderInfo.getStack().getEntityRepresentation() instanceof Player player && player.isUsingItem() && player.getUseItem().equals(renderInfo.getStack())) {
 			return RiftPearlItem.USE_DURATION - player.getUseItemRemainingTicks();
 		}
 		return -1L;
@@ -111,6 +114,39 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	@Override
 	public float getCharge0(RenderInfo renderInfo) {
 		return this.getCharge(renderInfo) - 1;
+	}
+
+	@Override
+	public float calculateScale(RenderInfo renderInfo, float exactTime) {
+		if (renderInfo.getStack().getEntityRepresentation() instanceof Player player) {
+			int price = renderInfo.getPearl().getPrice(
+					player.blockPosition(),
+					renderInfo.stack,
+					RiftPearlItem.respawnPosition != null ? RiftPearlItem.respawnPosition : BlockPos.ZERO
+			);
+
+			if (price > -1) {
+				boolean open = player.experienceLevel >= price || player.getAbilities().instabuild;
+
+				if (!STACK_MAP.containsKey(renderInfo.getStack())) {
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+				} else if (open == STACK_MAP.get(renderInfo.getStack()).getSecond()) {
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+				}
+
+				float scale = 1.0F;
+				long powered = STACK_MAP.get(renderInfo.getStack()).getFirst();
+				float diff = exactTime - powered;
+
+				if (diff > 0) {
+					if (open) scale = AnimUtil.clamp(1.0F - (diff / RiftPearlItem.TRANSITION_TIME));
+					else scale = AnimUtil.clamp(diff / RiftPearlItem.TRANSITION_TIME);
+				}
+
+				return scale;
+			}
+		}
+		return iRiftRenderer.super.calculateScale(renderInfo, exactTime);
 	}
 
 	@Override

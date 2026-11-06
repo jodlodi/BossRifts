@@ -2,6 +2,7 @@ package io.github.jodlodi.bossrifts.platform;
 
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.network.IPacket;
+import io.github.jodlodi.bossrifts.network.client.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.platform.services.INetworkHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,6 +28,7 @@ public class ForgeNetworkHelper implements INetworkHelper {
 	public static void init() {
 		int id = 0;
 		CHANNEL.messageBuilder(SendRespawnDataPacket.class, id++).encoder(SendRespawnDataPacket::encode).decoder(SendRespawnDataPacket::decode).consumer((SimpleChannel.MessageBuilder.ToBooleanBiFunction<SendRespawnDataPacket, Supplier<NetworkEvent.Context>>) ForgeNetworkHelper::onMessage).add();
+		CHANNEL.messageBuilder(ClearRiftCachePacket.class, id++).encoder(ClearRiftCachePacket::encode).decoder(ClearRiftCachePacket::decode).consumer((SimpleChannel.MessageBuilder.ToBooleanBiFunction<ClearRiftCachePacket, Supplier<NetworkEvent.Context>>) ForgeNetworkHelper::onMessage).add();
 	}
 
 	@SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})

@@ -105,7 +105,7 @@ public interface iRift<T> {
 		if (cost > 0.0D) {
 			BlockPos spawn = this.savedPos(t).orElse(or);
 			double dis = Math.sqrt(pos.distSqr(spawn)) / 16.0D;
-			return (int) (cost * dis);
+			return Math.max((int) (cost * dis), 1);
 		}
 		return -1;
 	}

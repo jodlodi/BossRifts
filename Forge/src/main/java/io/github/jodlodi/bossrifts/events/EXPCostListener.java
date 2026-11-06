@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts.events;
 
 import io.github.jodlodi.bossrifts.Constants;
+import io.github.jodlodi.bossrifts.network.client.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,23 +16,19 @@ import java.util.Optional;
 @NullMarked
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class EXPCostListener {
+
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getPlayer() instanceof ServerPlayer player) {
-			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(
-					Optional.ofNullable(player.getRespawnPosition()),
-					Optional.of(player.getRespawnDimension())
-			));
+			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(player.getRespawnPosition(), player.getRespawnDimension()));
+			Services.NETWORK.sendToClient(player, new ClearRiftCachePacket());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onPlayerSetSpawnEvent(PlayerSetSpawnEvent event) {
 		if (event.getPlayer() instanceof ServerPlayer player) {
-			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(
-					Optional.ofNullable(event.getNewSpawn()),
-					Optional.of(event.getSpawnWorld())
-			));
+			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(event.getNewSpawn(), event.getSpawnWorld()));
 		}
 	}
 }

@@ -23,9 +23,6 @@ public abstract class ServerPlayerMixin {
 
 	@Inject(method = "setRespawnPosition", at = @At(value = "HEAD"))
 	private void onSetRespawnPosition(ResourceKey<Level> resourceKey, @Nullable BlockPos blockPos, float f, boolean bl, boolean bl2, CallbackInfo ci) {
-		Services.NETWORK.sendToClient((ServerPlayer) (Object) this, new SendRespawnDataPacket(
-				Optional.ofNullable(blockPos),
-				Optional.of(resourceKey)
-		));
+		Services.NETWORK.sendToClient((ServerPlayer) (Object) this, new SendRespawnDataPacket(blockPos, resourceKey));
 	}
 }
