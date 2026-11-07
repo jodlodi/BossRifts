@@ -5,7 +5,7 @@ import io.github.jodlodi.bossrifts.platform.services.IRegistryHelper;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -21,32 +21,32 @@ public class FabricRegistryHelper implements IRegistryHelper {
 
 	@Override
 	public <T extends ParticleType<?>> MultiSupplier<T> registerParticleType(String id, Supplier<T> supplier) {
-		return register(Registry.PARTICLE_TYPE, id, supplier);
+		return register(BuiltInRegistries.PARTICLE_TYPE, id, supplier);
 	}
 
 	@Override
 	public <T extends Block> MultiSupplier<T> registerBlock(String id, Supplier<T> supplier) {
-		return register(Registry.BLOCK, id, supplier);
+		return register(BuiltInRegistries.BLOCK, id, supplier);
 	}
 
 	@Override
 	public <T extends BlockEntityType<?>> MultiSupplier<T> registerBlockEntity(String id, Supplier<T> supplier) {
-		return register(Registry.BLOCK_ENTITY_TYPE, id, supplier);
+		return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, supplier);
 	}
 
 	@Override
 	public <T extends Item> MultiSupplier<T> registerItem(String id, Supplier<T> supplier) {
-		return register(Registry.ITEM, id, supplier);
+		return register(BuiltInRegistries.ITEM, id, supplier);
 	}
 
 	@Override
 	public MultiSupplier<SoundEvent> registerSound(String id, Supplier<SoundEvent> supplier) {
-		return register(Registry.SOUND_EVENT, id, supplier);
+		return register(BuiltInRegistries.SOUND_EVENT, id, supplier);
 	}
 
 	@Override
 	public <T extends EntityType<?>> MultiSupplier<T> registerEntityType(String id, Supplier<T> supplier) {
-		return register(Registry.ENTITY_TYPE, id, supplier);
+		return register(BuiltInRegistries.ENTITY_TYPE, id, supplier);
 	}
 
 	private static <T extends G, G> MultiSupplier<T> register(Registry<G> registry, String id, Supplier<T> supplier) {

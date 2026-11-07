@@ -7,6 +7,7 @@ import io.github.jodlodi.bossrifts.registry.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +23,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
-import java.util.Random;
 
 @NullMarked
 public class RiftAggregatorBlock extends BaseEntityBlock {
@@ -37,6 +37,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;
 	}
@@ -46,7 +47,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem) return InteractionResult.PASS;
 
-		if (player instanceof ServerPlayer serverPlayer && this.isPossibleToRespawnInThis()) {
+		if (player instanceof ServerPlayer serverPlayer && this.isPossibleToRespawnInThis(state)) {
 			if (serverPlayer.getRespawnDimension() != level.dimension() || !pos.equals(serverPlayer.getRespawnPosition())) {
 				serverPlayer.setRespawnPosition(level.dimension(), pos, 0.0F, false, true);
 				level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_SET_SPAWN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -58,12 +59,12 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public boolean isPossibleToRespawnInThis() {
+	public boolean isPossibleToRespawnInThis(BlockState state) {
 		return Services.CONFIG.canSetSpawn();
 	}
 
 	@Override
-	public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
+	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 		if (random.nextInt(100) == 0) {
 			level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_AMBIENT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 		}

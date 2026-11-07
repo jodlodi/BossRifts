@@ -37,12 +37,12 @@ public class SendRespawnDataPacket extends ClientBoundPacket {
 	}
 
 	public static SendRespawnDataPacket decode(FriendlyByteBuf buffer) {
-		return buffer.readWithCodec(CODEC);
+		return buffer.readJsonWithCodec(CODEC);
 	}
 
 	@Override
 	public FriendlyByteBuf encode(FriendlyByteBuf buf) {
-		buf.writeWithCodec(CODEC, this);
+		buf.writeJsonWithCodec(CODEC, this);
 		return buf;
 	}
 

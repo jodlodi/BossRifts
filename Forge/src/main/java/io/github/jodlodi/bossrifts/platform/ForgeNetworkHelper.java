@@ -6,12 +6,14 @@ import io.github.jodlodi.bossrifts.network.client.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.platform.services.INetworkHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.fmllegacy.network.NetworkEvent;
-import net.minecraftforge.fmllegacy.network.NetworkRegistry;
-import net.minecraftforge.fmllegacy.network.PacketDistributor;
-import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @NullMarked
@@ -24,22 +26,20 @@ public class ForgeNetworkHelper implements INetworkHelper {
 			PROTOCOL_VERSION::equals
 	);
 
-	@SuppressWarnings("UnusedAssignment")
 	public static void init() {
 		int id = 0;
-		CHANNEL.messageBuilder(SendRespawnDataPacket.class, id++).encoder(SendRespawnDataPacket::encode).decoder(SendRespawnDataPacket::decode).consumer((SimpleChannel.MessageBuilder.ToBooleanBiFunction<SendRespawnDataPacket, Supplier<NetworkEvent.Context>>) ForgeNetworkHelper::onMessage).add();
-		CHANNEL.messageBuilder(ClearRiftCachePacket.class, id++).encoder(ClearRiftCachePacket::encode).decoder(ClearRiftCachePacket::decode).consumer((SimpleChannel.MessageBuilder.ToBooleanBiFunction<ClearRiftCachePacket, Supplier<NetworkEvent.Context>>) ForgeNetworkHelper::onMessage).add();
+		CHANNEL.registerMessage(++id, SendRespawnDataPacket.class, SendRespawnDataPacket::encode, SendRespawnDataPacket::decode, ForgeNetworkHelper::onMessage, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+		CHANNEL.registerMessage(++id, ClearRiftCachePacket.class, ClearRiftCachePacket::encode, ClearRiftCachePacket::decode, ForgeNetworkHelper::onMessage, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 	}
 
 	@SuppressWarnings({"Anonymous2MethodRef", "Convert2Lambda"})
-	public static <T extends IPacket> boolean onMessage(T t, Supplier<NetworkEvent.Context> ctx) {
+	public static <T extends IPacket> void onMessage(T t, Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(new Runnable() {
 			@Override
 			public void run() {
 				t.handle();
 			}
 		});
-		return true;
 	}
 
 	@Override

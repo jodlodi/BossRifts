@@ -2,11 +2,12 @@ package io.github.jodlodi.bossrifts.platform;
 
 import io.github.jodlodi.bossrifts.platform.services.IPlatformHelper;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket(Entity entity) {
+    public Packet<ClientGamePacketListener> getAddEntityPacket(Entity entity) {
         return NetworkHooks.getEntitySpawningPacket(entity);
     }
 }

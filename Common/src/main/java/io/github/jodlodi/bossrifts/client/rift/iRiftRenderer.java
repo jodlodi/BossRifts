@@ -1,8 +1,7 @@
 package io.github.jodlodi.bossrifts.client.rift;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
@@ -21,6 +20,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
@@ -86,9 +87,9 @@ public interface iRiftRenderer<T> {
 	}
 
 	default void spin(PoseStack ms, float x, float y, float z) {
-		ms.mulPose(Vector3f.XP.rotationDegrees(x));
-		ms.mulPose(Vector3f.YP.rotationDegrees(y));
-		ms.mulPose(Vector3f.ZP.rotationDegrees(z));
+		ms.mulPose(Axis.XP.rotationDegrees(x));
+		ms.mulPose(Axis.YP.rotationDegrees(y));
+		ms.mulPose(Axis.ZP.rotationDegrees(z));
 	}
 
 	long getSeed(T t);
@@ -145,9 +146,9 @@ public interface iRiftRenderer<T> {
 
 	void render(T t, PoseStack stack, MultiBufferSource buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus);
 
-	default Map<Vec3i, Quaternion> computePose(T t, float timeScale) {
-		Map<Vec3i, Quaternion> pose = new HashMap<>();
-		for (Vec3i key : this.getShell().keySet()) pose.put(key, new Quaternion(Quaternion.ONE));
+	default Map<Vec3i, Quaternionf> computePose(T t, float timeScale) {
+		Map<Vec3i, Quaternionf> pose = new HashMap<>();
+		for (Vec3i key : this.getShell().keySet()) pose.put(key, new Quaternionf());
 
 		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(this.getSeed(t));
 
@@ -157,28 +158,27 @@ public interface iRiftRenderer<T> {
 			if (progress <= 0.0F) break;
 			float eased = progress * progress * (3.0F - 2.0F * progress);
 
-			this.turnLayer(pose, RiftCubeSolver.normal(plan.face(move)), plan.degrees(move) * eased);
+			int[] normal = RiftCubeSolver.normal(plan.face(move));
+			this.turnLayer(pose, normal, plan.degrees(move) * eased);
 		}
 
 		return pose;
 	}
 
-	default void turnLayer(Map<Vec3i, Quaternion> pose, int[] normal, float angle) {
-		Quaternion turn = new Quaternion(new Vector3f(normal[0], normal[1], normal[2]), angle, true);
+	default void turnLayer(Map<Vec3i, Quaternionf> pose, int[] normal, float angle) {
+		Quaternionf turn = new Quaternionf().rotateAxis(angle * Mth.DEG_TO_RAD, normal[0], normal[1], normal[2]);
 
-		for (Map.Entry<Vec3i, Quaternion> entry : pose.entrySet()) {
+		for (Map.Entry<Vec3i, Quaternionf> entry : pose.entrySet()) {
 			Vec3i key = entry.getKey();
 			Vector3f pos = new Vector3f(key.getX(), key.getY(), key.getZ());
-			pos.transform(entry.getValue());
+			entry.getValue().transform(pos);
 
 			int dot = Math.round(pos.x()) * normal[0]
 					+ Math.round(pos.y()) * normal[1]
 					+ Math.round(pos.z()) * normal[2];
 
 			if (dot == 1) {
-				Quaternion q = new Quaternion(turn);
-				q.mul(entry.getValue());
-				entry.setValue(q);
+				entry.setValue(new Quaternionf(turn).mul(entry.getValue()));
 			}
 		}
 	}

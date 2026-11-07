@@ -2,16 +2,12 @@ package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
+import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeNetworkHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeRegistryHelper;
-import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
-import net.minecraft.tags.EntityTypeTags;
-import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -22,12 +18,10 @@ import org.jspecify.annotations.NullMarked;
 @Mod(Constants.MOD_ID)
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BossRifts {
-	public static final Tags.IOptionalNamedTag<EntityType<?>> LEGACY_BOSSES = EntityTypeTags.createOptional(Constants.prefix("legacy_bosses"));
-	public static final Tags.IOptionalNamedTag<EntityType<?>> RIFT_BOSSES = EntityTypeTags.createOptional(Constants.prefix("rift_bosses"));
 
-	public BossRifts() {
+	public BossRifts(FMLJavaModLoadingContext context) {
 		CommonClass.init();
-		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+		IEventBus bus = context.getModEventBus();
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(DeathListener.class);
 		MinecraftForge.EVENT_BUS.register(PearlListener.class);
@@ -39,7 +33,7 @@ public class BossRifts {
 		ForgeRegistryHelper.BLOCKS.register(bus);
 		ForgeRegistryHelper.ITEMS.register(bus);
 
-		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ForgeConfigHelper.SPEC);
+		context.registerConfig(ModConfig.Type.SERVER, ForgeConfigHelper.SPEC);
 	}
 
 	@SubscribeEvent

@@ -3,7 +3,7 @@
   "entity.bossrifts.boss_rift": "Boss Rift",
   "item.bossrifts.rift_pearl": "Rift Pearl",
   "item.bossrifts.rift_pearl.aggregator": "Linked Rift Pearl",
-  "msg.boss_rifts.exp.cost": "\u00A77EXP cost: [%s\u00A77]",
+  "msg.boss_rifts.exp.cost": "§7EXP cost: [%s§7]",
   "subtitles.bossrifts.block.boss_rift.rift_aggregator.ambient": "Rift Aggregator whooshes",
   "subtitles.bossrifts.block.boss_rift.rift_aggregator.set_spawn": "Rift Aggregator sets spawn",
   "subtitles.bossrifts.entity.boss_rift.close": "Rift closes",
@@ -12,9 +12,9 @@
   "subtitles.bossrifts.entity.boss_rift.rev_up": "Rift is revving",
   "subtitles.bossrifts.entity.boss_rift.spawn": "Rift spawns",
   "subtitles.bossrifts.entity.boss_rift.warp": "Rift warps",
-  "tooltip.boss_rifts.aggregator": "\u00A77Can be used as a spawn point.",
-  "tooltip.boss_rifts.rift_pearl.modern.1": "\u00A77Hold-use to warp.",
-  "tooltip.boss_rifts.rift_pearl.modern.2": "\u00A77Sneak-use on block to place Rift.",
-  "tooltip.boss_rifts.rift_pearl.v1_linked": "\u00A77Use on a Rift to set destination to link.",
-  "tooltip.boss_rifts.rift_pearl.v1_unlinked": "\u00A77Use on a Rift Aggregator to link."
+  "tooltip.boss_rifts.aggregator": "§7Can be used as a spawn point.",
+  "tooltip.boss_rifts.rift_pearl.modern.1": "§7Hold-use to warp.",
+  "tooltip.boss_rifts.rift_pearl.modern.2": "§7Sneak-use on block to place Rift.",
+  "tooltip.boss_rifts.rift_pearl.v1_linked": "§7Use on a Rift to set destination to link.",
+  "tooltip.boss_rifts.rift_pearl.v1_unlinked": "§7Use on a Rift Aggregator to link."
 }

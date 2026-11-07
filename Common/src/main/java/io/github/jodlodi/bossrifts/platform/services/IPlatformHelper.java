@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts.platform.services;
 
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.NullMarked;
 
@@ -21,5 +22,5 @@ public interface IPlatformHelper {
 
 	Path getConfigDir();
 
-	Packet<?> getAddEntityPacket(Entity entity);
+	Packet<ClientGamePacketListener> getAddEntityPacket(Entity entity);
 }

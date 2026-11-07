@@ -49,12 +49,12 @@ public interface iRift<T> {
 		if (mod == null) return;
 
 		if (entity instanceof ServerPlayer player) {
-			ChunkPos chunkpos = new ChunkPos(new BlockPos(mod.x, mod.y, mod.z));
+			ChunkPos chunkpos = new ChunkPos(BlockPos.containing(mod));
 			spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
 			entity.stopRiding();
 
 			if (player.isSleeping()) player.stopSleepInBed(true, true);
-			if (spawnWorld == entity.level) {
+			if (spawnWorld == entity.level()) {
 				player.connection.teleport(mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
 			} else {
 				player.teleportTo(spawnWorld, mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
@@ -64,7 +64,7 @@ public interface iRift<T> {
 			float f = Mth.wrapDegrees(entity.getXRot());
 
 			f = Mth.clamp(f, -90.0F, 90.0F);
-			if (spawnWorld == entity.level) {
+			if (spawnWorld == entity.level()) {
 				entity.moveTo(mod.x, mod.y, mod.z, f1, f);
 				entity.setYHeadRot(f1);
 			} else {

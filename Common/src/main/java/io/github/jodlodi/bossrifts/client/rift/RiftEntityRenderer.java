@@ -2,8 +2,6 @@ package io.github.jodlodi.bossrifts.client.rift;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
@@ -25,11 +23,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.EntityHitResult;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
@@ -91,7 +89,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 	@Override
 	public long getTime(BossRiftEntity rift) {
-		return rift.level.getGameTime();
+		return rift.level().getGameTime();
 	}
 
 	@Override
@@ -127,7 +125,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 
 		VertexConsumer vertexBuilder = buffer.getBuffer(SHELL_TYPE);
 
-		Map<Vec3i, Quaternion> pose = null;
+		Map<Vec3i, Quaternionf> pose = null;
 		if (shuffleScale >= 0.0F) pose = this.computePose(rift, shuffleScale);
 
 		int i = 0;
@@ -192,7 +190,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 				);
 
 				if (price > -1) {
-					this.renderCost(rift, new TranslatableComponent(BossRiftEntity.COST, new TextComponent(String.valueOf(price)).withStyle(ChatFormatting.GREEN)), stack, buffer, light);
+					this.renderCost(rift, Component.translatable(BossRiftEntity.COST, Component.literal(String.valueOf(price)).withStyle(ChatFormatting.GREEN)), stack, buffer, light);
 				}
 			}
 		}
@@ -201,16 +199,15 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 	protected void renderCost(BossRiftEntity rift, Component component, PoseStack stack, MultiBufferSource buffer, int light) {
 		if (Services.CLIENT_HOOKS.isNameplateInRenderDistance(rift, this.entityRenderDispatcher.distanceToSqr(rift))) {
 			stack.pushPose();
-
-			stack.translate(0.0D, rift.getBbHeight() + 0.75F, 0.0D);
+			stack.translate(0.0F, rift.getBbHeight() + 0.75F, 0.0F);
 			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
 			stack.scale(-0.025F, -0.025F, 0.025F);
 			Matrix4f matrix4f = stack.last().pose();
 			int opacity = (int) (0.85 * 255.0F) << 24;
 			Font font = this.getFont();
 			float f2 = (float) (-font.width(component) / 2);
-			font.drawInBatch(component, f2, 0.0F, 553648127, false, matrix4f, buffer, true, opacity, light);
-			font.drawInBatch(component, f2, 0.0F, -1, false, matrix4f, buffer, false, 0, light);
+			font.drawInBatch(component, f2, 0.0F, 553648127, false, matrix4f, buffer, Font.DisplayMode.SEE_THROUGH, opacity, light);
+			font.drawInBatch(component, f2, 0.0F, -1, false, matrix4f, buffer, Font.DisplayMode.NORMAL, 0, light);
 
 			stack.popPose();
 		}

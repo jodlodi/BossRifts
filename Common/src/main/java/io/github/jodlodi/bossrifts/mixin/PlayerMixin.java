@@ -20,7 +20,7 @@ import java.util.Optional;
 public class PlayerMixin {
 	@Inject(method = "findRespawnPositionAndUseSpawnBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
 	private static void onFindRespawnPositionAndUseSpawnBlock(ServerLevel level, BlockPos pos, float respawnAngle, boolean respawnForced, boolean wonGame, CallbackInfoReturnable<Optional<Vec3>> cir, BlockState state) {
-		if (state.getBlock() instanceof RiftAggregatorBlock aggregator && aggregator.isPossibleToRespawnInThis()) {
+		if (state.getBlock() instanceof RiftAggregatorBlock aggregator && aggregator.isPossibleToRespawnInThis(state)) {
 			cir.setReturnValue(Optional.of(Vec3.atBottomCenterOf(pos.above())));
 		}
 	}

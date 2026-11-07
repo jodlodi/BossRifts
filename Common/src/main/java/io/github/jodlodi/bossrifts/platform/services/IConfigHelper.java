@@ -4,9 +4,10 @@ import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.registry.ModTags;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -41,23 +42,25 @@ public interface IConfigHelper {
 
 	double getRange();
 
-	Tag<EntityType<?>> getTag();
+	default TagKey<EntityType<?>> getTag() {
+		return this.isV1() ? ModTags.LEGACY_BOSSES : ModTags.RIFT_BOSSES;
+	}
 
 	boolean canSetSpawn();
 
 	static void triggerV1(LivingEntity dying) {
-		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> Services.CONFIG.getTag().contains(entity.getType())).isEmpty()) {
+		if (!dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), entity -> entity.getType().is(Services.CONFIG.getTag())).isEmpty()) {
 			return;
 		}
 
-		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level);
+		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level());
 		if (bossRift != null) {
 			BlockPos pos = dying.blockPosition().above();
-			if (dying.level.getBlockState(pos).isCollisionShapeFullBlock(dying.level, pos)) {
-				dying.level.removeBlock(pos, false);
+			if (dying.level().getBlockState(pos).isCollisionShapeFullBlock(dying.level(), pos)) {
+				dying.level().removeBlock(pos, false);
 			}
 			bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
-			dying.level.addFreshEntity(bossRift);
+			dying.level().addFreshEntity(bossRift);
 		}
 	}
 
@@ -69,7 +72,7 @@ public interface IConfigHelper {
 		if (source.getDirectEntity() instanceof Player player) responsible.add(player);
 		else if (source.getEntity() instanceof Player player) responsible.add(player);
 
-		for (Entity in : dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), Entity::isAlive)) {
+		for (Entity in : dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), Entity::isAlive)) {
 			if (in instanceof Player player) responsible.add(player);
 		}
 
@@ -77,7 +80,7 @@ public interface IConfigHelper {
 	}
 
 	static void findAndEmpowerPearl(Player player) {
-		long time = player.level.getGameTime();
+		long time = player.level().getGameTime();
 		if (RiftPearlItem.empowerPearl(player.getMainHandItem(), time)) return;
 		if (RiftPearlItem.empowerPearl(player.getOffhandItem(), time)) return;
 

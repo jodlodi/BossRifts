@@ -3,14 +3,14 @@ package io.github.jodlodi.bossrifts;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftAggregatorItem;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
-import io.github.jodlodi.bossrifts.registry.ModBlocks;
-import io.github.jodlodi.bossrifts.registry.ModEntities;
-import io.github.jodlodi.bossrifts.registry.ModItems;
-import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.tags.EntityTypeTagsProvider;
@@ -25,47 +25,51 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.common.data.SoundDefinition;
 import net.minecraftforge.common.data.SoundDefinitionsProvider;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @NullMarked
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModData {
+
 	@SubscribeEvent
 	public static void gatherData(GatherDataEvent event) {
 		DataGenerator generator = event.getGenerator();
+		PackOutput output = generator.getPackOutput();
 		ExistingFileHelper helper = event.getExistingFileHelper();
+		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-		generator.addProvider(new ModBlockStates(generator, helper));
-		generator.addProvider(new ModItemModels(generator, helper));
-		generator.addProvider(new ModCrafting(generator));
-		generator.addProvider(new ModSoundDefinitions(generator, helper));
-		generator.addProvider(new ModEntityTags(generator, helper));
-		generator.addProvider(new ModLang(generator));
+		generator.addProvider(true, new ModBlockStates(output, helper));
+		generator.addProvider(true, new ModItemModels(output, helper));
+		generator.addProvider(true, new ModCrafting(output));
+		generator.addProvider(true, new ModSoundDefinitions(output, helper));
+		generator.addProvider(true, new ModEntityTags(output, lookupProvider, helper));
+		generator.addProvider(true, new ModLang(output));
 	}
 
 	private static class ModCrafting extends RecipeProvider {
-		public ModCrafting(DataGenerator generator) {
-			super(generator);
+
+		public ModCrafting(PackOutput output) {
+			super(output);
 		}
 
 		@Override
-		protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
-			ShapedRecipeBuilder.shaped(ModItems.RIFT_PEARL.get(), 1)
+		protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
+			ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.RIFT_PEARL.get(), 1)
 					.pattern("#X#")
 					.pattern("X0X")
 					.pattern("#X#")
@@ -75,7 +79,7 @@ public class ModData {
 					.unlockedBy("has_item", has(Items.ENDER_EYE))
 					.save(consumer);
 
-			ShapedRecipeBuilder.shaped(ModItems.RIFT_AGGREGATOR.get(), 1)
+			ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.RIFT_AGGREGATOR.get(), 1)
 					.pattern("#X#")
 					.pattern("#0#")
 					.pattern("#H#")
@@ -89,8 +93,8 @@ public class ModData {
 	}
 
 	private static class ModBlockStates extends BlockStateProvider {
-		public ModBlockStates(DataGenerator gen, ExistingFileHelper exFileHelper) {
-			super(gen, Constants.MOD_ID, exFileHelper);
+		public ModBlockStates(PackOutput output, ExistingFileHelper exFileHelper) {
+			super(output, Constants.MOD_ID, exFileHelper);
 		}
 
 		@Override
@@ -101,6 +105,7 @@ public class ModData {
 					.texture("bottom", Constants.prefix("block/rift_aggregator_bottom"))
 					.texture("side", Constants.prefix("block/rift_aggregator_side0"))
 					.texture("particle", Constants.prefix("block/rift_aggregator_side0"))
+					.renderType(ResourceLocation.withDefaultNamespace("cutout"))
 
 					.element()
 					.from(0.0F, 0.0F, 0.0F)
@@ -164,8 +169,8 @@ public class ModData {
 
 	private static class ModItemModels extends ItemModelProvider {
 
-		public ModItemModels(DataGenerator generator, ExistingFileHelper existingFileHelper) {
-			super(generator, Constants.MOD_ID, existingFileHelper);
+		public ModItemModels(PackOutput output, ExistingFileHelper existingFileHelper) {
+			super(output, Constants.MOD_ID, existingFileHelper);
 		}
 
 		@Override
@@ -187,23 +192,15 @@ public class ModData {
 		}
 
 		private <T extends Block> void toBlock(MultiSupplier<T> block) {
-			toBlockModel(block.get(), Objects.requireNonNull(block.get().getRegistryName()).getPath());
-		}
-
-		private void toBlockModel(Block block, String model) {
-			toBlockModel(block, Constants.prefix("block/" + model));
-		}
-
-		private void toBlockModel(Block block, ResourceLocation model) {
-			withExistingParent(Objects.requireNonNull(block.getRegistryName()).getPath(), model);
+			withExistingParent(block.id().getPath(), block.id().withPrefix("block/"));
 		}
 	}
 
 	private static class ModLang extends LanguageProvider {
 		public static final Map<String, String> AUTO_GENERATOR = new HashMap<>();
 
-		public ModLang(DataGenerator generator) {
-			super(generator, Constants.MOD_ID, "en_us");
+		public ModLang(PackOutput output) {
+			super(output, Constants.MOD_ID, "en_us");
 		}
 
 		@Override
@@ -227,79 +224,79 @@ public class ModData {
 
 	private static class ModEntityTags extends EntityTypeTagsProvider {
 
-		public ModEntityTags(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper) {
-			super(generator, Constants.MOD_ID, existingFileHelper);
+		public ModEntityTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
+			super(output, lookupProvider, Constants.MOD_ID, existingFileHelper);
 		}
 
 		@Override
-		protected void addTags() {
-			this.tag(BossRifts.LEGACY_BOSSES)
-					.addOptional(new ResourceLocation("twilightforest", "lich"))
-					.addOptional(new ResourceLocation("twilightforest", "lich"))
-					.addOptional(new ResourceLocation("twilightforest", "yeti"))
-					.addOptional(new ResourceLocation("twilightforest", "snow_queen"))
-					.addOptional(new ResourceLocation("twilightforest", "minoshroom"))
-					.addOptional(new ResourceLocation("twilightforest", "hydra"))
-					.addOptional(new ResourceLocation("twilightforest", "knight_phantom"))
-					.addOptional(new ResourceLocation("twilightforest", "ur_ghast"))
-					.addOptional(new ResourceLocation("atum", "pharaoh"))
-					.addOptional(new ResourceLocation("mowziesmobs", "barako"))
-					.addOptional(new ResourceLocation("mowziesmobs", "ferrous_wroughtnaut"))
-					.addOptional(new ResourceLocation("mowziesmobs", "frostmaw"))
-					.addOptional(new ResourceLocation("aoa3", "baroness"))
-					.addOptional(new ResourceLocation("aoa3", "clunkhead"))
-					.addOptional(new ResourceLocation("aoa3", "craexxeus"))
-					.addOptional(new ResourceLocation("aoa3", "crystocore"))
-					.addOptional(new ResourceLocation("aoa3", "creep"))
-					.addOptional(new ResourceLocation("aoa3", "dracyon"))
-					.addOptional(new ResourceLocation("aoa3", "elusive"))
-					.addOptional(new ResourceLocation("aoa3", "graw"))
-					.addOptional(new ResourceLocation("aoa3", "hive_king"))
-					.addOptional(new ResourceLocation("aoa3", "kror"))
-					.addOptional(new ResourceLocation("aoa3", "mechbot"))
-					.addOptional(new ResourceLocation("aoa3", "okazor"))
-					.addOptional(new ResourceLocation("aoa3", "shadowlord"))
-					.addOptional(new ResourceLocation("aoa3", "skeletron"))
-					.addOptional(new ResourceLocation("aoa3", "vinocorne"))
-					.addOptional(new ResourceLocation("aoa3", "voxxulon"))
-					.addOptional(new ResourceLocation("aoa3", "flash"))
-					.addOptional(new ResourceLocation("aoa3", "red_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "green_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "blue_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "yellow_guardian"))
-					.addOptional(new ResourceLocation("gaiadimension", "malachite_guard"))
-					.addOptional(new ResourceLocation("blue_skies", "alchemist"))
-					.addOptional(new ResourceLocation("blue_skies", "arachnarch"))
-					.addOptional(new ResourceLocation("blue_skies", "starlit_crusher"))
-					.addOptional(new ResourceLocation("blue_skies", "summoner"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "awful_ghast"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "nether_keeper"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "shelterer_without_armor"))
-					.addOptional(new ResourceLocation("dungeonsmod", "king"))
-					.addOptional(new ResourceLocation("dungeonsmod", "deserted"))
-					.addOptional(new ResourceLocation("dungeonsmod", "crawler"))
-					.addOptional(new ResourceLocation("dungeonsmod", "ironslime"))
-					.addOptional(new ResourceLocation("dungeonsmod", "kraken"))
-					.addOptional(new ResourceLocation("dungeonsmod", "voidmaster"))
-					.addOptional(new ResourceLocation("forestcraft", "beequeen"))
-					.addOptional(new ResourceLocation("forestcraft", "iguana_king"))
-					.addOptional(new ResourceLocation("cataclysm", "ender_golem"))
-					.addOptional(new ResourceLocation("cataclysm", "ender_guardian"))
-					.addOptional(new ResourceLocation("cataclysm", "ignis"))
-					.addOptional(new ResourceLocation("cataclysm", "ignited_revenant"))
-					.addOptional(new ResourceLocation("cataclysm", "netherite_monstrosity"));
+		protected void addTags(HolderLookup.Provider provider) {
+			this.tag(ModTags.LEGACY_BOSSES)
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "yeti"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "snow_queen"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "minoshroom"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "hydra"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "knight_phantom"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "ur_ghast"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("atum", "pharaoh"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "barako"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "ferrous_wroughtnaut"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "frostmaw"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "baroness"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "clunkhead"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "craexxeus"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "crystocore"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "creep"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "dracyon"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "elusive"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "graw"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "hive_king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "kror"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "mechbot"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "okazor"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "shadowlord"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "skeletron"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "vinocorne"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "voxxulon"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "flash"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "red_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "green_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "blue_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "yellow_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("gaiadimension", "malachite_guard"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "alchemist"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "arachnarch"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "starlit_crusher"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "summoner"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "awful_ghast"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "nether_keeper"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "shelterer_without_armor"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "deserted"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "crawler"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "ironslime"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "kraken"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "voidmaster"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "beequeen"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "iguana_king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_golem"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignis"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"));
 
-			this.tag(BossRifts.RIFT_BOSSES).add(
+			this.tag(ModTags.RIFT_BOSSES).add(
 					EntityType.WITHER,
 					EntityType.ENDER_DRAGON
-			).addTag(BossRifts.LEGACY_BOSSES);
+			).addTag(ModTags.LEGACY_BOSSES);
 		}
 	}
 
 	private static class ModSoundDefinitions extends SoundDefinitionsProvider {
 
-		protected ModSoundDefinitions(DataGenerator generator, ExistingFileHelper helper) {
-			super(generator, Constants.MOD_ID, helper);
+		protected ModSoundDefinitions(PackOutput output, ExistingFileHelper helper) {
+			super(output, Constants.MOD_ID, helper);
 		}
 
 		@Override
@@ -358,7 +355,7 @@ public class ModData {
 			for (String string : baseSoundDirectory) {
 				definition.with(
 						SoundDefinition.Sound
-								.sound(new ResourceLocation(string), SoundDefinition.SoundType.SOUND)
+								.sound(ResourceLocation.withDefaultNamespace(string), SoundDefinition.SoundType.SOUND)
 								.volume(volume)
 								.pitch(pitch)
 				);

@@ -4,7 +4,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.platform.FabricConfigHelper;
-import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -24,12 +23,12 @@ public class ClientBoundConfigPacket extends ClientBoundPacket {
 	}
 
 	public static ClientBoundConfigPacket decode(FriendlyByteBuf buffer) {
-		return buffer.readWithCodec(CODEC);
+		return buffer.readJsonWithCodec(CODEC);
 	}
 
 	@Override
 	public FriendlyByteBuf encode(FriendlyByteBuf buf) {
-		buf.writeWithCodec(CODEC, this);
+		buf.writeJsonWithCodec(CODEC, this);
 		return buf;
 	}
 

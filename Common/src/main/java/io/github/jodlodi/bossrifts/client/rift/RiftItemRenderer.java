@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Quaternion;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
 import io.github.jodlodi.bossrifts.platform.Services;
@@ -16,7 +15,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -27,7 +25,9 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Quaternionf;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		this.core = build(iRiftRenderer.createCore());
 	}
 
-	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemTransforms.TransformType type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		float partialTick = Minecraft.getInstance().isPaused() ? 0.0F : Minecraft.getInstance().getFrameTime();
 		INSTANCE.preRender(new RenderInfo(stack, pearl, type, leftHandHackery), ms, buffer, light, overlay, partialTick);
 	}
@@ -90,7 +90,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	public long getTime(RenderInfo renderInfo) {
 		Entity entity = renderInfo.getStack().getEntityRepresentation();
 		if (entity != null) {
-			return entity.level.getGameTime();
+			return entity.level().getGameTime();
 		} else {
 			ClientLevel level = Minecraft.getInstance().level;
 			if (level != null) return level.getGameTime();
@@ -129,9 +129,9 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 				boolean open = player.experienceLevel >= price || player.getAbilities().instabuild;
 
 				if (!STACK_MAP.containsKey(renderInfo.getStack())) {
-					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level().getGameTime(), !open));
 				} else if (open == STACK_MAP.get(renderInfo.getStack()).getSecond()) {
-					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level.getGameTime(), !open));
+					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level().getGameTime(), !open));
 				}
 
 				float scale = 1.0F;
@@ -169,7 +169,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 		VertexConsumer vertexBuilder = buffer.getBuffer(SHELL_TYPE);
 
-		Map<Vec3i, Quaternion> pose = null;
+		Map<Vec3i, Quaternionf> pose = null;
 		if (shuffleScale >= 0.0F) pose = this.computePose(renderInfo, shuffleScale);
 
 		int i = 0;
@@ -233,10 +233,10 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	public static class RenderInfo {
 		private final ItemStack stack;
 		private final RiftPearlItem pearl;
-		private final ItemTransforms.TransformType type;
+		private final ItemDisplayContext type;
 		private final boolean leftHandHackery;
 
-		private RenderInfo(ItemStack stack, RiftPearlItem pearl, ItemTransforms.TransformType type, boolean leftHandHackery) {
+		private RenderInfo(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery) {
 			this.stack = stack;
 			this.pearl = pearl;
 			this.type = type;
@@ -251,12 +251,12 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 			return this.pearl;
 		}
 
-		public ItemTransforms.TransformType getType() {
+		public ItemDisplayContext getType() {
 			return this.type;
 		}
 
 		public boolean isDynamic() {
-			return this.type != ItemTransforms.TransformType.GUI && this.type != ItemTransforms.TransformType.FIXED;
+			return this.type != ItemDisplayContext.GUI && this.type != ItemDisplayContext.FIXED;
 		}
 
 		public boolean isLeftHandHackery() {

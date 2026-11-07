@@ -5,7 +5,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
@@ -27,10 +26,10 @@ public abstract class ThrownEnderpearlMixin extends ThrowableItemProjectile {
 
 	@Inject(method = "onHitEntity", at = @At(value = "HEAD"), cancellable = true)
 	private void onHit(EntityHitResult entityHitResult, CallbackInfo ci) {
-		if (entityHitResult.getEntity() instanceof BossRiftEntity rift && rift.level instanceof ServerLevel serverLevel && this.getOwner() instanceof ServerPlayer player) {
+		if (entityHitResult.getEntity() instanceof BossRiftEntity rift && rift.level() instanceof ServerLevel serverLevel && this.getOwner() instanceof ServerPlayer player) {
 			ci.cancel();
 			player.fallDistance = 0.0F;
-			player.hurt(DamageSource.FALL, 5.0F);
+			player.hurt(player.damageSources().fall(), 5.0F);
 
 			MinecraftServer server = serverLevel.getServer();
 			server.tell(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, player, player)));
