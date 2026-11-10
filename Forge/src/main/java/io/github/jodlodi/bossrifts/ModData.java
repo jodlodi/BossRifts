@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.common.data.SoundDefinition;
@@ -230,7 +231,9 @@ public class ModData {
 
 		@Override
 		protected void addTags(HolderLookup.Provider provider) {
-			this.tag(ModTags.LEGACY_BOSSES)
+			this.tag(ModTags.RIFT_BOSSES)
+					.add(EntityType.WITHER)
+					.add(EntityType.ENDER_DRAGON)
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "yeti"))
@@ -284,12 +287,8 @@ public class ModData {
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_guardian"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignis"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"));
-
-			this.tag(ModTags.RIFT_BOSSES).add(
-					EntityType.WITHER,
-					EntityType.ENDER_DRAGON
-			).addTag(ModTags.LEGACY_BOSSES);
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"))
+					.addOptionalTag(Tags.EntityTypes.BOSSES.location());
 		}
 	}
 

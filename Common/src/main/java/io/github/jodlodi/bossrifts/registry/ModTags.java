@@ -8,6 +8,5 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ModTags {
-	public static final TagKey<EntityType<?>> LEGACY_BOSSES = TagKey.create(Registries.ENTITY_TYPE, Constants.prefix("legacy_bosses"));
 	public static final TagKey<EntityType<?>> RIFT_BOSSES = TagKey.create(Registries.ENTITY_TYPE, Constants.prefix("rift_bosses"));
 }
