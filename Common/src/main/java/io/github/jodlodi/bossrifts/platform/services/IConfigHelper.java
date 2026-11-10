@@ -7,10 +7,8 @@ import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModTags;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -42,14 +40,10 @@ public interface IConfigHelper {
 
 	double getRange();
 
-	default TagKey<EntityType<?>> getTag() {
-		return this.isV1() ? ModTags.LEGACY_BOSSES : ModTags.RIFT_BOSSES;
-	}
-
 	boolean canSetSpawn();
 
 	static void triggerV1(LivingEntity dying) {
-		if (!dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), entity -> entity.getType().is(Services.CONFIG.getTag())).isEmpty()) {
+		if (!dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), entity -> entity.getType().is(ModTags.RIFT_BOSSES)).isEmpty()) {
 			return;
 		}
 

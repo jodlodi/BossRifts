@@ -27,6 +27,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.common.data.SoundDefinition;
@@ -42,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @NullMarked
-@EventBusSubscriber(modid = Constants.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Constants.MOD_ID)
 public class ModData {
 
 	@SubscribeEvent
@@ -230,7 +231,9 @@ public class ModData {
 
 		@Override
 		protected void addTags(HolderLookup.Provider provider) {
-			this.tag(ModTags.LEGACY_BOSSES)
+			this.tag(ModTags.RIFT_BOSSES)
+					.add(EntityType.WITHER)
+					.add(EntityType.ENDER_DRAGON)
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "yeti"))
@@ -284,12 +287,8 @@ public class ModData {
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_guardian"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignis"))
 					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"));
-
-			this.tag(ModTags.RIFT_BOSSES).add(
-					EntityType.WITHER,
-					EntityType.ENDER_DRAGON
-			).addTag(ModTags.LEGACY_BOSSES);
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"))
+					.addOptionalTag(Tags.EntityTypes.BOSSES.location());
 		}
 	}
 
