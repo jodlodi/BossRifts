@@ -1,18 +1,29 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7.+'
     }
 }
-apply plugin: 'java'
-apply plugin: 'net.minecraftforge.gradle'
+
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
 apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+
+version = version
+group = group
+
+base {
+    archivesName = "${mod_id}-forge-${minecraft_version}"
+}
 
 mixin {
     add(sourceSets.main, "${mod_id}.refmap.json")
@@ -21,11 +32,14 @@ mixin {
     config("${mod_id}.forge.mixins.json")
 }
 
-archivesBaseName = "${mod_name}-forge-${minecraft_version}"
-
 minecraft {
     mappings channel: 'official', version: minecraft_version
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
+        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+        project.logger.debug('Forge Access Transformers are enabled for this project.')
+    }
 
     runs {
         client {
@@ -94,16 +108,18 @@ jar {
     ])
 }
 
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
             artifact jar
         }
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/mcmodsrepo"
+            url "file://" + System.getenv("local_maven")
         }
     }
 }

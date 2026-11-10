@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;

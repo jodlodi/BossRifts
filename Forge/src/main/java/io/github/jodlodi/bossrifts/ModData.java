@@ -3,10 +3,7 @@ package io.github.jodlodi.bossrifts;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftAggregatorItem;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
-import io.github.jodlodi.bossrifts.registry.ModBlocks;
-import io.github.jodlodi.bossrifts.registry.ModEntities;
-import io.github.jodlodi.bossrifts.registry.ModItems;
-import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
@@ -233,7 +230,7 @@ public class ModData {
 
 		@Override
 		protected void addTags() {
-			this.tag(BossRifts.LEGACY_BOSSES)
+			this.tag(ModTags.LEGACY_BOSSES)
 					.addOptional(new ResourceLocation("twilightforest", "lich"))
 					.addOptional(new ResourceLocation("twilightforest", "lich"))
 					.addOptional(new ResourceLocation("twilightforest", "yeti"))
@@ -289,10 +286,10 @@ public class ModData {
 					.addOptional(new ResourceLocation("cataclysm", "ignited_revenant"))
 					.addOptional(new ResourceLocation("cataclysm", "netherite_monstrosity"));
 
-			this.tag(BossRifts.RIFT_BOSSES).add(
+			this.tag(ModTags.RIFT_BOSSES).add(
 					EntityType.WITHER,
 					EntityType.ENDER_DRAGON
-			).addTag(BossRifts.LEGACY_BOSSES);
+			).addTag(ModTags.LEGACY_BOSSES);
 		}
 	}
 

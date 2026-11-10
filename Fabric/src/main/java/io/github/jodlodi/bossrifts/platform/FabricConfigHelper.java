@@ -13,6 +13,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.storage.LevelResource;
@@ -193,11 +194,6 @@ public class FabricConfigHelper implements IConfigHelper {
 	@Override
 	public double getRange() {
 		return this.range;
-	}
-
-	@Override
-	public Tag<EntityType<?>> getTag() {
-		return this.isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
 	}
 
 	@Override

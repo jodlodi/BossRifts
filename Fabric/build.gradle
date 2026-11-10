@@ -1,36 +1,47 @@
 plugins {
-    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
     id 'maven-publish'
     id 'idea'
 }
 
-archivesBaseName = "${mod_name}-fabric-${minecraft_version}"
+version = version
+group = group
+
+base {
+    archivesName = "${mod_id}-fabric-${minecraft_version}"
+}
+
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     implementation project(":Common")
     implementation 'org.jspecify:jspecify:1.0.0'
 }
 
 loom {
-    if (project(":Common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
-        accessWidenerPath.set(project(":Common").file("src/main/resources/${mod_id}.accesswidener"))
+    mixin {
+        defaultRefmapName = "${mod_id}.refmap.json"
+    }
+    def aw = project(':Common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
     }
     runs {
         client {
             client()
             setConfigName("Fabric Client")
             ideConfigGenerated(true)
-            runDir("${this.name}/run")
+            runDir("run")
         }
         server {
             server()
             setConfigName("Fabric Server")
             ideConfigGenerated(true)
-            runDir("${this.name}/run")
+            runDir("run")
         }
     }
 }
@@ -49,24 +60,19 @@ tasks.withType(JavaCompile) {
     source(project(":Common").sourceSets.main.allSource)
 }
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${mod_name}" }
-    }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact(remapJar) {
-                builtBy remapJar
-            }
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            from components.java
         }
     }
 
     repositories {
+        maven {
+            url "file://" + System.getenv("local_maven")
+        }
     }
 }

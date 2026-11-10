@@ -22,8 +22,6 @@ import org.jspecify.annotations.NullMarked;
 @Mod(Constants.MOD_ID)
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BossRifts {
-	public static final Tags.IOptionalNamedTag<EntityType<?>> LEGACY_BOSSES = EntityTypeTags.createOptional(Constants.prefix("legacy_bosses"));
-	public static final Tags.IOptionalNamedTag<EntityType<?>> RIFT_BOSSES = EntityTypeTags.createOptional(Constants.prefix("rift_bosses"));
 
 	public BossRifts() {
 		CommonClass.init();

@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
-import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ForgeModelBakery;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -37,8 +37,8 @@ public class ClientSetupListener {
 
 	@SubscribeEvent
 	public static void onModelRegister(ModelRegistryEvent event) {
-		ModelLoader.addSpecialModel(iRiftRenderer.FRAME_MODEL);
-		ModelLoader.addSpecialModel(iRiftRenderer.PEARL_MODEL);
+		ForgeModelBakery.addSpecialModel(iRiftRenderer.FRAME_MODEL);
+		ForgeModelBakery.addSpecialModel(iRiftRenderer.PEARL_MODEL);
 	}
 
 	@SubscribeEvent

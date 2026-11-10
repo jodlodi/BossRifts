@@ -6,10 +6,10 @@ import io.github.jodlodi.bossrifts.network.client.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.platform.services.INetworkHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.fmllegacy.network.NetworkEvent;
-import net.minecraftforge.fmllegacy.network.NetworkRegistry;
-import net.minecraftforge.fmllegacy.network.PacketDistributor;
-import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Supplier;
