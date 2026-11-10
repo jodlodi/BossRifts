@@ -25,8 +25,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.EntityHitResult;
@@ -192,7 +190,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 				);
 
 				if (price > -1) {
-					this.renderCost(rift, new TranslatableComponent(BossRiftEntity.COST, new TextComponent(String.valueOf(price)).withStyle(ChatFormatting.GREEN)), stack, buffer, light);
+					this.renderCost(rift, Component.translatable(BossRiftEntity.COST, Component.literal(String.valueOf(price)).withStyle(ChatFormatting.GREEN)), stack, buffer, light);
 				}
 			}
 		}

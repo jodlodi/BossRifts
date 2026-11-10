@@ -6,6 +6,5 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
 public class ModTags {
-	public static final TagKey<EntityType<?>> LEGACY_BOSSES = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, Constants.prefix("legacy_bosses"));
 	public static final TagKey<EntityType<?>> RIFT_BOSSES = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, Constants.prefix("rift_bosses"));
 }

@@ -7,6 +7,7 @@ import io.github.jodlodi.bossrifts.registry.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +23,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
-import java.util.Random;
 
 @NullMarked
 public class RiftAggregatorBlock extends BaseEntityBlock {
@@ -63,7 +63,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public void animateTick(BlockState state, Level level, BlockPos pos, Random random) {
+	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 		if (random.nextInt(100) == 0) {
 			level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_AMBIENT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 		}

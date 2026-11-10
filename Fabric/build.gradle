@@ -11,7 +11,6 @@ base {
     archivesName = "${mod_id}-fabric-${minecraft_version}"
 }
 
-
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
@@ -25,10 +24,6 @@ dependencies {
 loom {
     mixin {
         defaultRefmapName = "${mod_id}.refmap.json"
-    }
-    def aw = project(':Common').file("src/main/resources/${mod_id}.accesswidener")
-    if (aw.exists()) {
-        accessWidenerPath.set(aw)
     }
     runs {
         client {

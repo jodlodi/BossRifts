@@ -11,15 +11,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Optional;
-
 @NullMarked
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class EXPCostListener {
 
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-		if (event.getPlayer() instanceof ServerPlayer player) {
+		if (event.getEntity() instanceof ServerPlayer player) {
 			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(player.getRespawnPosition(), player.getRespawnDimension()));
 			Services.NETWORK.sendToClient(player, new ClearRiftCachePacket());
 		}
@@ -27,8 +25,8 @@ public class EXPCostListener {
 
 	@SubscribeEvent
 	public static void onPlayerSetSpawnEvent(PlayerSetSpawnEvent event) {
-		if (event.getPlayer() instanceof ServerPlayer player) {
-			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(event.getNewSpawn(), event.getSpawnWorld()));
+		if (event.getEntity() instanceof ServerPlayer player) {
+			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(event.getNewSpawn(), event.getSpawnLevel()));
 		}
 	}
 }

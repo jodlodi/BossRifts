@@ -17,8 +17,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -220,14 +218,14 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
-		if (!isAggregatorPearl(stack)) list.add(new TranslatableComponent(TOOLTIP_UNLINKED));
+		if (!isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_UNLINKED));
 		if (Services.CONFIG.isV1()) {
-			if (isAggregatorPearl(stack)) list.add(new TranslatableComponent(TOOLTIP_V1_LINKED));
+			if (isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_V1_LINKED));
 		} else {
 			double cost = Services.CONFIG.getExpCost();
 			if (Mth.equal(cost, 0.0F)) {
-				list.add(new TranslatableComponent(TOOLTIP_MODERN_1));
-				list.add(new TranslatableComponent(TOOLTIP_MODERN_2));
+				list.add(Component.translatable(TOOLTIP_MODERN_1));
+				list.add(Component.translatable(TOOLTIP_MODERN_2));
 				return;
 			} else if (cost >= 0.0F && stack.getEntityRepresentation() instanceof Player player) {
 				int price = this.getPrice(
@@ -238,10 +236,10 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 				if (price > -1) {
 					if (player.experienceLevel >= price || player.getAbilities().instabuild) {
-						list.add(new TranslatableComponent(TOOLTIP_MODERN_1));
-						list.add(new TranslatableComponent(TOOLTIP_MODERN_2));
+						list.add(Component.translatable(TOOLTIP_MODERN_1));
+						list.add(Component.translatable(TOOLTIP_MODERN_2));
 					}
-					list.add(new TranslatableComponent(BossRiftEntity.COST, new TextComponent(String.valueOf(price)).withStyle(ChatFormatting.GREEN)));
+					list.add(Component.translatable(BossRiftEntity.COST, Component.literal(String.valueOf(price)).withStyle(ChatFormatting.GREEN)));
 					return;
 				}
 			}
@@ -251,8 +249,8 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			if (powered >= 0 && level != null) {
 				long diff = level.getGameTime() - powered;
 				if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
-					list.add(new TranslatableComponent(TOOLTIP_MODERN_1));
-					list.add(new TranslatableComponent(TOOLTIP_MODERN_2));
+					list.add(Component.translatable(TOOLTIP_MODERN_1));
+					list.add(Component.translatable(TOOLTIP_MODERN_2));
 				}
 			}
 		}

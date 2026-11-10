@@ -1,9 +1,8 @@
 package io.github.jodlodi.bossrifts.util;
 
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Random;
 
 @NullMarked
 public class AnimUtil {
@@ -39,7 +38,7 @@ public class AnimUtil {
 		return (float) Mth.clamp(scale, 0.0F, 1.0F);
 	}
 
-	public static double random(Random random, double min, double max) {
+	public static double random(RandomSource random, double min, double max) {
 		return random.nextDouble() * (max - min) + min;
 	}
 

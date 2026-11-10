@@ -27,9 +27,9 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.common.data.SoundDefinition;
 import net.minecraftforge.common.data.SoundDefinitionsProvider;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
@@ -47,12 +47,12 @@ public class ModData {
 		DataGenerator generator = event.getGenerator();
 		ExistingFileHelper helper = event.getExistingFileHelper();
 
-		generator.addProvider(new ModBlockStates(generator, helper));
-		generator.addProvider(new ModItemModels(generator, helper));
-		generator.addProvider(new ModCrafting(generator));
-		generator.addProvider(new ModSoundDefinitions(generator, helper));
-		generator.addProvider(new ModEntityTags(generator, helper));
-		generator.addProvider(new ModLang(generator));
+		generator.addProvider(true, new ModBlockStates(generator, helper));
+		generator.addProvider(true, new ModItemModels(generator, helper));
+		generator.addProvider(true, new ModCrafting(generator));
+		generator.addProvider(true, new ModSoundDefinitions(generator, helper));
+		generator.addProvider(true, new ModEntityTags(generator, helper));
+		generator.addProvider(true, new ModLang(generator));
 	}
 
 	private static class ModCrafting extends RecipeProvider {
@@ -98,6 +98,7 @@ public class ModData {
 					.texture("bottom", Constants.prefix("block/rift_aggregator_bottom"))
 					.texture("side", Constants.prefix("block/rift_aggregator_side0"))
 					.texture("particle", Constants.prefix("block/rift_aggregator_side0"))
+					.renderType(ResourceLocation.withDefaultNamespace("cutout"))
 
 					.element()
 					.from(0.0F, 0.0F, 0.0F)
@@ -184,15 +185,7 @@ public class ModData {
 		}
 
 		private <T extends Block> void toBlock(MultiSupplier<T> block) {
-			toBlockModel(block.get(), Objects.requireNonNull(block.get().getRegistryName()).getPath());
-		}
-
-		private void toBlockModel(Block block, String model) {
-			toBlockModel(block, Constants.prefix("block/" + model));
-		}
-
-		private void toBlockModel(Block block, ResourceLocation model) {
-			withExistingParent(Objects.requireNonNull(block.getRegistryName()).getPath(), model);
+			withExistingParent(block.id().getPath(), block.id().withPrefix("block/"));
 		}
 	}
 
@@ -230,66 +223,64 @@ public class ModData {
 
 		@Override
 		protected void addTags() {
-			this.tag(ModTags.LEGACY_BOSSES)
-					.addOptional(new ResourceLocation("twilightforest", "lich"))
-					.addOptional(new ResourceLocation("twilightforest", "lich"))
-					.addOptional(new ResourceLocation("twilightforest", "yeti"))
-					.addOptional(new ResourceLocation("twilightforest", "snow_queen"))
-					.addOptional(new ResourceLocation("twilightforest", "minoshroom"))
-					.addOptional(new ResourceLocation("twilightforest", "hydra"))
-					.addOptional(new ResourceLocation("twilightforest", "knight_phantom"))
-					.addOptional(new ResourceLocation("twilightforest", "ur_ghast"))
-					.addOptional(new ResourceLocation("atum", "pharaoh"))
-					.addOptional(new ResourceLocation("mowziesmobs", "barako"))
-					.addOptional(new ResourceLocation("mowziesmobs", "ferrous_wroughtnaut"))
-					.addOptional(new ResourceLocation("mowziesmobs", "frostmaw"))
-					.addOptional(new ResourceLocation("aoa3", "baroness"))
-					.addOptional(new ResourceLocation("aoa3", "clunkhead"))
-					.addOptional(new ResourceLocation("aoa3", "craexxeus"))
-					.addOptional(new ResourceLocation("aoa3", "crystocore"))
-					.addOptional(new ResourceLocation("aoa3", "creep"))
-					.addOptional(new ResourceLocation("aoa3", "dracyon"))
-					.addOptional(new ResourceLocation("aoa3", "elusive"))
-					.addOptional(new ResourceLocation("aoa3", "graw"))
-					.addOptional(new ResourceLocation("aoa3", "hive_king"))
-					.addOptional(new ResourceLocation("aoa3", "kror"))
-					.addOptional(new ResourceLocation("aoa3", "mechbot"))
-					.addOptional(new ResourceLocation("aoa3", "okazor"))
-					.addOptional(new ResourceLocation("aoa3", "shadowlord"))
-					.addOptional(new ResourceLocation("aoa3", "skeletron"))
-					.addOptional(new ResourceLocation("aoa3", "vinocorne"))
-					.addOptional(new ResourceLocation("aoa3", "voxxulon"))
-					.addOptional(new ResourceLocation("aoa3", "flash"))
-					.addOptional(new ResourceLocation("aoa3", "red_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "green_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "blue_guardian"))
-					.addOptional(new ResourceLocation("aoa3", "yellow_guardian"))
-					.addOptional(new ResourceLocation("gaiadimension", "malachite_guard"))
-					.addOptional(new ResourceLocation("blue_skies", "alchemist"))
-					.addOptional(new ResourceLocation("blue_skies", "arachnarch"))
-					.addOptional(new ResourceLocation("blue_skies", "starlit_crusher"))
-					.addOptional(new ResourceLocation("blue_skies", "summoner"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "awful_ghast"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "nether_keeper"))
-					.addOptional(new ResourceLocation("stalwart_dungeons", "shelterer_without_armor"))
-					.addOptional(new ResourceLocation("dungeonsmod", "king"))
-					.addOptional(new ResourceLocation("dungeonsmod", "deserted"))
-					.addOptional(new ResourceLocation("dungeonsmod", "crawler"))
-					.addOptional(new ResourceLocation("dungeonsmod", "ironslime"))
-					.addOptional(new ResourceLocation("dungeonsmod", "kraken"))
-					.addOptional(new ResourceLocation("dungeonsmod", "voidmaster"))
-					.addOptional(new ResourceLocation("forestcraft", "beequeen"))
-					.addOptional(new ResourceLocation("forestcraft", "iguana_king"))
-					.addOptional(new ResourceLocation("cataclysm", "ender_golem"))
-					.addOptional(new ResourceLocation("cataclysm", "ender_guardian"))
-					.addOptional(new ResourceLocation("cataclysm", "ignis"))
-					.addOptional(new ResourceLocation("cataclysm", "ignited_revenant"))
-					.addOptional(new ResourceLocation("cataclysm", "netherite_monstrosity"));
-
-			this.tag(ModTags.RIFT_BOSSES).add(
-					EntityType.WITHER,
-					EntityType.ENDER_DRAGON
-			).addTag(ModTags.LEGACY_BOSSES);
+			this.tag(ModTags.RIFT_BOSSES)
+					.add(EntityType.WITHER)
+					.add(EntityType.ENDER_DRAGON)
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "yeti"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "snow_queen"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "minoshroom"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "hydra"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "knight_phantom"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "ur_ghast"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("atum", "pharaoh"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "barako"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "ferrous_wroughtnaut"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "frostmaw"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "baroness"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "clunkhead"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "craexxeus"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "crystocore"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "creep"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "dracyon"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "elusive"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "graw"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "hive_king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "kror"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "mechbot"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "okazor"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "shadowlord"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "skeletron"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "vinocorne"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "voxxulon"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "flash"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "red_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "green_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "blue_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "yellow_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("gaiadimension", "malachite_guard"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "alchemist"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "arachnarch"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "starlit_crusher"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "summoner"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "awful_ghast"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "nether_keeper"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "shelterer_without_armor"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "deserted"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "crawler"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "ironslime"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "kraken"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "voidmaster"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "beequeen"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "iguana_king"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_golem"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_guardian"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignis"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
+					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"))
+					.addOptionalTag(Tags.EntityTypes.BOSSES.location());
 		}
 	}
 
@@ -355,7 +346,7 @@ public class ModData {
 			for (String string : baseSoundDirectory) {
 				definition.with(
 						SoundDefinition.Sound
-								.sound(new ResourceLocation(string), SoundDefinition.SoundType.SOUND)
+								.sound(ResourceLocation.withDefaultNamespace(string), SoundDefinition.SoundType.SOUND)
 								.volume(volume)
 								.pitch(pitch)
 				);

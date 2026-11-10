@@ -5,21 +5,15 @@ import io.github.jodlodi.bossrifts.client.RiftAggregatorRenderer;
 import io.github.jodlodi.bossrifts.client.rift.RiftEntityRenderer;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
 import io.github.jodlodi.bossrifts.registry.ModBlockEntities;
-import io.github.jodlodi.bossrifts.registry.ModBlocks;
 import io.github.jodlodi.bossrifts.registry.ModEntities;
 import io.github.jodlodi.bossrifts.registry.ModParticles;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.SmokeParticle;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
-import net.minecraftforge.client.model.ForgeModelBakery;
+import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -32,19 +26,17 @@ public class ClientSetupListener {
 	public static void onClientSetup(FMLClientSetupEvent event) {
 		EntityRenderers.register(ModEntities.BOSS_RIFT.get(), RiftEntityRenderer::new);
 		BlockEntityRenderers.register(ModBlockEntities.RIFT_AGGREGATOR.get(), RiftAggregatorRenderer::new);
-		ItemBlockRenderTypes.setRenderLayer(ModBlocks.RIFT_AGGREGATOR.get(), RenderType.cutout());
 	}
 
 	@SubscribeEvent
-	public static void onModelRegister(ModelRegistryEvent event) {
-		ForgeModelBakery.addSpecialModel(iRiftRenderer.FRAME_MODEL);
-		ForgeModelBakery.addSpecialModel(iRiftRenderer.PEARL_MODEL);
+	public static void onModelRegister(ModelEvent.RegisterAdditional event) {
+		event.register(iRiftRenderer.FRAME_MODEL);
+		event.register(iRiftRenderer.PEARL_MODEL);
 	}
 
 	@SubscribeEvent
-	public static void registerFactories(ParticleFactoryRegisterEvent event) {
-		ParticleEngine particles = Minecraft.getInstance().particleEngine;
-		particles.register(ModParticles.RIFT_SMOKE.get(), SmokeParticle.Provider::new);
+	public static void registerFactories(RegisterParticleProvidersEvent event) {
+		event.register(ModParticles.RIFT_SMOKE.get(), SmokeParticle.Provider::new);
 	}
 
 	@SubscribeEvent

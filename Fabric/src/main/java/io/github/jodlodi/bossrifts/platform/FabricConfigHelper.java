@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.mixin.accessor.LevelResourceAccessor;
 import io.github.jodlodi.bossrifts.platform.services.IConfigHelper;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
@@ -12,10 +11,7 @@ import io.github.jodlodi.bossrifts.util.iRift;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jspecify.annotations.NullMarked;
 

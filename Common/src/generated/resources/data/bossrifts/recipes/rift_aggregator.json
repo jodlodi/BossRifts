@@ -1,10 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "#X#",
-    "#0#",
-    "#H#"
-  ],
   "key": {
     "#": {
       "item": "minecraft:end_stone"
@@ -12,13 +7,18 @@
     "0": {
       "item": "bossrifts:rift_pearl"
     },
-    "X": {
-      "item": "minecraft:respawn_anchor"
-    },
     "H": {
       "item": "minecraft:lodestone"
+    },
+    "X": {
+      "item": "minecraft:respawn_anchor"
     }
   },
+  "pattern": [
+    "#X#",
+    "#0#",
+    "#H#"
+  ],
   "result": {
     "item": "bossrifts:rift_aggregator"
   }

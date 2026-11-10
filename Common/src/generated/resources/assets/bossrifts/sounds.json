@@ -1,68 +1,68 @@
 {
+  "block.boss_rift.rift_aggregator.ambient": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.respawn_anchor.ambient"
+      }
+    ],
+    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.ambient"
+  },
+  "block.boss_rift.rift_aggregator.set_spawn": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.respawn_anchor.set_spawn"
+      }
+    ],
+    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.set_spawn"
+  },
+  "entity.boss_rift.close": {
+    "sounds": [
+      "block/beacon/deactivate"
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.close"
+  },
+  "entity.boss_rift.expire": {
+    "sounds": [
+      "mob/illusion_illager/prepare_mirror"
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.expire"
+  },
+  "entity.boss_rift.open": {
+    "sounds": [
+      "mob/evocation_illager/cast1",
+      "mob/evocation_illager/cast2"
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.open"
+  },
+  "entity.boss_rift.rev_up": {
+    "sounds": [
+      "mob/wither/shoot"
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.rev_up"
+  },
   "entity.boss_rift.spawn": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.spawn",
     "sounds": [
       "block/respawn_anchor/set_spawn1",
       "block/respawn_anchor/set_spawn2",
       "block/respawn_anchor/set_spawn3"
-    ]
-  },
-  "entity.boss_rift.open": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.open",
-    "sounds": [
-      "mob/evocation_illager/cast1",
-      "mob/evocation_illager/cast2"
-    ]
-  },
-  "entity.boss_rift.close": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.close",
-    "sounds": [
-      "block/beacon/deactivate"
-    ]
-  },
-  "entity.boss_rift.rev_up": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.rev_up",
-    "sounds": [
-      "mob/wither/shoot"
-    ]
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.spawn"
   },
   "entity.boss_rift.warp": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.warp",
     "sounds": [
       {
         "name": "mob/illusion_illager/mirror_move1",
-        "volume": 0.75,
-        "pitch": 0.75
+        "pitch": 0.75,
+        "volume": 0.75
       },
       {
         "name": "mob/illusion_illager/mirror_move2",
-        "volume": 0.75,
-        "pitch": 0.75
+        "pitch": 0.75,
+        "volume": 0.75
       }
-    ]
-  },
-  "entity.boss_rift.expire": {
-    "subtitle": "subtitles.bossrifts.entity.boss_rift.expire",
-    "sounds": [
-      "mob/illusion_illager/prepare_mirror"
-    ]
-  },
-  "block.boss_rift.rift_aggregator.ambient": {
-    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.ambient",
-    "sounds": [
-      {
-        "name": "block.respawn_anchor.ambient",
-        "type": "event"
-      }
-    ]
-  },
-  "block.boss_rift.rift_aggregator.set_spawn": {
-    "subtitle": "subtitles.bossrifts.block.boss_rift.rift_aggregator.set_spawn",
-    "sounds": [
-      {
-        "name": "block.respawn_anchor.set_spawn",
-        "type": "event"
-      }
-    ]
+    ],
+    "subtitle": "subtitles.bossrifts.entity.boss_rift.warp"
   }
 }
