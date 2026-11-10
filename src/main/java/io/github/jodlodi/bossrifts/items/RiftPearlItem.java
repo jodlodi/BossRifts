@@ -87,12 +87,28 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		if (context.isSecondaryUseActive() && !RiftConfig.isV1()) {
 			ItemStack stack = context.getItemInHand();
 			PlayerEntity player = context.getPlayer();
-			long powered = poweredTime(stack);
 
-			if (powered >= 0 && player != null) {
-				long diff = player.level.getGameTime() - powered;
-				if (diff > RiftConfig.empowerDuration() || diff < TRANSITION_TIME) {
-					return ActionResultType.PASS;
+			int price = -1;
+			if (player != null) {
+				price = this.getPrice(
+						player.blockPosition(),
+						stack,
+						getRespawnPosition(player)
+				);
+
+				if (price <= -1 || (player.experienceLevel < price && !player.abilities.instabuild)) {
+					price = -1;
+				}
+			}
+
+			if (price == -1) {
+				long powered = poweredTime(stack);
+
+				if (powered >= 0 && player != null) {
+					long diff = player.level.getGameTime() - powered;
+					if (diff > RiftConfig.empowerDuration() || diff < TRANSITION_TIME) {
+						return ActionResultType.PASS;
+					}
 				}
 			}
 
@@ -108,7 +124,10 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				rift.setItem(context.getItemInHand());
 				if (player instanceof ServerPlayerEntity) rift.startRevving((ServerPlayerEntity) player);
 
-				if (player != null && !player.abilities.instabuild) context.getItemInHand().shrink(1);
+				if (player != null && !player.abilities.instabuild) {
+					context.getItemInHand().shrink(1);
+					if (price > 0) player.giveExperienceLevels(-price);
+				}
 				return level.addFreshEntity(rift) ? ActionResultType.SUCCESS : ActionResultType.FAIL;
 			} else return ActionResultType.FAIL;
 		} else if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
@@ -136,40 +155,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		} else {
 			return super.useOn(context);
 		}
-	}
-
-	private void addLodestoneTags(RegistryKey<World> key, BlockPos pos, CompoundNBT tag) {
-		tag.put(POSITION, NBTUtil.writeBlockPos(pos));
-		World.RESOURCE_KEY_CODEC.encodeStart(NBTDynamicOps.INSTANCE, key).resultOrPartial(BossRifts.LOGGER::error).ifPresent((inbt) -> tag.put(DIMENSION, inbt));
-	}
-
-	@Override
-	public void onUsingTick(ItemStack stack, LivingEntity player, int remaining) {
-		World level = player.level;
-		int ticksUsed = USE_DURATION - remaining;
-		Vector3d pos = player.getEyePosition(1.0F);
-
-		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
-
-		float now = AnimUtil.clampScaled(ticksUsed, USE_DURATION - COMPRESS_OFFSET);
-		float before = AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
-
-		if (plan.movesStarted(now) > plan.movesStarted(before)) {
-			level.playLocalSound(pos.x, pos.y, pos.z,
-					ModSounds.RIFT_REV_UP.get(), SoundCategory.PLAYERS, 0.25F + 0.5F * now, 0.8F + 0.9F * now, false);
-		}
-
-		if (AnimUtil.justFinished(ticksUsed, USE_DURATION - SHUFFLE_OFFSET - 2)) {
-			level.playLocalSound(pos.x, pos.y, pos.z,
-					ModSounds.RIFT_CLOSE.get(), SoundCategory.PLAYERS, 1.0F, level.random.nextFloat() * 0.5F + 0.8F, false);
-		}
-	}
-
-	private BlockPos getRespawnPosition(PlayerEntity player) {
-		if (player instanceof ServerPlayerEntity) {
-			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-			return serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO;
-		} else return respawnPosition != null ? respawnPosition : BlockPos.ZERO;
 	}
 
 	@Override
@@ -206,6 +191,40 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		}
 
 		return ActionResult.pass(stack);
+	}
+
+	private void addLodestoneTags(RegistryKey<World> key, BlockPos pos, CompoundNBT tag) {
+		tag.put(POSITION, NBTUtil.writeBlockPos(pos));
+		World.RESOURCE_KEY_CODEC.encodeStart(NBTDynamicOps.INSTANCE, key).resultOrPartial(BossRifts.LOGGER::error).ifPresent((inbt) -> tag.put(DIMENSION, inbt));
+	}
+
+	@Override
+	public void onUsingTick(ItemStack stack, LivingEntity player, int remaining) {
+		World level = player.level;
+		int ticksUsed = USE_DURATION - remaining;
+		Vector3d pos = player.getEyePosition(1.0F);
+
+		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
+
+		float now = AnimUtil.clampScaled(ticksUsed, USE_DURATION - COMPRESS_OFFSET);
+		float before = AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
+
+		if (plan.movesStarted(now) > plan.movesStarted(before)) {
+			level.playLocalSound(pos.x, pos.y, pos.z,
+					ModSounds.RIFT_REV_UP.get(), SoundCategory.PLAYERS, 0.25F + 0.5F * now, 0.8F + 0.9F * now, false);
+		}
+
+		if (AnimUtil.justFinished(ticksUsed, USE_DURATION - SHUFFLE_OFFSET - 2)) {
+			level.playLocalSound(pos.x, pos.y, pos.z,
+					ModSounds.RIFT_CLOSE.get(), SoundCategory.PLAYERS, 1.0F, level.random.nextFloat() * 0.5F + 0.8F, false);
+		}
+	}
+
+	private BlockPos getRespawnPosition(PlayerEntity player) {
+		if (player instanceof ServerPlayerEntity) {
+			ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+			return serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO;
+		} else return respawnPosition != null ? respawnPosition : BlockPos.ZERO;
 	}
 
 	@Override
