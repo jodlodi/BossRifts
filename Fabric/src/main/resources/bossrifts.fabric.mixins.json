@@ -9,7 +9,7 @@
     "MinecraftServerMixin",
     "PersistentEntitySectionManagerMixin",
     "PlayerListMixin",
-    "ServerPlayerMixin",
+    "FabricServerPlayerMixin",
     "ThrownEnderpearlMixin",
     "accessor.LevelResourceAccessor"
   ],

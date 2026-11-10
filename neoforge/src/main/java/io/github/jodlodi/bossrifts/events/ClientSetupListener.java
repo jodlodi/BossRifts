@@ -20,7 +20,7 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@EventBusSubscriber(modid = Constants.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public class ClientSetupListener {
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {

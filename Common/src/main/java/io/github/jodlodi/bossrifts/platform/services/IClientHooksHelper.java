@@ -14,6 +14,4 @@ public interface IClientHooksHelper {
 	BakedModel handleCameraTransforms(PoseStack matrixStack, BakedModel model, ItemDisplayContext cameraTransformType, boolean leftHandHackery);
 
 	boolean isNameplateInRenderDistance(Entity entity, double squareDistance);
-
-	BakedModel getModel(ModelManager manager, ModelResourceLocation modelLocation);
 }

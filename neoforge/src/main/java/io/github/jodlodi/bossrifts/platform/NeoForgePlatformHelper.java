@@ -9,7 +9,7 @@ import org.jspecify.annotations.NullMarked;
 import java.nio.file.Path;
 
 @NullMarked
-public class ForgePlatformHelper implements IPlatformHelper {
+public class NeoForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public String getPlatformName() {

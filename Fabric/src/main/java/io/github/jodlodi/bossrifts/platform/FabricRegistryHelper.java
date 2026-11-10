@@ -4,6 +4,7 @@ import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.platform.services.IRegistryHelper;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 @NullMarked
 public class FabricRegistryHelper implements IRegistryHelper {
@@ -32,6 +34,11 @@ public class FabricRegistryHelper implements IRegistryHelper {
 	@Override
 	public <T extends BlockEntityType<?>> MultiSupplier<T> registerBlockEntity(String id, Supplier<T> supplier) {
 		return register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, supplier);
+	}
+
+	@Override
+	public <T> MultiSupplier<DataComponentType<T>> registerDataComponentType(String id, UnaryOperator<DataComponentType.Builder<T>> builder) {
+		return register(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> builder.apply(DataComponentType.builder()).build());
 	}
 
 	@Override

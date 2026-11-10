@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @NullMarked
-public class ForgeEventHelper implements IEventHelper {
+public class NeoForgeEventHelper implements IEventHelper {
 
 	@Nullable
 	@Override

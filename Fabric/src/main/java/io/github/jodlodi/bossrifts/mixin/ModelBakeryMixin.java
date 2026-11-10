@@ -3,7 +3,9 @@ package io.github.jodlodi.bossrifts.mixin;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -22,27 +24,16 @@ import java.util.Map;
 @NullMarked
 @Mixin(ModelBakery.class)
 public abstract class ModelBakeryMixin {
-	@Shadow
-	public abstract UnbakedModel getModel(ResourceLocation resourceLocation);
 
 	@Shadow
-	@Final
-	private Map<ResourceLocation, UnbakedModel> unbakedCache;
+	abstract UnbakedModel getModel(ResourceLocation modelLocation);
 
 	@Shadow
-	@Final
-	private Map<ResourceLocation, UnbakedModel> topLevelModels;
+	protected abstract void registerModelAndLoadDependencies(ModelResourceLocation modelLocation, UnbakedModel model);
 
-	@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/model/ModelBakery;loadTopLevel(Lnet/minecraft/client/resources/model/ModelResourceLocation;)V", ordinal = 2))
-	private void onInit(BlockColors blockColors, ProfilerFiller profilerFiller, Map<ResourceLocation, BlockModel> modelResources, Map<ResourceLocation, List<ModelBakery.LoadedJson>> blockStateResources, CallbackInfo ci) {
-		this.bossrifts$addModelToCache(iRiftRenderer.FRAME_MODEL);
-		this.bossrifts$addModelToCache(iRiftRenderer.PEARL_MODEL);
-	}
-
-	@Unique
-	private void bossrifts$addModelToCache(ResourceLocation location) {
-		UnbakedModel unbakedmodel = this.getModel(location);
-		this.unbakedCache.put(location, unbakedmodel);
-		this.topLevelModels.put(location, unbakedmodel);
+	@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/model/ModelBakery;loadSpecialItemModelAndDependencies(Lnet/minecraft/client/resources/model/ModelResourceLocation;)V", ordinal = 1))
+	private void onInit(BlockColors blockColors, ProfilerFiller profilerFiller, Map<ResourceLocation, BlockModel> modelResources, Map<ResourceLocation, List<BlockStateModelLoader.LoadedJson>> blockStateResources, CallbackInfo ci) {
+		this.registerModelAndLoadDependencies(iRiftRenderer.FRAME_MODEL, this.getModel(iRiftRenderer.FRAME_MODEL.id()));
+		this.registerModelAndLoadDependencies(iRiftRenderer.PEARL_MODEL, this.getModel(iRiftRenderer.PEARL_MODEL.id()));
 	}
 }

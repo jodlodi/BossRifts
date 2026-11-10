@@ -7,6 +7,7 @@ import io.github.jodlodi.bossrifts.platform.FabricConfigHelper;
 import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
 import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,9 +20,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PlayerListMixin {
 
 	@Inject(method = "placeNewPlayer", at = @At(value = "TAIL"))
-	private void onPlaceNewPlayer(Connection connection, ServerPlayer serverPlayer, CallbackInfo ci) {
-		Services.NETWORK.sendToClient(serverPlayer, new ClientBoundConfigPacket(FabricConfigHelper.getHelper().saveToTag()));
-		Services.NETWORK.sendToClient(serverPlayer, new ClearRiftCachePacket());
-		Services.NETWORK.sendToClient(serverPlayer, new SendRespawnDataPacket(serverPlayer.getRespawnPosition(), serverPlayer.getRespawnDimension()));
+	private void onPlaceNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
+		Services.NETWORK.sendToClient(player, new ClientBoundConfigPacket(FabricConfigHelper.getHelper().saveToTag()));
+		Services.NETWORK.sendToClient(player, new ClearRiftCachePacket());
+		Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(player.getRespawnPosition(), player.getRespawnDimension()));
 	}
 }

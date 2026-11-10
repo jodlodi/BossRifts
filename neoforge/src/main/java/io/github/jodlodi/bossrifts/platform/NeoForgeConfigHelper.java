@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @NullMarked
-public class ForgeConfigHelper implements IConfigHelper {
+public class NeoForgeConfigHelper implements IConfigHelper {
 	public static final Server CONFIG;
 	public static final ModConfigSpec SPEC;
 

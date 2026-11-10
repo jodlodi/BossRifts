@@ -32,9 +32,4 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public Path getConfigDir() {
         return FabricLoader.getInstance().getConfigDir();
     }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket(Entity entity, ServerEntity serverEntity) {
-        return new ClientboundAddEntityPacket(entity);
-    }
 }

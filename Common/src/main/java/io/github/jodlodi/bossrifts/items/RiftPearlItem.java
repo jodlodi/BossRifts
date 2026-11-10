@@ -30,9 +30,9 @@ import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,19 +88,36 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		if (context.isSecondaryUseActive() && !Services.CONFIG.isV1()) {
 			ItemStack stack = context.getItemInHand();
 			Player player = context.getPlayer();
-			long powered = poweredTime(stack);
 
-			if (powered >= 0 && player != null) {
-				long diff = player.level().getGameTime() - powered;
-				if (diff > Services.CONFIG.empowerDuration() || diff < TRANSITION_TIME) {
-					return InteractionResult.PASS;
+			int price = -1;
+			if (player != null) {
+				price = this.getPrice(
+						player.blockPosition(),
+						stack,
+						player instanceof ServerPlayer serverPlayer
+								? serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
+								: respawnPosition != null ? respawnPosition : BlockPos.ZERO
+				);
+
+				if (price <= -1 || (player.experienceLevel < price && !player.getAbilities().instabuild)) {
+					price = -1;
+				}
+			}
+
+			if (price == -1) {
+				long powered = poweredTime(stack);
+
+				if (powered >= 0 && player != null) {
+					long diff = player.level().getGameTime() - powered;
+					if (diff > Services.CONFIG.empowerDuration() || diff < TRANSITION_TIME) {
+						return InteractionResult.PASS;
+					}
 				}
 			}
 
 			Direction face = context.getClickedFace();
 			BlockPos relative = pos.relative(face, 2);
-			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative))
-				relative = pos.relative(face, 1);
+			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative)) relative = pos.relative(face, 1);
 			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative)) return InteractionResult.FAIL;
 
 			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level);
@@ -109,7 +126,10 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				rift.setItem(context.getItemInHand());
 				if (player instanceof ServerPlayer serverPlayer) rift.startRevving(serverPlayer);
 
-				if (player != null && !player.getAbilities().instabuild) context.getItemInHand().shrink(1);
+				if (player != null && !player.getAbilities().instabuild) {
+					context.getItemInHand().shrink(1);
+					if (price > 0) player.giveExperienceLevels(-price);
+				}
 				return level.addFreshEntity(rift) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
 			} else return InteractionResult.FAIL;
 		} else if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
@@ -132,27 +152,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			return InteractionResult.sidedSuccess(level.isClientSide);
 		} else {
 			return super.useOn(context);
-		}
-	}
-
-	@Override
-	public void onUseTick(Level level, LivingEntity player, ItemStack stack, int remaining) {
-		int ticksUsed = USE_DURATION - remaining;
-		Vec3 pos = player.getEyePosition(1.0F);
-
-		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
-
-		float now = AnimUtil.clampScaled(ticksUsed, USE_DURATION - COMPRESS_OFFSET);
-		float before = AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
-
-		if (plan.movesStarted(now) > plan.movesStarted(before)) {
-			level.playLocalSound(pos.x, pos.y, pos.z,
-					ModSounds.RIFT_REV_UP.get(), SoundSource.PLAYERS, 0.25F + 0.5F * now, 0.8F + 0.9F * now, false);
-		}
-
-		if (AnimUtil.justFinished(ticksUsed, USE_DURATION - SHUFFLE_OFFSET - 2)) {
-			level.playLocalSound(pos.x, pos.y, pos.z,
-					ModSounds.RIFT_CLOSE.get(), SoundSource.PLAYERS, 1.0F, level.random.nextFloat() * 0.5F + 0.8F, false);
 		}
 	}
 
@@ -192,6 +191,27 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		}
 
 		return InteractionResultHolder.pass(stack);
+	}
+
+	@Override
+	public void onUseTick(Level level, LivingEntity player, ItemStack stack, int remaining) {
+		int ticksUsed = USE_DURATION - remaining;
+		Vec3 pos = player.getEyePosition(1.0F);
+
+		RiftCubeSolver.Plan plan = RiftCubeSolver.plan(getSeed(stack));
+
+		float now = AnimUtil.clampScaled(ticksUsed, USE_DURATION - COMPRESS_OFFSET);
+		float before = AnimUtil.scaled(ticksUsed - 1.0F, USE_DURATION - COMPRESS_OFFSET);
+
+		if (plan.movesStarted(now) > plan.movesStarted(before)) {
+			level.playLocalSound(pos.x, pos.y, pos.z,
+					ModSounds.RIFT_REV_UP.get(), SoundSource.PLAYERS, 0.25F + 0.5F * now, 0.8F + 0.9F * now, false);
+		}
+
+		if (AnimUtil.justFinished(ticksUsed, USE_DURATION - SHUFFLE_OFFSET - 2)) {
+			level.playLocalSound(pos.x, pos.y, pos.z,
+					ModSounds.RIFT_CLOSE.get(), SoundSource.PLAYERS, 1.0F, level.random.nextFloat() * 0.5F + 0.8F, false);
+		}
 	}
 
 	@Override

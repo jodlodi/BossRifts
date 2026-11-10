@@ -155,7 +155,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity> implement
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.PEARL_MODEL);
+		BakedModel riftSprite = manager.getModel(iRiftRenderer.PEARL_MODEL);
 
 		this.spin(stack,
 				Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),

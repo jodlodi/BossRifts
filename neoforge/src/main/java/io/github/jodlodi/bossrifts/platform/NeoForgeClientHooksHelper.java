@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.ClientHooks;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class ForgeClientHooksHelper implements IClientHooksHelper {
+public class NeoForgeClientHooksHelper implements IClientHooksHelper {
 
 	@Override
 	public BakedModel handleCameraTransforms(PoseStack matrixStack, BakedModel model, ItemDisplayContext cameraTransformType, boolean leftHandHackery) {
@@ -21,10 +21,5 @@ public class ForgeClientHooksHelper implements IClientHooksHelper {
 	@Override
 	public boolean isNameplateInRenderDistance(Entity entity, double squareDistance) {
 		return ClientHooks.isNameplateInRenderDistance(entity, squareDistance);
-	}
-
-	@Override
-	public BakedModel getModel(ModelManager manager, ModelResourceLocation modelLocation) {
-		return manager.getModel(modelLocation);
 	}
 }

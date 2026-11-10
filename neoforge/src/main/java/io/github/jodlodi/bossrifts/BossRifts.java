@@ -2,16 +2,12 @@ package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.events.DeathListener;
 import io.github.jodlodi.bossrifts.events.PearlListener;
-import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
-import io.github.jodlodi.bossrifts.platform.ForgeNetworkHelper;
-import io.github.jodlodi.bossrifts.platform.ForgeRegistryHelper;
+import io.github.jodlodi.bossrifts.platform.NeoForgeConfigHelper;
+import io.github.jodlodi.bossrifts.platform.NeoForgeRegistryHelper;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jspecify.annotations.NullMarked;
 
@@ -24,14 +20,14 @@ public class BossRifts {
 		NeoForge.EVENT_BUS.register(DeathListener.class);
 		NeoForge.EVENT_BUS.register(PearlListener.class);
 
-		ForgeRegistryHelper.DATA_COMPONENTS.register(bus);
-		ForgeRegistryHelper.BLOCK_ENTITIES.register(bus);
-		ForgeRegistryHelper.PARTICLE_TYPES.register(bus);
-		ForgeRegistryHelper.ENTITY_TYPES.register(bus);
-		ForgeRegistryHelper.SOUND_TYPES.register(bus);
-		ForgeRegistryHelper.BLOCKS.register(bus);
-		ForgeRegistryHelper.ITEMS.register(bus);
+		NeoForgeRegistryHelper.DATA_COMPONENTS.register(bus);
+		NeoForgeRegistryHelper.BLOCK_ENTITIES.register(bus);
+		NeoForgeRegistryHelper.PARTICLE_TYPES.register(bus);
+		NeoForgeRegistryHelper.ENTITY_TYPES.register(bus);
+		NeoForgeRegistryHelper.SOUND_TYPES.register(bus);
+		NeoForgeRegistryHelper.BLOCKS.register(bus);
+		NeoForgeRegistryHelper.ITEMS.register(bus);
 
-		container.registerConfig(ModConfig.Type.SERVER, ForgeConfigHelper.SPEC);
+		container.registerConfig(ModConfig.Type.SERVER, NeoForgeConfigHelper.SPEC);
 	}
 }

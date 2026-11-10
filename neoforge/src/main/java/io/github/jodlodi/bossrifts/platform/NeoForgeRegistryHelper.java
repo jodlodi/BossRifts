@@ -3,10 +3,8 @@ package io.github.jodlodi.bossrifts.platform;
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.platform.services.IRegistryHelper;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
-import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -20,7 +18,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 @NullMarked
-public class ForgeRegistryHelper implements IRegistryHelper {
+public class NeoForgeRegistryHelper implements IRegistryHelper {
 	public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, Constants.MOD_ID);
 	public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, Constants.MOD_ID);
 	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Constants.MOD_ID);

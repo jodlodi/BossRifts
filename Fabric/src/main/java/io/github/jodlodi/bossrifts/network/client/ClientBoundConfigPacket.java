@@ -6,6 +6,9 @@ import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.platform.FabricConfigHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.NullMarked;
 
@@ -15,6 +18,8 @@ public class ClientBoundConfigPacket extends ClientBoundPacket {
 			CompoundTag.CODEC.fieldOf("tag").forGetter(message -> message.tag)
 	).apply(recordCodecBuilder, ClientBoundConfigPacket::new));
 	public static final ResourceLocation ID = Constants.prefix("config_packet");
+	public static final Type<ClientBoundConfigPacket> TYPE = new Type<>(ID);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClientBoundConfigPacket> STREAM_CODEC = CustomPacketPayload.codec(ClientBoundConfigPacket::encode, ClientBoundConfigPacket::decode);
 
 	private final CompoundTag tag;
 
@@ -33,13 +38,13 @@ public class ClientBoundConfigPacket extends ClientBoundPacket {
 	}
 
 	@Override
-	public ResourceLocation getID() {
-		return ID;
+	public void handle() {
+		Handler.onMessage(this);
 	}
 
 	@Override
-	public void handle() {
-		Handler.onMessage(this);
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
 	public static class Handler {

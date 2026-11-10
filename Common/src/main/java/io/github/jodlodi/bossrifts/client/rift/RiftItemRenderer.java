@@ -62,7 +62,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	}
 
 	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-		float partialTick = Minecraft.getInstance().isPaused() ? 0.0F : Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
+		float partialTick = Minecraft.getInstance().isPaused() ? 1.0F : Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
 		INSTANCE.preRender(new RenderInfo(stack, pearl, type, leftHandHackery), ms, buffer, light, overlay, partialTick);
 	}
 
@@ -156,7 +156,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
 
 		stack.pushPose();
-		BakedModel riftFrame = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.FRAME_MODEL);
+		BakedModel riftFrame = manager.getModel(iRiftRenderer.FRAME_MODEL);
 		Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftFrame, renderInfo.getType(), renderInfo.isLeftHandHackery());
 		stack.scale(1.5F, 1.5F, 1.5F);
 
@@ -198,7 +198,7 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = Services.CLIENT_HOOKS.getModel(manager, iRiftRenderer.PEARL_MODEL);
+		BakedModel riftSprite = manager.getModel(iRiftRenderer.PEARL_MODEL);
 		riftSprite = Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
 
 		if (renderInfo.isDynamic()) {

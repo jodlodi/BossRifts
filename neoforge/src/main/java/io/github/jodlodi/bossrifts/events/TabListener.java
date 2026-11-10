@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@EventBusSubscriber(modid = Constants.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Constants.MOD_ID)
 public class TabListener {
 
 	@SubscribeEvent

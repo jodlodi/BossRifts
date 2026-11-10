@@ -11,25 +11,21 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 @NullMarked
 @EventBusSubscriber(modid = Constants.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
-public class ForgeNetworkHelper implements INetworkHelper {
+public class NeoForgeNetworkHelper implements INetworkHelper {
 	private static final String PROTOCOL_VERSION = "1";
 
 	@SubscribeEvent
 	public static void onRegEvent(RegisterPayloadHandlersEvent event) {
 		PayloadRegistrar registrar = event.registrar(Constants.MOD_ID).versioned(PROTOCOL_VERSION).optional();
 
-		registrar.playToClient(SendRespawnDataPacket.TYPE, SendRespawnDataPacket.STREAM_CODEC, ForgeNetworkHelper::onMessage);
-		registrar.playToClient(ClearRiftCachePacket.TYPE, ClearRiftCachePacket.STREAM_CODEC, ForgeNetworkHelper::onMessage);
+		registrar.playToClient(SendRespawnDataPacket.TYPE, SendRespawnDataPacket.STREAM_CODEC, NeoForgeNetworkHelper::onMessage);
+		registrar.playToClient(ClearRiftCachePacket.TYPE, ClearRiftCachePacket.STREAM_CODEC, NeoForgeNetworkHelper::onMessage);
 	}
 
 	@SuppressWarnings("NullableProblems")
