@@ -27,19 +27,4 @@ public interface HopperBlockEntityAccessor {
 	static boolean invokeTryMoveItems(Level level, BlockPos pos, BlockState state, HopperBlockEntity entity, BooleanSupplier supplier) {
 		throw new RuntimeException();
 	}
-
-	@Invoker("isEmptyContainer")
-	static boolean invokeIsEmptyContainer(Container container, Direction direction) {
-		throw new RuntimeException();
-	}
-
-	@Invoker("getSlots")
-	static IntStream invokeGetSlots(Container container, Direction direction) {
-		throw new RuntimeException();
-	}
-
-	@Invoker("tryTakeInItemFromSlot")
-	static boolean invokeTryTakeInItemFromSlot(Hopper hopper, Container container, int i, Direction direction) {
-		throw new RuntimeException();
-	}
 }

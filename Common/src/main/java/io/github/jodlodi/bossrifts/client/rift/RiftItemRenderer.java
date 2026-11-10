@@ -62,11 +62,10 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	}
 
 	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-		float partialTick = Minecraft.getInstance().isPaused() ? 0.0F : Minecraft.getInstance().getFrameTime();
+		float partialTick = Minecraft.getInstance().isPaused() ? 0.0F : Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
 		INSTANCE.preRender(new RenderInfo(stack, pearl, type, leftHandHackery), ms, buffer, light, overlay, partialTick);
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
 	public static ModelPart build(CubeListBuilder builder) {
 		return new ModelPart(builder.getCubes().stream().map((definition) -> definition.bake(SHELL_WIDTH, SHELL_HEIGHT)).collect(ImmutableList.toImmutableList()), new HashMap<>());
 	}

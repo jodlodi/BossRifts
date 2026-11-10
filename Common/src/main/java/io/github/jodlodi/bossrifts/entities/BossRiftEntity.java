@@ -2,30 +2,25 @@ package io.github.jodlodi.bossrifts.entities;
 
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
-import io.github.jodlodi.bossrifts.registry.ModItems;
-import io.github.jodlodi.bossrifts.registry.ModParticles;
-import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
@@ -37,8 +32,9 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.portal.DimensionTransition;
 import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
@@ -64,7 +60,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 		this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
 		ItemStack stack = this.getItem();
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POWERED)) {
+		if (!stack.has(ModDataComponents.POWERED_MARKER.get())) {
 			RiftPearlItem.empowerPearl(stack, this.level().getGameTime());
 			this.setItem(stack);
 		}
@@ -89,10 +85,10 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	}
 
 	@Override
-	protected void defineSynchedData() {
-		this.entityData.define(DATA_WARP_POINTS, 0);
-		this.entityData.define(DATA_ITEM, new ItemStack(ModItems.RIFT_PEARL.get()));
-		this.entityData.define(DATA_OWNERUUID_ID, Optional.empty());
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		builder.define(DATA_WARP_POINTS, 0);
+		builder.define(DATA_ITEM, new ItemStack(ModItems.RIFT_PEARL.get()));
+		builder.define(DATA_OWNERUUID_ID, Optional.empty());
 	}
 
 	public ItemStack getItem() {
@@ -234,7 +230,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 								server.tell(new TickTask(server.getTickCount(), () -> this.sendToSpawn(this, server, player, player)));
 								worked = true;
 							}
-							server.tell(new TickTask(server.getTickCount(), () -> validateSpawn(server, player, nearbyEntities.isEmpty())));
+							server.tell(new TickTask(server.getTickCount(), () -> validateSpawn(player, nearbyEntities.isEmpty())));
 						}
 
 						this.entityData.set(DATA_WARP_POINTS, 0);
@@ -296,32 +292,22 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 		return InteractionResult.FAIL;
 	}
 
-	public void validateSpawn(MinecraftServer server, ServerPlayer serverPlayer, boolean check) {
-		BlockPos spawnPoint = serverPlayer.getRespawnPosition();
-		float viewAngle = serverPlayer.getRespawnAngle();
-		ServerLevel serverLevel = server.getLevel(serverPlayer.getRespawnDimension());
-
-		if (serverLevel != null && spawnPoint != null) {
-			Player.findRespawnPositionAndUseSpawnBlock(serverLevel, spawnPoint, viewAngle, false, check);
-			if (serverLevel.getBlockState(spawnPoint).is(Blocks.RESPAWN_ANCHOR) && !check) {
-				server.tell(new TickTask(server.getTickCount(), () ->
-						serverPlayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ(), 1.0F, 1.0F, this.random.nextLong()))));
-			}
-		}
+	public void validateSpawn(ServerPlayer serverPlayer, boolean check) {
+		serverPlayer.findRespawnPositionAndUseSpawnBlock(check, DimensionTransition.DO_NOTHING);
 	}
 
 	@Override
 	protected void addAdditionalSaveData(CompoundTag tag) {
 		tag.putInt("tick_count", this.tickCount);
 		tag.putInt("warp_points", this.getEntityData().get(DATA_WARP_POINTS));
-		tag.put("item", this.getItem().save(new CompoundTag()));
+		tag.put("item", this.getItem().save(this.level().registryAccess()));
 	}
 
 	@Override
 	protected void readAdditionalSaveData(CompoundTag tag) {
 		this.tickCount = tag.getInt("tick_count");
 		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt("warp_points"));
-		this.setItem(ItemStack.of(tag.getCompound("Item")));
+		this.setItem(ItemStack.parseOptional(this.level().registryAccess(), tag.getCompound("Item")));
 	}
 
 	@Override
@@ -341,7 +327,7 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	public void spawn() {
 		this.level().playSound(null, this.getX(), this.getY() + 0.25D, this.getZ(), ModSounds.RIFT_SPAWN.get(), SoundSource.BLOCKS, 1.0F, this.random.nextFloat() * 0.4F + 0.6F);
 		ItemStack stack = this.getItem();
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POWERED)) {
+		if (!stack.has(ModDataComponents.POWERED_MARKER.get())) {
 			RiftPearlItem.empowerPearl(stack, this.level().getGameTime());
 			this.setItem(stack);
 		}
@@ -354,26 +340,17 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	}
 
 	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return Services.PLATFORM.getAddEntityPacket(this);
-	}
-
-	@Override
 	public long getSeed(BossRiftEntity rift) {
 		return this.savedPos(rift).map(BlockPos::asLong).orElse(3626523L);
 	}
 
 	@Override
 	public Optional<BlockPos> savedPos(BossRiftEntity rift) {
-		ItemStack stack = rift.getItem();
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.POSITION)) return Optional.empty();
-		return Optional.of(NbtUtils.readBlockPos(stack.getOrCreateTag().getCompound(RiftPearlItem.POSITION)));
+		return Optional.ofNullable(rift.getItem().get(ModDataComponents.AGGREGATOR_TRACKER.get())).flatMap(LodestoneTracker::target).map(GlobalPos::pos);
 	}
 
 	@Override
 	public Optional<ResourceKey<Level>> savedWorld(BossRiftEntity rift) {
-		ItemStack stack = rift.getItem();
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(RiftPearlItem.DIMENSION)) return Optional.empty();
-		return Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, stack.getOrCreateTag().get(RiftPearlItem.DIMENSION)).result();
+		return Optional.ofNullable(rift.getItem().get(ModDataComponents.AGGREGATOR_TRACKER.get())).flatMap(LodestoneTracker::target).map(GlobalPos::dimension);
 	}
 }

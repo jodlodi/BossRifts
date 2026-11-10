@@ -6,6 +6,9 @@ import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -22,6 +25,9 @@ public class SendRespawnDataPacket extends ClientBoundPacket {
 			Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(message -> message.respawnDimension)
 	).apply(recordCodecBuilder, SendRespawnDataPacket::new));
 	public static final ResourceLocation ID = Constants.prefix("send_respawn_data");
+	public static final Type<SendRespawnDataPacket> TYPE = new Type<>(ID);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SendRespawnDataPacket> STREAM_CODEC = CustomPacketPayload.codec(SendRespawnDataPacket::encode, SendRespawnDataPacket::decode);
+
 
 	private final Optional<BlockPos> respawnPosition;
 	private final ResourceKey<Level> respawnDimension;
@@ -47,8 +53,8 @@ public class SendRespawnDataPacket extends ClientBoundPacket {
 	}
 
 	@Override
-	public ResourceLocation getID() {
-		return ID;
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
 	@Override

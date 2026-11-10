@@ -11,6 +11,7 @@ public class CommonClass {
 		ModBlocks.init();
 		ModBlockEntities.init();
 		ModEntities.init();
+		ModDataComponents.init();
 		ModItems.init();
 		ModSounds.init();
 	}

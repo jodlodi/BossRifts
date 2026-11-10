@@ -33,7 +33,7 @@ public abstract class ThrownEnderpearlMixin extends ThrowableItemProjectile {
 
 			MinecraftServer server = serverLevel.getServer();
 			server.tell(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, player, player)));
-			server.tell(new TickTask(server.getTickCount(), () -> rift.validateSpawn(server, player, false)));
+			server.tell(new TickTask(server.getTickCount(), () -> rift.validateSpawn(player, false)));
 		}
 	}
 }

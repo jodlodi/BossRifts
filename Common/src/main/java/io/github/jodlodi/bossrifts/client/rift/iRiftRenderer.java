@@ -16,6 +16,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
@@ -31,8 +32,8 @@ import java.util.Map;
 public interface iRiftRenderer<T> {
 	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("boss_rift"), "main");
 	ResourceLocation SHELL_LOCATION = Constants.prefix("textures/entity/boss_rift/boss_rift.png");
-	ResourceLocation FRAME_MODEL = Constants.prefix("item/rift_pearl_frame");
-	ResourceLocation PEARL_MODEL = Constants.prefix("item/rift_pearl_icon");
+	ModelResourceLocation FRAME_MODEL = new ModelResourceLocation(Constants.prefix("item/rift_pearl_frame"), "standalone");
+	ModelResourceLocation PEARL_MODEL = new ModelResourceLocation(Constants.prefix("item/rift_pearl_icon"), "standalone");
 	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
 	int SHELL_HEIGHT = 32;

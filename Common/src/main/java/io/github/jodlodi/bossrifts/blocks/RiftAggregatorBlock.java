@@ -1,5 +1,6 @@
 package io.github.jodlodi.bossrifts.blocks;
 
+import com.mojang.serialization.MapCodec;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModParticles;
@@ -10,7 +11,9 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -26,9 +29,15 @@ import javax.annotation.Nullable;
 
 @NullMarked
 public class RiftAggregatorBlock extends BaseEntityBlock {
+	public static final MapCodec<RiftAggregatorBlock> CODEC = simpleCodec(RiftAggregatorBlock::new);
 
 	public RiftAggregatorBlock(BlockBehaviour.Properties properties) {
 		super(properties);
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override
@@ -37,16 +46,18 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem) return InteractionResult.PASS;
+	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem) return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+	}
 
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
 		if (player instanceof ServerPlayer serverPlayer && this.isPossibleToRespawnInThis(state)) {
 			if (serverPlayer.getRespawnDimension() != level.dimension() || !pos.equals(serverPlayer.getRespawnPosition())) {
 				serverPlayer.setRespawnPosition(level.dimension(), pos, 0.0F, false, true);

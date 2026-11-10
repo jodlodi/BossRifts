@@ -1,21 +1,15 @@
 package io.github.jodlodi.bossrifts.items;
 
-import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.platform.Services;
-import io.github.jodlodi.bossrifts.registry.ModBlocks;
-import io.github.jodlodi.bossrifts.registry.ModEntities;
-import io.github.jodlodi.bossrifts.registry.ModItems;
-import io.github.jodlodi.bossrifts.registry.ModSounds;
+import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -39,7 +34,6 @@ import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @NullMarked
@@ -48,9 +42,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	public static final String TOOLTIP_V1_LINKED = "tooltip.boss_rifts.rift_pearl.v1_linked";
 	public static final String TOOLTIP_MODERN_1 = "tooltip.boss_rifts.rift_pearl.modern.1";
 	public static final String TOOLTIP_MODERN_2 = "tooltip.boss_rifts.rift_pearl.modern.2";
-	public static final String DIMENSION = "AggregatorDimension";
-	public static final String POSITION = "AggregatorPosition";
-	public static final String POWERED = "RiftPowered";
 
 	public static @Nullable BlockPos respawnPosition = null;
 	public static @Nullable ResourceKey<Level> respawnDimension = null;
@@ -60,8 +51,23 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	public static boolean isAggregatorPearl(ItemStack stack) {
-		CompoundTag tag = stack.getTag();
-		return tag != null && (tag.contains(DIMENSION) || tag.contains(POSITION));
+		return stack.has(ModDataComponents.AGGREGATOR_TRACKER.get());
+	}
+
+	private void makeAggregatorPearl(ResourceKey<Level> key, BlockPos pos, ItemStack stack) {
+		stack.set(ModDataComponents.AGGREGATOR_TRACKER.get(), new LodestoneTracker(Optional.of(GlobalPos.of(key, pos)), true));
+	}
+
+	public static long poweredTime(ItemStack stack) {
+		return stack.getOrDefault(ModDataComponents.POWERED_MARKER.get(), -1L);
+	}
+
+	public static boolean empowerPearl(ItemStack stack, long time) {
+		if (stack.getItem() instanceof RiftPearlItem) {
+			stack.set(ModDataComponents.POWERED_MARKER.get(), time);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -114,14 +120,12 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			boolean consume = !player.getAbilities().instabuild && stack.getCount() == 1;
 			if (consume) {
-				this.addLodestoneTags(level.dimension(), pos, stack.getOrCreateTag());
+				this.makeAggregatorPearl(level.dimension(), pos, stack);
 			} else {
-				ItemStack newStack = new ItemStack(ModItems.RIFT_PEARL.get(), 1);
-				CompoundTag tag = stack.hasTag() ? Objects.requireNonNull(stack.getTag()).copy() : new CompoundTag();
-				newStack.setTag(tag);
+				ItemStack newStack = stack.copy();
 				if (!player.getAbilities().instabuild) stack.shrink(1);
 
-				this.addLodestoneTags(level.dimension(), pos, tag);
+				this.makeAggregatorPearl(level.dimension(), pos, newStack);
 				if (!player.addItem(newStack)) player.drop(newStack, false);
 			}
 
@@ -129,11 +133,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		} else {
 			return super.useOn(context);
 		}
-	}
-
-	private void addLodestoneTags(ResourceKey<Level> key, BlockPos pos, CompoundTag tag) {
-		tag.put(POSITION, NbtUtils.writeBlockPos(pos));
-		Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, key).resultOrPartial(Constants.LOG::error).ifPresent((inbt) -> tag.put(DIMENSION, inbt));
 	}
 
 	@Override
@@ -196,7 +195,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> list, TooltipFlag tooltipFlag) {
 		if (!isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_UNLINKED));
 		if (Services.CONFIG.isV1()) {
 			if (isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_V1_LINKED));
@@ -225,8 +224,9 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			long powered = poweredTime(stack);
 
-			if (powered >= 0 && level != null) {
-				long diff = level.getGameTime() - powered;
+			Entity entity = stack.getEntityRepresentation();
+			if (powered >= 0 && entity != null) {
+				long diff = entity.level().getGameTime() - powered;
 				if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
 					list.add(Component.translatable(TOOLTIP_MODERN_1));
 					list.add(Component.translatable(TOOLTIP_MODERN_2));
@@ -265,7 +265,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack, LivingEntity entity) {
 		return USE_DURATION;
 	}
 
@@ -288,18 +288,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		}
 	}
 
-	public static long poweredTime(ItemStack stack) {
-		return stack.hasTag() && stack.getOrCreateTag().contains(POWERED) ? stack.getOrCreateTag().getLong(POWERED) : -1L;
-	}
-
-	public static boolean empowerPearl(ItemStack stack, long time) {
-		if (stack.getItem() instanceof RiftPearlItem) {
-			stack.getOrCreateTag().putLong(POWERED, time);
-			return true;
-		}
-		return false;
-	}
-
 	@Override
 	public long getSeed(ItemStack stack) {
 		return this.savedPos(stack).map(BlockPos::asLong).orElse(3626523L);
@@ -307,13 +295,11 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 	@Override
 	public Optional<BlockPos> savedPos(ItemStack stack) {
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(POSITION)) return Optional.empty();
-		return Optional.of(NbtUtils.readBlockPos(stack.getOrCreateTag().getCompound(POSITION)));
+		return Optional.ofNullable(stack.get(ModDataComponents.AGGREGATOR_TRACKER.get())).flatMap(LodestoneTracker::target).map(GlobalPos::pos);
 	}
 
 	@Override
 	public Optional<ResourceKey<Level>> savedWorld(ItemStack stack) {
-		if (!stack.hasTag() || !stack.getOrCreateTag().contains(DIMENSION)) return Optional.empty();
-		return Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, stack.getOrCreateTag().get(DIMENSION)).result();
+		return Optional.ofNullable(stack.get(ModDataComponents.AGGREGATOR_TRACKER.get())).flatMap(LodestoneTracker::target).map(GlobalPos::dimension);
 	}
 }

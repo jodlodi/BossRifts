@@ -3,12 +3,17 @@ package io.github.jodlodi.bossrifts.network.client;
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.client.rift.RiftItemRenderer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ClearRiftCachePacket extends ClientBoundPacket {
 	public static final ResourceLocation ID = Constants.prefix("clear_cache");
+	public static final Type<ClearRiftCachePacket> TYPE = new Type<>(ID);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClearRiftCachePacket> STREAM_CODEC = CustomPacketPayload.codec(ClearRiftCachePacket::encode, ClearRiftCachePacket::decode);
 
 	public ClearRiftCachePacket() {
 
@@ -24,8 +29,8 @@ public class ClearRiftCachePacket extends ClientBoundPacket {
 	}
 
 	@Override
-	public ResourceLocation getID() {
-		return ID;
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
 	@Override

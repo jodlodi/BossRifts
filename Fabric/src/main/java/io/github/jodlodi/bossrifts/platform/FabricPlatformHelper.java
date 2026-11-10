@@ -34,7 +34,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket(Entity entity) {
+    public Packet<ClientGamePacketListener> getAddEntityPacket(Entity entity, ServerEntity serverEntity) {
         return new ClientboundAddEntityPacket(entity);
     }
 }

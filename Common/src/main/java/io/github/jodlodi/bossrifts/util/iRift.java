@@ -12,7 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -92,11 +91,12 @@ public interface iRift<T> {
 		float viewAngle = serverPlayer != null ? serverPlayer.getRespawnAngle() : 0.0F;
 
 		if (spawnPoint != null) {
-			Optional<Vec3> vec3 = Player.findRespawnPositionAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
-			if (vec3.isPresent()) return vec3.get();
+			Optional<ServerPlayer.RespawnPosAngle> result = ServerPlayer.findRespawnAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
+			if (result.isPresent()) return result.get().position();
 		}
 
-		return new Vec3(spawnWorld.getSharedSpawnPos().getX() + 0.5D, spawnWorld.getSharedSpawnPos().getY(), spawnWorld.getSharedSpawnPos().getZ() + 0.5D);
+		BlockPos shared = spawnWorld.getSharedSpawnPos();
+		return new Vec3(shared.getX() + 0.5D, shared.getY(), shared.getZ() + 0.5D);
 	}
 
 	default int getPrice(BlockPos pos, T t, BlockPos or) {

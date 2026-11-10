@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.model.BakedModelManagerHelper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jspecify.annotations.NullMarked;
@@ -26,7 +25,7 @@ public class FabricClientHooksHelper implements IClientHooksHelper {
 	}
 
 	@Override
-	public BakedModel getModel(ModelManager manager, ResourceLocation modelLocation) {
+	public BakedModel getModel(ModelManager manager, ModelResourceLocation modelLocation) {
 		BakedModel model = BakedModelManagerHelper.getModel(manager, modelLocation);
 		if (model == null) model = manager.getModel(ModelBakery.MISSING_MODEL_LOCATION);
 		return model;
