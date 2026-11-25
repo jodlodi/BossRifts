@@ -40,14 +40,16 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 
 	private final ModelPart core;
 	private final Map<Vec3i, ModelPart> shell;
-	private final boolean dynamic;
-	private final ItemTransform transform;
+	private final ItemDisplayContext context;
+	private final ItemTransform shellTransform;
+	private final ItemTransform eyeTransform;
 
-	protected RiftItemRenderer(ModelPart root, boolean dynamic, ItemTransform transform) {
+	protected RiftItemRenderer(ModelPart root, ItemDisplayContext context, ItemTransform shellTransform, ItemTransform eyeTransform) {
 		this.core = root.getChild("core");
 		this.shell = iRiftRenderer.collectShell(root);
-		this.dynamic = dynamic;
-		this.transform = transform;
+		this.context = context;
+		this.shellTransform = shellTransform;
+		this.eyeTransform = eyeTransform;
 	}
 
 	@Override
@@ -56,7 +58,7 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 
 		Minecraft minecraft = Minecraft.getInstance();
 		float partialTick = minecraft.isPaused() ? 1.0F : minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
-		this.preRender(new RenderInfo(argument, pearl, this.dynamic, this.transform, findHolder(argument), outlineColor), stack, collector, light, overlay, partialTick);
+		this.preRender(new RenderInfo(argument, pearl, this.context, this.shellTransform, this.eyeTransform, Services.PLATFORM.safeGetLocalPlayer(Minecraft.getInstance().level, this.context, argument), outlineColor, hasFoil), stack, collector, light, overlay, partialTick);
 	}
 
 	@Override
@@ -73,16 +75,6 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 				}
 			}
 		}
-	}
-
-	private static @Nullable Player findHolder(ItemStack stack) {
-		ClientLevel level = Minecraft.getInstance().level;
-		if (level == null) return null;
-		for (Player player : level.players()) {
-			if (player.getUseItem() == stack || player.getMainHandItem() == stack || player.getOffhandItem() == stack)
-				return player;
-		}
-		return null;
 	}
 
 	@Override
@@ -159,13 +151,35 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 		return iRiftRenderer.super.calculateScale(info, exactTime);
 	}
 
+	public void apply(ItemTransform transform, boolean applyLeftHandFix, PoseStack.Pose pose) {
+		if (transform != ItemTransform.NO_TRANSFORM) {
+			float translationX;
+			float rotY;
+			float rotZ;
+			if (applyLeftHandFix) {
+				translationX = -transform.translation().x();
+				rotY = -transform.rotation().y();
+				rotZ = -transform.rotation().z();
+			} else {
+				translationX = transform.translation().x();
+				rotY = transform.rotation().y();
+				rotZ = transform.rotation().z();
+			}
+
+			pose.translate(translationX / 16.0F, transform.translation().y() / 16.0F, transform.translation().z() / 16.0F);
+			pose.rotate(new Quaternionf().rotationXYZ(transform.rotation().x() * ((float) Math.PI / 180F), rotY * ((float) Math.PI / 180F), rotZ * ((float) Math.PI / 180F)));
+			pose.scale(transform.scale().x(), transform.scale().y(), transform.scale().z());
+		}
+	}
+
 	@Override
 	public void render(RenderInfo info, PoseStack stack, SubmitNodeCollector collector, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
 		stack.pushPose();
-		if (info.dynamic()) stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
+		stack.translate(0.5F, 0.5F, 0.5F);
+		if (info.isDynamic()) stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
 
 		stack.pushPose();
-		this.transform.apply(false, stack.last());
+		this.apply(this.shellTransform, info.isLeftHanded(), stack.last());
 		stack.scale(1.5F, 1.5F, 1.5F);
 
 		this.spin(stack,
@@ -199,7 +213,9 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 		stack.popPose();
 
 		stack.pushPose();
-		if (info.dynamic()) {
+		this.apply(this.eyeTransform, info.isLeftHanded(), stack.last());
+
+		if (info.isDynamic()) {
 			this.spin(stack,
 					Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
 					Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.625F),
@@ -208,18 +224,27 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 		} else pearlSize *= 0.75F;
 
 		stack.scale(pearlSize, pearlSize, pearlSize);
-
-		Services.CLIENT_HOOKS.renderShields(stack, collector);
+		stack.translate(-0.5F, -0.5F, -0.5F);
+		Services.CLIENT_HOOKS.renderEye(stack, collector, info.context(), info.hasFoil(), info.outlineColor());
 		stack.popPose();
 		stack.popPose();
 	}
 
-	public record RenderInfo(ItemStack stack, RiftPearlItem pearl, boolean dynamic, ItemTransform transform,
-							 @Nullable Player holder,
-							 int outlineColor) {
+	public record RenderInfo(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext context,
+							 ItemTransform shellTransform, ItemTransform eyeTransform,
+							 @Nullable Player holder, int outlineColor, boolean hasFoil) {
+
+		public boolean isDynamic() {
+			return this.context != ItemDisplayContext.GUI && this.context != ItemDisplayContext.FIXED;
+		}
+
+		public boolean isLeftHanded() {
+			return this.context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND || this.context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+		}
 	}
 
-	public record Unbaked(ItemDisplayContext context, ItemTransform transform) implements SpecialModelRenderer.Unbaked<ItemStack> {
+	public record Unbaked(ItemDisplayContext context, ItemTransform shellTransform,
+						  ItemTransform eyeTransform) implements SpecialModelRenderer.Unbaked<ItemStack> {
 		public static final Identifier ID = Constants.prefix("rift");
 
 		public static final MapCodec<Vector3fc> VECTOR_3_F_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -236,7 +261,8 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 
 		public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 				ItemDisplayContext.CODEC.fieldOf("context").forGetter(Unbaked::context),
-				ITEM_TRANSFORM_CODEC.fieldOf("transform").forGetter(Unbaked::transform)
+				ITEM_TRANSFORM_CODEC.fieldOf("shell_transform").forGetter(Unbaked::shellTransform),
+				ITEM_TRANSFORM_CODEC.fieldOf("eye_transform").forGetter(Unbaked::eyeTransform)
 		).apply(instance, Unbaked::new));
 
 		@Override
@@ -246,11 +272,7 @@ public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftR
 
 		@Override
 		public SpecialModelRenderer<ItemStack> bake(SpecialModelRenderer.BakingContext context) {
-			return new RiftItemRenderer(
-					context.entityModelSet().bakeLayer(BOSS_RIFT_MODEL),
-					this.context != ItemDisplayContext.GUI && this.context != ItemDisplayContext.FIXED,
-					this.transform
-			);
+			return new RiftItemRenderer(context.entityModelSet().bakeLayer(BOSS_RIFT_MODEL), this.context, this.shellTransform, this.eyeTransform);
 		}
 	}
 }

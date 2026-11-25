@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts.mixin;
+package io.github.jodlodi.bossrifts.mixin.model;
 
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.client.V2ModelProperty;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SelectItemModelProperties.class)
-public class SelectItemModelPropertiesMixin {
+public abstract class SelectItemModelPropertiesMixin {
 	@Shadow
 	@Final
 	private static ExtraCodecs.LateBoundIdMapper<Identifier, SelectItemModelProperty.Type<?, ?>> ID_MAPPER;

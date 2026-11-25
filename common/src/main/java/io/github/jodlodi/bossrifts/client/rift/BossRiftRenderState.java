@@ -11,4 +11,5 @@ public class BossRiftRenderState extends EntityRenderState {
 	public float points;
 	public float points0;
 	public float partialTick;
+	public boolean foil;
 }

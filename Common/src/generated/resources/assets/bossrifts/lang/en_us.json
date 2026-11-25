@@ -1,6 +1,7 @@
 {
   "block.bossrifts.rift_aggregator": "Rift Aggregator",
   "entity.bossrifts.boss_rift": "Boss Rift",
+  "item.bossrifts.rift_aggregator": "Rift Aggregator",
   "item.bossrifts.rift_pearl": "Rift Pearl",
   "item.bossrifts.rift_pearl.aggregator": "Linked Rift Pearl",
   "msg.boss_rifts.exp.cost": "§7EXP cost: [%s§7]",

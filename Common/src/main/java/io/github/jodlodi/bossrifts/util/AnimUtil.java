@@ -45,4 +45,5 @@ public class AnimUtil {
 	public static int minutesToTicks(int minutes) {
 		return minutes * 60 * 20;
 	}
+
 }

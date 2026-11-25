@@ -18,6 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.EntityHitResult;
 import org.joml.Quaternionf;
 import org.jspecify.annotations.NullMarked;
@@ -56,6 +57,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity, BossRiftR
 		state.power = RiftPearlItem.poweredTime(rift.getItem());
 		state.points = rift.getPoints();
 		state.points0 = rift.getPoints0();
+		state.foil = rift.getItem().hasFoil();
 	}
 
 	@Override
@@ -170,7 +172,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity, BossRiftR
 				Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.125F)
 		);
 		stack.scale(pearlSize * 0.85F, pearlSize * 0.85F, pearlSize * 0.85F);
-		Services.CLIENT_HOOKS.renderShields(stack, collector);
+		Services.CLIENT_HOOKS.renderEye(stack, collector, ItemDisplayContext.FIXED, state.foil, state.outlineColor);
 		//state.pearl.submit(stack, collector, 0xF000F0, overlay, state.outlineColor);
 		stack.popPose();
 

@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts;
 
 import io.github.jodlodi.bossrifts.client.V2ModelProperty;
+import io.github.jodlodi.bossrifts.client.rift.AnimatedItemModel;
 import io.github.jodlodi.bossrifts.client.rift.RiftItemRenderer;
 import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
@@ -179,31 +180,31 @@ public class ModData {
 					).element(elementBuilder -> elementBuilder
 							.from(0.0F, 14.0F, 0.0F).to(16.0F, 16.0F, 2.0F)
 							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
-							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
-							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
-							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
-							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
 					).element(elementBuilder -> elementBuilder
 							.from(0.0F, 14.0F, 14.0F).to(16.0F, 16.0F, 16.0F)
 							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
-							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
-							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
-							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
-							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
 					).element(elementBuilder -> elementBuilder
 							.from(0.0F, 14.0F, 2.0F).to(2.0F, 16.0F, 14.0F)
 							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
-							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
-							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
-							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
-							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
 					).element(elementBuilder -> elementBuilder
 							.from(14.0F, 14.0F, 2.0F).to(16.0F, 16.0F, 14.0F)
 							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
-							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
-							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
-							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
-							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE))
 					).element(elementBuilder -> elementBuilder
 							.from(2.0F, 16.0F, 2.0F).to(14.0F, 16.0F, 14.0F)
 							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
@@ -243,14 +244,19 @@ public class ModData {
 								true,
 								ItemModelUtils.select(
 										new DisplayContext(),
-										this.pearlModel(ItemDisplayContext.NONE, ItemTransform.NO_TRANSFORM),
+										this.pearlModel(ItemDisplayContext.NONE, ItemTransform.NO_TRANSFORM, ItemTransform.NO_TRANSFORM),
 										List.of(
 												this.pearlWhen(
 														ItemDisplayContext.GUI,
 														new ItemTransform(
 																new Vector3f(30.0F, 225.0F, 0.0F),
 																new Vector3f(0.0F, 0.0F, 0.0F),
-																new Vector3f(0.625F, 0.625F, 0.625F)
+																new Vector3f(0.625F)
+														),
+														new ItemTransform(
+																new Vector3f(30.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.625F)
 														)
 												),
 												this.pearlWhen(
@@ -258,7 +264,12 @@ public class ModData {
 														new ItemTransform(
 																new Vector3f(0.0F, 0.0F, 0.0F),
 																new Vector3f(0.0F, 3.0F, 0.0F),
-																new Vector3f(0.25F, 0.25F, 0.25F)
+																new Vector3f(0.25F)
+														),
+														new ItemTransform(
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.0F, 3.0F, 0.0F),
+																new Vector3f(0.15F)
 														)
 												),
 												this.pearlWhen(
@@ -266,7 +277,12 @@ public class ModData {
 														new ItemTransform(
 																new Vector3f(0.0F, 0.0F, 0.0F),
 																new Vector3f(0.0F, 0.0F, 0.0F),
-																new Vector3f(0.75F, 0.75F, 0.75F)
+																new Vector3f(0.75F)
+														),
+														new ItemTransform(
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.75F)
 														)
 												),
 												this.pearlWhen(
@@ -274,7 +290,25 @@ public class ModData {
 														new ItemTransform(
 																new Vector3f(75.0F, 45.0F, 0.0F),
 																new Vector3f(0.0F, 2.5F, 0.0F),
-																new Vector3f(0.375F, 0.375F, 0.375F)
+																new Vector3f(0.375F)
+														),
+														new ItemTransform(
+																new Vector3f(75.0F, 45.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.33F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.THIRD_PERSON_LEFT_HAND,
+														new ItemTransform(
+																new Vector3f(75.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.375F)
+														),
+														new ItemTransform(
+																new Vector3f(75.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.33F)
 														)
 												),
 												this.pearlWhen(
@@ -282,7 +316,12 @@ public class ModData {
 														new ItemTransform(
 																new Vector3f(0.0F, 45.0F, 0.0F),
 																new Vector3f(0.0F, 2.5F, 0.0F),
-																new Vector3f(0.40F, 0.40F, 0.40F)
+																new Vector3f(0.40F)
+														),
+														new ItemTransform(
+																new Vector3f(0.0F, 45.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.33F)
 														)
 												),
 												this.pearlWhen(
@@ -290,7 +329,12 @@ public class ModData {
 														new ItemTransform(
 																new Vector3f(0.0F, 225.0F, 0.0F),
 																new Vector3f(0.0F, 2.5F, 0.0F),
-																new Vector3f(0.40F, 0.40F, 0.40F)
+																new Vector3f(0.40F)
+														),
+														new ItemTransform(
+																new Vector3f(0.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.33F)
 														)
 												)
 										)
@@ -301,15 +345,16 @@ public class ModData {
 				ModelTemplates.FLAT_ITEM.create(iRiftRenderer.PEARL_ITEM_MODEL, TextureMapping.layer0(new Material(iRiftRenderer.PEARL_ITEM_MODEL)), this.modelOutput);
 			}
 
-			private SelectItemModel.SwitchCase<ItemDisplayContext> pearlWhen(ItemDisplayContext context, ItemTransform transform) {
-				return ItemModelUtils.when(context, this.pearlModel(context, transform));
+			private SelectItemModel.SwitchCase<ItemDisplayContext> pearlWhen(ItemDisplayContext context, ItemTransform shellTransform, ItemTransform eyeTransform) {
+				return ItemModelUtils.when(context, this.pearlModel(context, shellTransform, eyeTransform));
 			}
 
-			private ItemModel.Unbaked pearlModel(ItemDisplayContext context, ItemTransform transform) {
-				return ItemModelUtils.specialModel(
+			private ItemModel.Unbaked pearlModel(ItemDisplayContext context, ItemTransform shellTransform, ItemTransform eyeTransform) {
+				ItemModel.Unbaked model = ItemModelUtils.specialModel(
 						ModelLocationUtils.getModelLocation(ModItems.RIFT_PEARL.get()).withSuffix("_" + context.getSerializedName()),
-						new RiftItemRenderer.Unbaked(context, transform)
+						new RiftItemRenderer.Unbaked(context, shellTransform, eyeTransform)
 				);
+				return context == ItemDisplayContext.GUI ? new AnimatedItemModel(model) : model;
 			}
 		}
 	}
@@ -336,6 +381,7 @@ public class ModData {
 			this.add(ModItems.RIFT_PEARL.get(), "Rift Pearl");
 			this.add(ModItems.RIFT_PEARL.get().getDescriptionId() + ".aggregator", "Linked Rift Pearl");
 
+			this.add(ModItems.RIFT_AGGREGATOR.get(), "Rift Aggregator");
 			this.add(ModBlocks.RIFT_AGGREGATOR.get(), "Rift Aggregator");
 		}
 	}

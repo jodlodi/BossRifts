@@ -7,6 +7,7 @@ import io.github.jodlodi.bossrifts.registry.ModParticles;
 import io.github.jodlodi.bossrifts.registry.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -52,20 +53,38 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem) return InteractionResult.PASS;
+		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem pearlItem) {
+			level.playSound(null, pos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundSource.PLAYERS, 1.0F, 1.0F);
+
+			boolean consume = !player.getAbilities().instabuild && stack.getCount() == 1;
+			if (consume) {
+				pearlItem.makeAggregatorPearl(level.dimension(), pos, stack);
+			} else {
+				ItemStack newStack = stack.copy();
+				if (!player.getAbilities().instabuild) stack.shrink(1);
+
+				pearlItem.makeAggregatorPearl(level.dimension(), pos, newStack);
+				if (!player.addItem(newStack)) player.drop(newStack, false);
+			}
+
+			return InteractionResult.SUCCESS;
+		}
 		return InteractionResult.TRY_WITH_EMPTY_HAND;
 	}
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-		if (player instanceof ServerPlayer serverPlayer && this.isPossibleToRespawnInThis(state)) {
-			ServerPlayer.RespawnConfig config =	serverPlayer.getRespawnConfig();
+		if (this.isPossibleToRespawnInThis(state)) {
+			if (player instanceof ServerPlayer serverPlayer) {
+				ServerPlayer.RespawnConfig config = serverPlayer.getRespawnConfig();
 
-			if (config == null || config.respawnData().dimension() != level.dimension() || !pos.equals(config.respawnData().pos())) {
-				serverPlayer.setRespawnPosition(new ServerPlayer.RespawnConfig(LevelData.RespawnData.of(level.dimension(), pos, 0.0F, 0.0F), true), false);
-				level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_SET_SPAWN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-				return InteractionResult.SUCCESS;
+				if (config == null || config.respawnData().dimension() != level.dimension() || !pos.equals(config.respawnData().pos())) {
+					serverPlayer.setRespawnPosition(new ServerPlayer.RespawnConfig(LevelData.RespawnData.of(level.dimension(), pos, 0.0F, 0.0F), true), true);
+					level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, ModSounds.RIFT_AGGREGATOR_SET_SPAWN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+					return InteractionResult.SUCCESS;
+				}
 			}
+			return InteractionResult.SUCCESS;
 		}
 
 		return InteractionResult.CONSUME;

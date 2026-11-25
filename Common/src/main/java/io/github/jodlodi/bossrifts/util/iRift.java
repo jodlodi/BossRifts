@@ -42,11 +42,13 @@ public interface iRift<T> {
 	}
 
 	default void sendToSpawn(T t, MinecraftServer server, Entity entity, @Nullable ServerPlayer serverPlayer) {
-		ServerPlayer.RespawnConfig config = serverPlayer != null ? serverPlayer.getRespawnConfig() : null;
-		ServerLevel spawnWorld = config != null ? this.savedWorld(t).map(server::getLevel).orElse(server.getLevel(config.respawnData().dimension())) : null;
+		Optional<ServerPlayer.RespawnConfig> config = Optional.ofNullable(serverPlayer != null ? serverPlayer.getRespawnConfig() : null);
+		ResourceKey<Level> key = this.savedWorld(t).or(() -> config.map(respawnConfig -> respawnConfig.respawnData().dimension())).orElse(Level.OVERWORLD);
+
+		ServerLevel spawnWorld = server.getLevel(key);
 		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(Level.OVERWORLD));
 
-		Vec3 vector3d = this.getSpawnPos(t, spawnWorld, config);
+		Vec3 vector3d = this.getSpawnPos(t, spawnWorld, config.orElse(null));
 		Vec3 mod = Services.EVENT.onTeleport(entity, spawnWorld, vector3d);
 		if (mod == null) return;
 
@@ -90,14 +92,14 @@ public interface iRift<T> {
 	}
 
 	default Vec3 getSpawnPos(T t, ServerLevel spawnWorld, @Nullable ServerPlayer.RespawnConfig config) {
+		BlockPos spawnPoint = this.savedPos(t).orElse(null);
+		if (spawnPoint != null) {
+			return new Vec3(spawnPoint.getX() + 0.5D, spawnPoint.getY() + 1.0D, spawnPoint.getZ() + 0.5D);
+		}
+
 		if (config != null) {
 			Optional<ServerPlayer.RespawnPosAngle> result = ServerPlayer.findRespawnAndUseSpawnBlock(spawnWorld, config, true);
 			if (result.isPresent()) return result.get().position();
-		} else {
-			BlockPos spawnPoint = this.savedPos(t).orElse(null);
-			if (spawnPoint != null) {
-				return new Vec3(spawnPoint.getX() + 0.5D, spawnPoint.getY(), spawnPoint.getZ() + 0.5D);
-			}
 		}
 
 		BlockPos shared = spawnWorld.getRespawnData().pos();

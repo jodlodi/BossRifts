@@ -1,7 +1,9 @@
 package io.github.jodlodi.bossrifts.platform;
 
 import io.github.jodlodi.bossrifts.platform.services.IPlatformHelper;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import org.jspecify.annotations.NullMarked;
@@ -29,5 +31,10 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public Path getConfigDir() {
         return FMLPaths.CONFIGDIR.get();
+    }
+
+    @Override
+    public boolean isClientSide() {
+        return FMLEnvironment.getDist() == Dist.CLIENT;
     }
 }

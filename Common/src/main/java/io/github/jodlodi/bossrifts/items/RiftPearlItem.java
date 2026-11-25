@@ -2,12 +2,13 @@ package io.github.jodlodi.bossrifts.items;
 
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.platform.Services;
-import io.github.jodlodi.bossrifts.registry.*;
+import io.github.jodlodi.bossrifts.registry.ModDataComponents;
+import io.github.jodlodi.bossrifts.registry.ModEntities;
+import io.github.jodlodi.bossrifts.registry.ModSounds;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -15,7 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -55,7 +55,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 		return stack.has(ModDataComponents.AGGREGATOR_TRACKER.get());
 	}
 
-	private void makeAggregatorPearl(ResourceKey<Level> key, BlockPos pos, ItemStack stack) {
+	public void makeAggregatorPearl(ResourceKey<Level> key, BlockPos pos, ItemStack stack) {
 		stack.set(ModDataComponents.AGGREGATOR_TRACKER.get(), new LodestoneTracker(Optional.of(GlobalPos.of(key, pos)), true));
 	}
 
@@ -122,7 +122,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level, EntitySpawnReason.TRIGGERED);
 			if (rift != null) {
-				rift.move(MoverType.SELF, new Vec3(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D));
+				rift.moveOrInterpolateTo(new Vec3(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D));
 				rift.setItem(context.getItemInHand());
 				if (player instanceof ServerPlayer serverPlayer) rift.startRevving(serverPlayer);
 
@@ -132,24 +132,6 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				}
 				return level.addFreshEntity(rift) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
 			} else return InteractionResult.FAIL;
-		} else if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
-			level.playSound(null, pos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundSource.PLAYERS, 1.0F, 1.0F);
-			Player player = context.getPlayer();
-			if (player == null) return super.useOn(context);
-			ItemStack stack = context.getItemInHand();
-
-			boolean consume = !player.getAbilities().instabuild && stack.getCount() == 1;
-			if (consume) {
-				this.makeAggregatorPearl(level.dimension(), pos, stack);
-			} else {
-				ItemStack newStack = stack.copy();
-				if (!player.getAbilities().instabuild) stack.shrink(1);
-
-				this.makeAggregatorPearl(level.dimension(), pos, newStack);
-				if (!player.addItem(newStack)) player.drop(newStack, false);
-			}
-
-			return InteractionResult.SUCCESS;
 		} else {
 			return super.useOn(context);
 		}
@@ -224,7 +206,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				builder.accept(Component.translatable(TOOLTIP_MODERN_1));
 				builder.accept(Component.translatable(TOOLTIP_MODERN_2));
 				return;
-			} else if (cost >= 0.0F && getEntityRepresentation(stack) instanceof Player player) {
+			} else if (cost >= 0.0F && Services.PLATFORM.safeGetLocalPlayer() instanceof Player player) {
 				int price = this.getPrice(
 						player.blockPosition(),
 						stack,
@@ -243,20 +225,17 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			long powered = poweredTime(stack);
 
-			Entity entity = getEntityRepresentation(stack);
-			if (powered >= 0 && entity != null) {
-				long diff = entity.level().getGameTime() - powered;
-				if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
-					builder.accept(Component.translatable(TOOLTIP_MODERN_1));
-					builder.accept(Component.translatable(TOOLTIP_MODERN_2));
+			if (powered >= 0) {
+				Entity entity = Services.PLATFORM.safeGetLocalPlayer();
+				if (entity != null) {
+					long diff = entity.level().getGameTime() - powered;
+					if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
+						builder.accept(Component.translatable(TOOLTIP_MODERN_1));
+						builder.accept(Component.translatable(TOOLTIP_MODERN_2));
+					}
 				}
 			}
 		}
-	}
-
-	@Nullable
-	public static Entity getEntityRepresentation(ItemStack stack) {
-		return Minecraft.getInstance().player;
 	}
 
 	@Override

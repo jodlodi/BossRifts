@@ -1,4 +1,4 @@
-package io.github.jodlodi.bossrifts.mixin;
+package io.github.jodlodi.bossrifts.mixin.model;
 
 import com.mojang.serialization.MapCodec;
 import io.github.jodlodi.bossrifts.client.rift.RiftItemRenderer;
