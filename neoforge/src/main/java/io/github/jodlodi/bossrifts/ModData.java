@@ -36,7 +36,7 @@ import net.minecraft.data.tags.EntityTypeTagsProvider;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
@@ -395,8 +395,8 @@ public class ModData {
 		@Override
 		protected void addTags(HolderLookup.Provider provider) {
 			this.getOrCreateRawBuilder(ModTags.RIFT_BOSSES)
-					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.WITHER))
-					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.ENDER_DRAGON))
+					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityTypes.WITHER))
+					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityTypes.ENDER_DRAGON))
 					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "lich"))
 					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "yeti"))

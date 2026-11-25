@@ -13,6 +13,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public interface IConfigHelper {
 			if (dying.level().getBlockState(pos).isCollisionShapeFullBlock(dying.level(), pos)) {
 				dying.level().removeBlock(pos, false);
 			}
-			bossRift.moveOrInterpolateTo(pos.getCenter().add(0.0D, -0.25D, 0.0D));
+			bossRift.moveOrInterpolateTo(Vec3.atCenterOf(pos).add(0.0D, -0.25D, 0.0D));
 			dying.level().addFreshEntity(bossRift);
 		}
 	}

@@ -2,6 +2,19 @@ plugins {
     id 'multiloader-common'
 }
 
+abstract class CommonLoaderCompat implements AttributeCompatibilityRule<String> {
+    @Override
+    void execute(CompatibilityCheckDetails<String> details) {
+        if (details.producerValue == 'common') {
+            details.compatible()
+        }
+    }
+}
+
+dependencies.attributesSchema.attribute(Attribute.of('io.github.mcgradleconventions.loader', String)) {
+    it.compatibilityRules.add(CommonLoaderCompat)
+}
+
 configurations {
     commonJava{
         canBeResolved = true
