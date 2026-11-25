@@ -9,7 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -17,7 +17,7 @@ public class ClientBoundConfigPacket extends ClientBoundPacket {
 	public static final Codec<ClientBoundConfigPacket> CODEC = RecordCodecBuilder.create((recordCodecBuilder) -> recordCodecBuilder.group(
 			CompoundTag.CODEC.fieldOf("tag").forGetter(message -> message.tag)
 	).apply(recordCodecBuilder, ClientBoundConfigPacket::new));
-	public static final ResourceLocation ID = Constants.prefix("config_packet");
+	public static final Identifier ID = Constants.prefix("config_packet");
 	public static final Type<ClientBoundConfigPacket> TYPE = new Type<>(ID);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClientBoundConfigPacket> STREAM_CODEC = CustomPacketPayload.codec(ClientBoundConfigPacket::encode, ClientBoundConfigPacket::decode);
 
@@ -28,7 +28,7 @@ public class ClientBoundConfigPacket extends ClientBoundPacket {
 	}
 
 	public static ClientBoundConfigPacket decode(FriendlyByteBuf buffer) {
-		return buffer.readJsonWithCodec(CODEC);
+		return buffer.readLenientJsonWithCodec(CODEC);
 	}
 
 	@Override

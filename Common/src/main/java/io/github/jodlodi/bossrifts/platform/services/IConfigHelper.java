@@ -9,6 +9,7 @@ import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -43,17 +44,17 @@ public interface IConfigHelper {
 	boolean canSetSpawn();
 
 	static void triggerV1(LivingEntity dying) {
-		if (!dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), entity -> entity.getType().is(ModTags.RIFT_BOSSES)).isEmpty()) {
+		if (!dying.level().getEntities(dying, dying.getBoundingBox().inflate(32), entity -> entity.is(ModTags.RIFT_BOSSES)).isEmpty()) {
 			return;
 		}
 
-		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level());
+		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level(), EntitySpawnReason.TRIGGERED);
 		if (bossRift != null) {
 			BlockPos pos = dying.blockPosition().above();
 			if (dying.level().getBlockState(pos).isCollisionShapeFullBlock(dying.level(), pos)) {
 				dying.level().removeBlock(pos, false);
 			}
-			bossRift.moveTo(pos.getX() + 0.5D, pos.getY() + 0.25D, pos.getZ() + 0.5D);
+			bossRift.moveOrInterpolateTo(pos.getCenter().add(0.0D, -0.25D, 0.0D));
 			dying.level().addFreshEntity(bossRift);
 		}
 	}
@@ -78,7 +79,7 @@ public interface IConfigHelper {
 		if (RiftPearlItem.empowerPearl(player.getMainHandItem(), time)) return;
 		if (RiftPearlItem.empowerPearl(player.getOffhandItem(), time)) return;
 
-		for (ItemStack stack : player.getInventory().items) {
+		for (ItemStack stack : player.getInventory()) {
 			if (RiftPearlItem.empowerPearl(stack, time)) return;
 		}
 	}

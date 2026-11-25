@@ -1,6 +1,6 @@
 package io.github.jodlodi.bossrifts.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Supplier;
@@ -8,9 +8,9 @@ import java.util.function.Supplier;
 @NullMarked
 public class MultiSupplier<R> implements Supplier<R> {
 	private final Supplier<R> supplier;
-	private final ResourceLocation id;
+	private final Identifier id;
 
-	public MultiSupplier(Supplier<R> supplier, ResourceLocation id) {
+	public MultiSupplier(Supplier<R> supplier, Identifier id) {
 		this.supplier = supplier;
 		this.id = id;
 	}
@@ -20,7 +20,7 @@ public class MultiSupplier<R> implements Supplier<R> {
 		return this.supplier.get();
 	}
 
-	public ResourceLocation id() {
+	public Identifier id() {
 		return this.id;
 	}
 }

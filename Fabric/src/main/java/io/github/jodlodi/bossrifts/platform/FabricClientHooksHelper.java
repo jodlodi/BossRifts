@@ -1,23 +1,39 @@
 package io.github.jodlodi.bossrifts.platform;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.QuadInstance;
+import io.github.jodlodi.bossrifts.client.ModModelLoadingPlugin;
 import io.github.jodlodi.bossrifts.platform.services.IClientHooksHelper;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
 import org.jspecify.annotations.NullMarked;
+
+import java.util.List;
 
 @NullMarked
 public class FabricClientHooksHelper implements IClientHooksHelper {
 
 	@Override
-	public BakedModel handleCameraTransforms(PoseStack matrixStack, BakedModel model, ItemDisplayContext cameraTransformType, boolean leftHandHackery) {
-		model.getTransforms().getTransform(cameraTransformType).apply(leftHandHackery, matrixStack);
-		return model;
-	}
+	public void renderShields(PoseStack stack, SubmitNodeCollector collector) {
+		QuadCollection shieldModel = Minecraft.getInstance().getModelManager().getModel(ModModelLoadingPlugin.KEY);
+		if (shieldModel == null) return;
 
-	@Override
-	public boolean isNameplateInRenderDistance(Entity entity, double squareDistance) {
-		return squareDistance <= 4096.0D;
+		List<BakedQuad> quads = shieldModel.getAll();
+		if (quads.isEmpty()) return;
+
+		QuadInstance instance = new QuadInstance();
+
+		stack.pushPose();
+
+		collector.submitCustomGeometry(stack, Sheets.translucentItemSheet(), (pose, buffer) -> {
+			for (BakedQuad quad : quads) {
+				buffer.putBakedQuad(pose, quad, instance);
+			}
+		});
+
+		stack.popPose();
 	}
 }

@@ -10,8 +10,8 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ModBlocks {
-	public static final MultiSupplier<RiftAggregatorBlock> RIFT_AGGREGATOR = Services.REGISTRY.registerBlock("rift_aggregator", () ->
-			new RiftAggregatorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(50.0F, 1200.0F).lightLevel((state) -> 12))
+	public static final MultiSupplier<RiftAggregatorBlock> RIFT_AGGREGATOR = Services.REGISTRY.registerBlock("rift_aggregator", RiftAggregatorBlock::new, () ->
+			BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(50.0F, 1200.0F).lightLevel((_) -> 12)
 	);
 
 	public static void init() {

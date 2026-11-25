@@ -10,8 +10,8 @@
     "accessor.SimpleParticleTypeAccessor"
   ],
   "client": [
-    "ItemRendererMixin",
-    "accessor.ItemRendererAccessor"
+    "SelectItemModelPropertiesMixin",
+    "SpecialModelRenderersMixin"
   ],
   "server": [],
   "injectors": {

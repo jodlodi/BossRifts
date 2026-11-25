@@ -4,6 +4,7 @@ import io.github.jodlodi.bossrifts.blocks.RiftAggregatorBlockEntity;
 import io.github.jodlodi.bossrifts.mixin.accessor.HopperBlockEntityAccessor;
 import io.github.jodlodi.bossrifts.platform.services.IEventHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
@@ -21,13 +22,13 @@ import java.util.stream.Collectors;
 public class FabricEventHelper implements IEventHelper {
 
     @Override
-    public Vec3 onTeleport(Entity entity, Vec3 destination) {
+    public Vec3 onTeleport(Entity entity, ServerLevel level, Vec3 destination) {
         return destination;
     }
 
     @Override
     public <T extends BlockEntity> void tickAggregator(Level level, BlockPos pos, BlockState state, T dis) {
-        if (level.isClientSide || !(dis instanceof RiftAggregatorBlockEntity aggregator)) return;
+        if (level.isClientSide() || !(dis instanceof RiftAggregatorBlockEntity aggregator)) return;
 
         if (level.getBlockEntity(pos.below()) instanceof HopperBlockEntity hopper) {
             if (!((HopperBlockEntityAccessor) hopper).invokeIsOnCooldown()) {

@@ -10,6 +10,7 @@ import io.github.jodlodi.bossrifts.registry.ModParticles;
 import net.minecraft.client.particle.SmokeParticle;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,11 +18,15 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 @EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public class ClientSetupListener {
+	public static final StandaloneModelKey<QuadCollection> KEY = new StandaloneModelKey<>(iRiftRenderer.PEARL_ITEM_MODEL::toDebugFileName);
+
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
 		EntityRenderers.register(ModEntities.BOSS_RIFT.get(), RiftEntityRenderer::new);
@@ -29,9 +34,8 @@ public class ClientSetupListener {
 	}
 
 	@SubscribeEvent
-	public static void onModelRegister(ModelEvent.RegisterAdditional event) {
-		event.register(iRiftRenderer.FRAME_MODEL);
-		event.register(iRiftRenderer.PEARL_MODEL);
+	public static void registerStandalone(ModelEvent.RegisterStandalone event) {
+		event.register(KEY, SimpleUnbakedStandaloneModel.quadCollection(iRiftRenderer.PEARL_ITEM_MODEL));
 	}
 
 	@SubscribeEvent

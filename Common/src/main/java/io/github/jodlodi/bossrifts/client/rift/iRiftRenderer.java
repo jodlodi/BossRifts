@@ -14,12 +14,12 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -31,10 +31,9 @@ import java.util.Map;
 @NullMarked
 public interface iRiftRenderer<T> {
 	ModelLayerLocation BOSS_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("boss_rift"), "main");
-	ResourceLocation SHELL_LOCATION = Constants.prefix("textures/entity/boss_rift/boss_rift.png");
-	ModelResourceLocation FRAME_MODEL = new ModelResourceLocation(Constants.prefix("item/rift_pearl_frame"), "standalone");
-	ModelResourceLocation PEARL_MODEL = new ModelResourceLocation(Constants.prefix("item/rift_pearl_icon"), "standalone");
-	RenderType SHELL_TYPE = RenderType.entityCutoutNoCull(SHELL_LOCATION);
+	Identifier SHELL_LOCATION = Constants.prefix("textures/entity/boss_rift/boss_rift.png");
+	Identifier PEARL_ITEM_MODEL = Constants.prefix("item/rift_pearl_eye");
+	RenderType SHELL_TYPE = RenderTypes.entityCutout(SHELL_LOCATION);
 	int SHELL_WIDTH = 64;
 	int SHELL_HEIGHT = 32;
 
@@ -58,7 +57,7 @@ public interface iRiftRenderer<T> {
 		}
 
 		for (Direction direction : Direction.values()) {
-			Vec3i vec = direction.getNormal();
+			Vec3i vec = direction.getUnitVec3i();
 			partdefinition.addOrReplaceChild(named("pin", vec), createPin(direction.ordinal(), vec.getX(), vec.getY(), vec.getZ()), PartPose.ZERO);
 		}
 
@@ -83,8 +82,28 @@ public interface iRiftRenderer<T> {
 
 	static CubeListBuilder createPin(int u, int x, int y, int z) {
 		return CubeListBuilder.create()
-				.texOffs( u * 8, 16)
+				.texOffs(u * 8, 16)
 				.addBox(-1 + x * 3, -1 + y * 3, -1 + z * 3, 2, 2, 2);
+	}
+
+	static Map<Vec3i, ModelPart> collectShell(ModelPart root) {
+		Map<Vec3i, ModelPart> shell = new HashMap<>();
+
+		for (int x = 0; x <= 1; x++) {
+			for (int y = 0; y <= 1; y++) {
+				for (int z = 0; z <= 1; z++) {
+					Vec3i vec = new Vec3i(x * 2 - 1, y * 2 - 1, z * 2 - 1);
+					shell.put(vec, root.getChild(named("shell", vec)));
+				}
+			}
+		}
+
+		for (Direction direction : Direction.values()) {
+			Vec3i vec = direction.getUnitVec3i();
+			shell.put(vec, root.getChild(named("pin", vec)));
+		}
+
+		return shell;
 	}
 
 	default void spin(PoseStack ms, float x, float y, float z) {
@@ -120,7 +139,7 @@ public interface iRiftRenderer<T> {
 		return scale;
 	}
 
-	default void preRender(T t, PoseStack stack, MultiBufferSource buffer, int light, int overlay, float partialTick) {
+	default void preRender(T t, PoseStack stack, SubmitNodeCollector collector, int light, int overlay, float partialTick) {
 		float exactTime = this.getTime(t) + partialTick;
 		float charge = Mth.lerp(partialTick, this.getCharge0(t), this.getCharge(t));
 
@@ -137,15 +156,15 @@ public interface iRiftRenderer<T> {
 		float pearlSize = antiScale <= 0.5 ? shrink : 0.0F;
 		float portalSize = scale <= 0.5 ? shrink : 0.0F;
 
-		float shuffleScale = AnimUtil.clampScaled(charge , RiftPearlItem.USE_DURATION - RiftPearlItem.COMPRESS_OFFSET);
-		float compressScale = AnimUtil.clampScaled(charge , RiftPearlItem.USE_DURATION - RiftPearlItem.SHUFFLE_OFFSET);
+		float shuffleScale = AnimUtil.clampScaled(charge, RiftPearlItem.USE_DURATION - RiftPearlItem.COMPRESS_OFFSET);
+		float compressScale = AnimUtil.clampScaled(charge, RiftPearlItem.USE_DURATION - RiftPearlItem.SHUFFLE_OFFSET);
 		float useScale = charge >= 0.0F ? AnimUtil.clamp((compressScale - Math.pow(compressScale, 128.0D)) * 1.5F + 1.0F - compressScale) : 1.0F;
 		float spinBonus = shuffleScale * shuffleScale * 1800.0F;
 
-		this.render(t, stack, buffer, light, overlay, exactTime, scale, antiScale, close, pearlSize, portalSize, shuffleScale, useScale, spinBonus);
+		this.render(t, stack, collector, light, overlay, exactTime, scale, antiScale, close, pearlSize, portalSize, shuffleScale, useScale, spinBonus);
 	}
 
-	void render(T t, PoseStack stack, MultiBufferSource buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus);
+	void render(T t, PoseStack stack, SubmitNodeCollector collector, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus);
 
 	default Map<Vec3i, Quaternionf> computePose(T t, float timeScale) {
 		Map<Vec3i, Quaternionf> pose = new HashMap<>();

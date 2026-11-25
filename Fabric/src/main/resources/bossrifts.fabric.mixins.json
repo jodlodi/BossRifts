@@ -14,7 +14,6 @@
     "accessor.LevelResourceAccessor"
   ],
   "client": [
-    "ModelBakeryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

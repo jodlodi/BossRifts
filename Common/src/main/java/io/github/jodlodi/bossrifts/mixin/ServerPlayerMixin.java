@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,9 +20,9 @@ import java.util.Optional;
 @Mixin(ServerPlayer.class)
 public class ServerPlayerMixin {
 	@Inject(method = "findRespawnAndUseSpawnBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
-	private static void onFindRespawnAndUseSpawnBlock(ServerLevel level, BlockPos pos, float respawnAngle, boolean respawnForced, boolean wonGame, CallbackInfoReturnable<Optional<ServerPlayer.RespawnPosAngle>> cir, BlockState state) {
+	private static void onFindRespawnAndUseSpawnBlock(ServerLevel level, ServerPlayer.RespawnConfig respawnConfig, boolean consumeSpawnBlock, CallbackInfoReturnable<Optional<ServerPlayer.RespawnPosAngle>> cir, LevelData.RespawnData respawnData, BlockPos pos, float yaw, float pitch, boolean forced, BlockState state) {
 		if (state.getBlock() instanceof RiftAggregatorBlock aggregator && aggregator.isPossibleToRespawnInThis(state)) {
-			cir.setReturnValue(Optional.of(new ServerPlayer.RespawnPosAngle(Vec3.atBottomCenterOf(pos.above()), respawnAngle)));
+			cir.setReturnValue(Optional.of(new ServerPlayer.RespawnPosAngle(Vec3.atBottomCenterOf(pos.above()), yaw, pitch)));
 		}
 	}
 }

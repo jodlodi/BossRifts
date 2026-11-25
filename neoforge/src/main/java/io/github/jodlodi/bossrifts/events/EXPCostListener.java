@@ -5,6 +5,7 @@ import io.github.jodlodi.bossrifts.network.client.ClearRiftCachePacket;
 import io.github.jodlodi.bossrifts.network.client.SendRespawnDataPacket;
 import io.github.jodlodi.bossrifts.platform.Services;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -18,7 +19,11 @@ public class EXPCostListener {
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof ServerPlayer player) {
-			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(player.getRespawnPosition(), player.getRespawnDimension()));
+			ServerPlayer.RespawnConfig config = player.getRespawnConfig();
+			Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(
+					config != null ? config.respawnData().pos() : null,
+					config != null ? config.respawnData().dimension() : Level.OVERWORLD
+			));
 			Services.NETWORK.sendToClient(player, new ClearRiftCachePacket());
 		}
 	}

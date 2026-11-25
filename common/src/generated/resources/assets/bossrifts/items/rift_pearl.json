@@ -1,0 +1,214 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:select",
+          "cases": [
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_gui",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "gui",
+                  "transform": {
+                    "rotation": {
+                      "x": 30.0,
+                      "y": 225.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.625,
+                      "y": 0.625,
+                      "z": 0.625
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "gui"
+            },
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_ground",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "ground",
+                  "transform": {
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.25,
+                      "y": 0.25,
+                      "z": 0.25
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 3.0,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "ground"
+            },
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_fixed",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "fixed",
+                  "transform": {
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.75,
+                      "y": 0.75,
+                      "z": 0.75
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "fixed"
+            },
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_thirdperson_righthand",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "thirdperson_righthand",
+                  "transform": {
+                    "rotation": {
+                      "x": 75.0,
+                      "y": 45.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.375,
+                      "y": 0.375,
+                      "z": 0.375
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 2.5,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "thirdperson_righthand"
+            },
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_firstperson_righthand",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "firstperson_righthand",
+                  "transform": {
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 45.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.4,
+                      "y": 0.4,
+                      "z": 0.4
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 2.5,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "firstperson_righthand"
+            },
+            {
+              "model": {
+                "type": "minecraft:special",
+                "base": "bossrifts:item/rift_pearl_firstperson_lefthand",
+                "model": {
+                  "type": "bossrifts:rift",
+                  "context": "firstperson_lefthand",
+                  "transform": {
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 225.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 0.4,
+                      "y": 0.4,
+                      "z": 0.4
+                    },
+                    "translation": {
+                      "x": 0.0,
+                      "y": 2.5,
+                      "z": 0.0
+                    }
+                  }
+                }
+              },
+              "when": "firstperson_lefthand"
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:special",
+            "base": "bossrifts:item/rift_pearl_none",
+            "model": {
+              "type": "bossrifts:rift",
+              "context": "none",
+              "transform": {
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "translation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                }
+              }
+            }
+          },
+          "property": "minecraft:display_context"
+        },
+        "when": true
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "bossrifts:item/rift_pearl_flat"
+    },
+    "property": "bossrifts:v2"
+  }
+}

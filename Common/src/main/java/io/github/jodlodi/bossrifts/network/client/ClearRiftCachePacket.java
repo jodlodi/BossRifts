@@ -6,12 +6,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class ClearRiftCachePacket extends ClientBoundPacket {
-	public static final ResourceLocation ID = Constants.prefix("clear_cache");
+	public static final Identifier ID = Constants.prefix("clear_cache");
 	public static final Type<ClearRiftCachePacket> TYPE = new Type<>(ID);
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClearRiftCachePacket> STREAM_CODEC = CustomPacketPayload.codec(ClearRiftCachePacket::encode, ClearRiftCachePacket::decode);
 

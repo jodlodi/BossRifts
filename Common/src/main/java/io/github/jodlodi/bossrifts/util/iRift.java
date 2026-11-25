@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -20,6 +21,7 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @NullMarked
@@ -40,23 +42,24 @@ public interface iRift<T> {
 	}
 
 	default void sendToSpawn(T t, MinecraftServer server, Entity entity, @Nullable ServerPlayer serverPlayer) {
-		ServerLevel spawnWorld = serverPlayer != null ? this.savedWorld(t).map(server::getLevel).orElse(server.getLevel(serverPlayer.getRespawnDimension())) : null;
+		ServerPlayer.RespawnConfig config = serverPlayer != null ? serverPlayer.getRespawnConfig() : null;
+		ServerLevel spawnWorld = config != null ? this.savedWorld(t).map(server::getLevel).orElse(server.getLevel(config.respawnData().dimension())) : null;
 		if (spawnWorld == null) spawnWorld = Objects.requireNonNull(server.getLevel(Level.OVERWORLD));
 
-		Vec3 vector3d = this.getSpawnPos(t, spawnWorld, serverPlayer);
-		Vec3 mod = Services.EVENT.onTeleport(entity, vector3d);
+		Vec3 vector3d = this.getSpawnPos(t, spawnWorld, config);
+		Vec3 mod = Services.EVENT.onTeleport(entity, spawnWorld, vector3d);
 		if (mod == null) return;
 
 		if (entity instanceof ServerPlayer player) {
-			ChunkPos chunkpos = new ChunkPos(BlockPos.containing(mod));
-			spawnWorld.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
+			ChunkPos chunkpos = ChunkPos.containing(BlockPos.containing(mod));
+			spawnWorld.getChunkSource().addTicketWithRadius(TicketType.PORTAL, chunkpos, 1);
 			entity.stopRiding();
 
 			if (player.isSleeping()) player.stopSleepInBed(true, true);
 			if (spawnWorld == entity.level()) {
 				player.connection.teleport(mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
 			} else {
-				player.teleportTo(spawnWorld, mod.x, mod.y, mod.z, entity.getYRot(), entity.getXRot());
+				player.teleportTo(spawnWorld, mod.x, mod.y, mod.z, Set.of(), entity.getYRot(), entity.getXRot(), true);
 			}
 		} else {
 			float f1 = Mth.wrapDegrees(entity.getYRot());
@@ -64,15 +67,15 @@ public interface iRift<T> {
 
 			f = Mth.clamp(f, -90.0F, 90.0F);
 			if (spawnWorld == entity.level()) {
-				entity.moveTo(mod.x, mod.y, mod.z, f1, f);
+				entity.moveOrInterpolateTo(mod, f1, f);
 				entity.setYHeadRot(f1);
 			} else {
 				entity.unRide();
-				Entity newEntity = entity.getType().create(spawnWorld);
+				Entity newEntity = entity.getType().create(spawnWorld, EntitySpawnReason.TRIGGERED);
 				if (newEntity != null) {
 					newEntity.restoreFrom(entity);
 					entity.remove(Entity.RemovalReason.DISCARDED);
-					newEntity.moveTo(mod.x, mod.y, mod.z, f1, f);
+					newEntity.moveOrInterpolateTo(mod, f1, f);
 					newEntity.setYHeadRot(f1);
 					spawnWorld.addFreshEntity(newEntity);
 				}
@@ -86,16 +89,18 @@ public interface iRift<T> {
 		if (entity instanceof ItemEntity item) item.setExtendedLifetime();
 	}
 
-	default Vec3 getSpawnPos(T t, ServerLevel spawnWorld, @Nullable ServerPlayer serverPlayer) {
-		BlockPos spawnPoint = serverPlayer != null ? this.savedPos(t).orElse(serverPlayer.getRespawnPosition()) : null;
-		float viewAngle = serverPlayer != null ? serverPlayer.getRespawnAngle() : 0.0F;
-
-		if (spawnPoint != null) {
-			Optional<ServerPlayer.RespawnPosAngle> result = ServerPlayer.findRespawnAndUseSpawnBlock(spawnWorld, spawnPoint, viewAngle, false, true);
+	default Vec3 getSpawnPos(T t, ServerLevel spawnWorld, @Nullable ServerPlayer.RespawnConfig config) {
+		if (config != null) {
+			Optional<ServerPlayer.RespawnPosAngle> result = ServerPlayer.findRespawnAndUseSpawnBlock(spawnWorld, config, true);
 			if (result.isPresent()) return result.get().position();
+		} else {
+			BlockPos spawnPoint = this.savedPos(t).orElse(null);
+			if (spawnPoint != null) {
+				return new Vec3(spawnPoint.getX() + 0.5D, spawnPoint.getY(), spawnPoint.getZ() + 0.5D);
+			}
 		}
 
-		BlockPos shared = spawnWorld.getSharedSpawnPos();
+		BlockPos shared = spawnWorld.getRespawnData().pos();
 		return new Vec3(shared.getX() + 0.5D, shared.getY(), shared.getZ() + 0.5D);
 	}
 

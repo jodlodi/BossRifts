@@ -1,6 +1,7 @@
 package io.github.jodlodi.bossrifts.platform.services;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 public interface IEventHelper {
 
 	@Nullable
-	Vec3 onTeleport(Entity entity, Vec3 destination);
+	Vec3 onTeleport(Entity entity, ServerLevel level, Vec3 destination);
 
 	<T extends BlockEntity> void tickAggregator(Level level, BlockPos pos, BlockState state, T dis);
 }

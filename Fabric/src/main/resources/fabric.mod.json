@@ -14,7 +14,6 @@
     "license": "${license}",
     "icon": "rift_logo.png",
     "environment": "*",
-    "accessWidener": "bossrifts.accesswidener",
     "entrypoints": {
         "main": [
             "io.github.jodlodi.bossrifts.BossRifts"
@@ -30,7 +29,7 @@
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",
-        "minecraft": "${minecraft_version}",
+        "minecraft": "~${minecraft_version}",
         "java": ">=${java_version}"
     },
     "suggests": {

@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "minecraft:end_stone"
-    },
-    "0": {
-      "item": "minecraft:ender_eye"
-    },
-    "X": {
-      "item": "minecraft:glowstone_dust"
-    }
+    "#": "minecraft:end_stone",
+    "0": "minecraft:ender_eye",
+    "X": "minecraft:glowstone_dust"
   },
   "pattern": [
     "#X#",
@@ -18,7 +12,6 @@
     "#X#"
   ],
   "result": {
-    "count": 1,
     "id": "bossrifts:rift_pearl"
   }
 }

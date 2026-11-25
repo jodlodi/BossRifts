@@ -79,12 +79,12 @@ public class FabricConfigHelper implements IConfigHelper {
 	}
 
 	public void loadFromTag(CompoundTag tag) {
-		this.legacyMode = tag.getBoolean(KEY_LEGACY);
-		this.expireSpan = tag.getInt(KEY_EXPIRE);
-		this.oneTimeUse = tag.getBoolean(KEY_ONE_TIME);
-		this.expCost = tag.getDouble(KEY_EXP_COST);
-		this.range = tag.getDouble(KEY_RANGE);
-		this.riftAggregatorSetSpawn = tag.getBoolean(KEY_SPAWN);
+		this.legacyMode = tag.getBoolean(KEY_LEGACY).orElse(DEFAULT_LEGACY_MODE);
+		this.expireSpan = tag.getInt(KEY_EXPIRE).orElse(DEFAULT_EXPIRE_SPAN);
+		this.oneTimeUse = tag.getBoolean(KEY_ONE_TIME).orElse(DEFAULT_ONE_TIME_USE);
+		this.expCost = tag.getDouble(KEY_EXP_COST).orElse(DEFAULT_EXP_COST);
+		this.range = tag.getDouble(KEY_RANGE).orElse(DEFAULT_RANGE);
+		this.riftAggregatorSetSpawn = tag.getBoolean(KEY_SPAWN).orElse(DEFAULT_RIFT_AGGREGATOR_SET_SPAWN);
 	}
 
 	public void generateDefaultConfig() {

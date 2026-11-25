@@ -6,7 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
@@ -22,17 +22,15 @@ public class PearlListener {
 	public static void onPlayerPearl(EntityTeleportEvent.EnderPearl event) {
 		ServerPlayer serverPlayer = event.getPlayer();
 		ThrownEnderpearl pearl = event.getPearlEntity();
-		MinecraftServer server = pearl.getServer();
+		MinecraftServer server = serverPlayer.level().getServer();
 		List<BossRiftEntity> nearbyRifts = pearl.level().getEntitiesOfClass(BossRiftEntity.class, pearl.getBoundingBox().inflate(1.6D), Entity::isAlive);
 		if (!nearbyRifts.isEmpty()) {
 			BossRiftEntity rift = nearbyRifts.getFirst();
-			if (server != null) {
-				event.setCanceled(true);
-				serverPlayer.fallDistance = 0.0F;
-				serverPlayer.hurt(serverPlayer.damageSources().fall(), event.getAttackDamage());
-				server.tell(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, serverPlayer, serverPlayer)));
-				server.tell(new TickTask(server.getTickCount(), () -> rift.validateSpawn(serverPlayer, false)));
-			}
+			event.setCanceled(true);
+			serverPlayer.fallDistance = 0.0F;
+			serverPlayer.hurtServer(serverPlayer.level(), serverPlayer.damageSources().fall(), event.getAttackDamage());
+			server.schedule(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, serverPlayer, serverPlayer)));
+			server.schedule(new TickTask(server.getTickCount(), () -> rift.validateSpawn(serverPlayer, false)));
 		}
 	}
 }

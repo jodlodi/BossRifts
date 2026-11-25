@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +24,7 @@ public class SendRespawnDataPacket extends ClientBoundPacket {
 			BlockPos.CODEC.optionalFieldOf("block_pos").forGetter(message -> message.respawnPosition),
 			Level.RESOURCE_KEY_CODEC.fieldOf("dimension").forGetter(message -> message.respawnDimension)
 	).apply(recordCodecBuilder, SendRespawnDataPacket::new));
-	public static final ResourceLocation ID = Constants.prefix("send_respawn_data");
+	public static final Identifier ID = Constants.prefix("send_respawn_data");
 	public static final Type<SendRespawnDataPacket> TYPE = new Type<>(ID);
 	public static final StreamCodec<RegistryFriendlyByteBuf, SendRespawnDataPacket> STREAM_CODEC = CustomPacketPayload.codec(SendRespawnDataPacket::encode, SendRespawnDataPacket::decode);
 
@@ -43,7 +43,7 @@ public class SendRespawnDataPacket extends ClientBoundPacket {
 	}
 
 	public static SendRespawnDataPacket decode(FriendlyByteBuf buffer) {
-		return buffer.readJsonWithCodec(CODEC);
+		return buffer.readLenientJsonWithCodec(CODEC);
 	}
 
 	@Override

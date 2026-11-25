@@ -7,11 +7,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@SuppressWarnings("DataFlowIssue")
 public class ModBlockEntities {
-	public static final MultiSupplier<BlockEntityType<RiftAggregatorBlockEntity>> RIFT_AGGREGATOR = Services.REGISTRY.registerBlockEntity("rift_aggregator", () ->
-			BlockEntityType.Builder.of(RiftAggregatorBlockEntity::new, ModBlocks.RIFT_AGGREGATOR.get()).build(null)
-	);
+	public static final MultiSupplier<BlockEntityType<RiftAggregatorBlockEntity>> RIFT_AGGREGATOR = Services.REGISTRY.registerBlockEntity("rift_aggregator", RiftAggregatorBlockEntity::new, ModBlocks.RIFT_AGGREGATOR);
 
 	public static void init() {
 

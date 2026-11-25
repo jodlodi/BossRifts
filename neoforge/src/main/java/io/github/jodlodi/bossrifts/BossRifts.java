@@ -20,12 +20,12 @@ public class BossRifts {
 		NeoForge.EVENT_BUS.register(DeathListener.class);
 		NeoForge.EVENT_BUS.register(PearlListener.class);
 
+		NeoForgeRegistryHelper.BLOCKS.register(bus);
 		NeoForgeRegistryHelper.DATA_COMPONENTS.register(bus);
 		NeoForgeRegistryHelper.BLOCK_ENTITIES.register(bus);
 		NeoForgeRegistryHelper.PARTICLE_TYPES.register(bus);
 		NeoForgeRegistryHelper.ENTITY_TYPES.register(bus);
 		NeoForgeRegistryHelper.SOUND_TYPES.register(bus);
-		NeoForgeRegistryHelper.BLOCKS.register(bus);
 		NeoForgeRegistryHelper.ITEMS.register(bus);
 
 		container.registerConfig(ModConfig.Type.SERVER, NeoForgeConfigHelper.SPEC);

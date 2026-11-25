@@ -1,73 +1,88 @@
 package io.github.jodlodi.bossrifts.client.rift;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
-import io.github.jodlodi.bossrifts.mixin.accessor.ItemRendererAccessor;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @NullMarked
-public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderInfo> {
+public class RiftItemRenderer implements SpecialModelRenderer<ItemStack>, iRiftRenderer<RiftItemRenderer.RenderInfo> {
 	public static final Map<ItemStack, Pair<Long, Boolean>> STACK_MAP = new HashMap<>();
-	private static final RiftItemRenderer INSTANCE = new RiftItemRenderer();
-	private final ModelPart core;
-	private final Map<Vec3i, ModelPart> shell = new HashMap<>();
 
-	protected RiftItemRenderer() {
+	private final ModelPart core;
+	private final Map<Vec3i, ModelPart> shell;
+	private final boolean dynamic;
+	private final ItemTransform transform;
+
+	protected RiftItemRenderer(ModelPart root, boolean dynamic, ItemTransform transform) {
+		this.core = root.getChild("core");
+		this.shell = iRiftRenderer.collectShell(root);
+		this.dynamic = dynamic;
+		this.transform = transform;
+	}
+
+	@Override
+	public void submit(@Nullable ItemStack argument, PoseStack stack, SubmitNodeCollector collector, int light, int overlay, boolean hasFoil, int outlineColor) {
+		if (argument == null || !(argument.getItem() instanceof RiftPearlItem pearl)) return;
+
+		Minecraft minecraft = Minecraft.getInstance();
+		float partialTick = minecraft.isPaused() ? 1.0F : minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
+		this.preRender(new RenderInfo(argument, pearl, this.dynamic, this.transform, findHolder(argument), outlineColor), stack, collector, light, overlay, partialTick);
+	}
+
+	@Override
+	public @Nullable ItemStack extractArgument(ItemStack stack) {
+		return stack;
+	}
+
+	@Override
+	public void getExtents(Consumer<Vector3fc> output) {
 		for (int x = 0; x <= 1; x++) {
 			for (int y = 0; y <= 1; y++) {
 				for (int z = 0; z <= 1; z++) {
-					int u = z + y * 2;
-					this.shell.put(
-							new Vec3i(x * 2 - 1, y * 2 - 1, z * 2 - 1),
-							build(iRiftRenderer.createShell(u, x, x, y, z))
-					);
+					output.accept(new Vector3f(x * 0.75F + 0.125F, y * 0.75F + 0.125F, z * 0.75F + 0.125F));
 				}
 			}
 		}
+	}
 
-		for (Direction direction : Direction.values()) {
-			Vec3i vec = direction.getNormal();
-			this.shell.put(vec, build(iRiftRenderer.createPin(direction.ordinal(), vec.getX(), vec.getY(), vec.getZ())));
+	private static @Nullable Player findHolder(ItemStack stack) {
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null) return null;
+		for (Player player : level.players()) {
+			if (player.getUseItem() == stack || player.getMainHandItem() == stack || player.getOffhandItem() == stack)
+				return player;
 		}
-
-		this.core = build(iRiftRenderer.createCore());
-	}
-
-	public static void renderRift(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-		float partialTick = Minecraft.getInstance().isPaused() ? 1.0F : Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
-		INSTANCE.preRender(new RenderInfo(stack, pearl, type, leftHandHackery), ms, buffer, light, overlay, partialTick);
-	}
-
-	public static ModelPart build(CubeListBuilder builder) {
-		return new ModelPart(builder.getCubes().stream().map((definition) -> definition.bake(SHELL_WIDTH, SHELL_HEIGHT)).collect(ImmutableList.toImmutableList()), new HashMap<>());
+		return null;
 	}
 
 	@Override
@@ -81,60 +96,56 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 	}
 
 	@Override
-	public long getSeed(RenderInfo stack) {
-		return stack.getPearl().getSeed(stack.getStack());
+	public long getSeed(RenderInfo info) {
+		return info.pearl().getSeed(info.stack());
 	}
 
 	@Override
-	public long getTime(RenderInfo renderInfo) {
-		Entity entity = renderInfo.getStack().getEntityRepresentation();
-		if (entity != null) {
-			return entity.level().getGameTime();
-		} else {
-			ClientLevel level = Minecraft.getInstance().level;
-			if (level != null) return level.getGameTime();
+	public long getTime(RenderInfo info) {
+		ClientLevel level = Minecraft.getInstance().level;
+		return level != null ? level.getGameTime() : -1L;
+	}
+
+	@Override
+	public long getPower(RenderInfo info) {
+		return RiftPearlItem.poweredTime(info.stack());
+	}
+
+	@Override
+	public float getCharge(RenderInfo info) {
+		Player holder = info.holder();
+		if (holder != null && holder.isUsingItem() && holder.getUseItem() == info.stack()) {
+			return RiftPearlItem.USE_DURATION - holder.getUseItemRemainingTicks();
 		}
-		return -1L;
+		return -1.0F;
 	}
 
 	@Override
-	public long getPower(RenderInfo renderInfo) {
-		return RiftPearlItem.poweredTime(renderInfo.getStack());
+	public float getCharge0(RenderInfo info) {
+		return this.getCharge(info) - 1;
 	}
 
 	@Override
-	public float getCharge(RenderInfo renderInfo) {
-		if (renderInfo.getStack().getEntityRepresentation() instanceof Player player && player.isUsingItem() && player.getUseItem().equals(renderInfo.getStack())) {
-			return RiftPearlItem.USE_DURATION - player.getUseItemRemainingTicks();
-		}
-		return -1L;
-	}
-
-	@Override
-	public float getCharge0(RenderInfo renderInfo) {
-		return this.getCharge(renderInfo) - 1;
-	}
-
-	@Override
-	public float calculateScale(RenderInfo renderInfo, float exactTime) {
-		if (renderInfo.getStack().getEntityRepresentation() instanceof Player player) {
-			int price = renderInfo.getPearl().getPrice(
+	public float calculateScale(RenderInfo info, float exactTime) {
+		Player player = info.holder();
+		if (player != null) {
+			int price = info.pearl().getPrice(
 					player.blockPosition(),
-					renderInfo.stack,
+					info.stack(),
 					RiftPearlItem.respawnPosition != null ? RiftPearlItem.respawnPosition : BlockPos.ZERO
 			);
 
 			if (price > -1) {
 				boolean open = player.experienceLevel >= price || player.getAbilities().instabuild;
 
-				if (!STACK_MAP.containsKey(renderInfo.getStack())) {
-					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level().getGameTime(), !open));
-				} else if (open == STACK_MAP.get(renderInfo.getStack()).getSecond()) {
-					STACK_MAP.put(renderInfo.getStack(), Pair.of(player.level().getGameTime(), !open));
+				if (!STACK_MAP.containsKey(info.stack())) {
+					STACK_MAP.put(info.stack(), Pair.of(player.level().getGameTime(), !open));
+				} else if (open == STACK_MAP.get(info.stack()).getSecond()) {
+					STACK_MAP.put(info.stack(), Pair.of(player.level().getGameTime(), !open));
 				}
 
 				float scale = 1.0F;
-				long powered = STACK_MAP.get(renderInfo.getStack()).getFirst();
+				long powered = STACK_MAP.get(info.stack()).getFirst();
 				float diff = exactTime - powered;
 
 				if (diff > 0) {
@@ -145,19 +156,16 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 				return scale;
 			}
 		}
-		return iRiftRenderer.super.calculateScale(renderInfo, exactTime);
+		return iRiftRenderer.super.calculateScale(info, exactTime);
 	}
 
 	@Override
-	public void render(RenderInfo renderInfo, PoseStack stack, MultiBufferSource buffer, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
+	public void render(RenderInfo info, PoseStack stack, SubmitNodeCollector collector, int light, int overlay, float exactTime, float scale, float antiScale, float close, float pearlSize, float portalSize, float shuffleScale, float useScale, float spinBonus) {
 		stack.pushPose();
-		if (renderInfo.isDynamic()) stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
-
-		ModelManager manager = Minecraft.getInstance().getItemRenderer().getItemModelShaper().getModelManager();
+		if (info.dynamic()) stack.translate(0.0D, Math.cos(exactTime * 0.125D) * -0.025F * scale, 0.0D);
 
 		stack.pushPose();
-		BakedModel riftFrame = manager.getModel(iRiftRenderer.FRAME_MODEL);
-		Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftFrame, renderInfo.getType(), renderInfo.isLeftHandHackery());
+		this.transform.apply(false, stack.last());
 		stack.scale(1.5F, 1.5F, 1.5F);
 
 		this.spin(stack,
@@ -166,10 +174,8 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 				Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * 0.625F)
 		);
 
-		VertexConsumer vertexBuilder = buffer.getBuffer(SHELL_TYPE);
-
 		Map<Vec3i, Quaternionf> pose = null;
-		if (shuffleScale >= 0.0F) pose = this.computePose(renderInfo, shuffleScale);
+		if (shuffleScale >= 0.0F) pose = this.computePose(info, shuffleScale);
 
 		int i = 0;
 		for (Map.Entry<Vec3i, ModelPart> entry : this.getShell().entrySet()) {
@@ -179,29 +185,21 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 
 			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.2D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
 
-			Vec3i vector3i = entry.getKey();
-			ModelPart modelRenderer = entry.getValue();
-			stack.translate(
-					vector3i.getX() * multiplier,
-					vector3i.getY() * multiplier,
-					vector3i.getZ() * multiplier
-			);
-			modelRenderer.render(stack, vertexBuilder, light, OverlayTexture.NO_OVERLAY);
+			Vec3i vector = entry.getKey();
+			stack.translate(vector.getX() * multiplier, vector.getY() * multiplier, vector.getZ() * multiplier);
+			collector.submitModelPart(entry.getValue(), stack, SHELL_TYPE, light, OverlayTexture.NO_OVERLAY, null);
 			stack.popPose();
 		}
 
 		stack.pushPose();
 		stack.scale(portalSize, portalSize, portalSize);
-		this.getCore().render(stack, buffer.getBuffer(RenderType.endPortal()), light, OverlayTexture.NO_OVERLAY);
+		collector.submitModelPart(this.getCore(), stack, RenderTypes.endPortal(), light, OverlayTexture.NO_OVERLAY, null);
 		stack.popPose();
 
 		stack.popPose();
 
 		stack.pushPose();
-		BakedModel riftSprite = manager.getModel(iRiftRenderer.PEARL_MODEL);
-		riftSprite = Services.CLIENT_HOOKS.handleCameraTransforms(stack, riftSprite, renderInfo.getType(), renderInfo.isLeftHandHackery());
-
-		if (renderInfo.isDynamic()) {
+		if (info.dynamic()) {
 			this.spin(stack,
 					Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.375F),
 					Mth.wrapDegrees((exactTime % 2880.0F + spinBonus) * -0.625F),
@@ -210,57 +208,49 @@ public class RiftItemRenderer implements iRiftRenderer<RiftItemRenderer.RenderIn
 		} else pearlSize *= 0.75F;
 
 		stack.scale(pearlSize, pearlSize, pearlSize);
-		stack.translate(-0.5D, -0.5D, -0.5D);
 
-		((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).invokeRenderModelLists(
-				riftSprite,
-				renderInfo.getStack(),
-				0xf000f0,
-				overlay,
-				stack,
-				ItemRenderer.getFoilBufferDirect(
-						buffer,
-						ItemBlockRenderTypes.getRenderType(renderInfo.getStack(), true),
-						true,
-						renderInfo.getStack().hasFoil()
-				)
-		);
+		Services.CLIENT_HOOKS.renderShields(stack, collector);
 		stack.popPose();
 		stack.popPose();
 	}
 
-	public static class RenderInfo {
-		private final ItemStack stack;
-		private final RiftPearlItem pearl;
-		private final ItemDisplayContext type;
-		private final boolean leftHandHackery;
-
-		private RenderInfo(ItemStack stack, RiftPearlItem pearl, ItemDisplayContext type, boolean leftHandHackery) {
-			this.stack = stack;
-			this.pearl = pearl;
-			this.type = type;
-			this.leftHandHackery = leftHandHackery;
-		}
-
-		public ItemStack getStack() {
-			return this.stack;
-		}
-
-		public RiftPearlItem getPearl() {
-			return this.pearl;
-		}
-
-		public ItemDisplayContext getType() {
-			return this.type;
-		}
-
-		public boolean isDynamic() {
-			return this.type != ItemDisplayContext.GUI && this.type != ItemDisplayContext.FIXED;
-		}
-
-		public boolean isLeftHandHackery() {
-			return this.leftHandHackery;
-		}
+	public record RenderInfo(ItemStack stack, RiftPearlItem pearl, boolean dynamic, ItemTransform transform,
+							 @Nullable Player holder,
+							 int outlineColor) {
 	}
 
+	public record Unbaked(ItemDisplayContext context, ItemTransform transform) implements SpecialModelRenderer.Unbaked<ItemStack> {
+		public static final Identifier ID = Constants.prefix("rift");
+
+		public static final MapCodec<Vector3fc> VECTOR_3_F_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				Codec.FLOAT.fieldOf("x").forGetter(Vector3fc::x),
+				Codec.FLOAT.fieldOf("y").forGetter(Vector3fc::y),
+				Codec.FLOAT.fieldOf("z").forGetter(Vector3fc::z)
+		).apply(instance, Vector3f::new));
+
+		public static final MapCodec<ItemTransform> ITEM_TRANSFORM_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				VECTOR_3_F_CODEC.fieldOf("rotation").forGetter(ItemTransform::rotation),
+				VECTOR_3_F_CODEC.fieldOf("translation").forGetter(ItemTransform::translation),
+				VECTOR_3_F_CODEC.fieldOf("scale").forGetter(ItemTransform::scale)
+		).apply(instance, ItemTransform::new));
+
+		public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				ItemDisplayContext.CODEC.fieldOf("context").forGetter(Unbaked::context),
+				ITEM_TRANSFORM_CODEC.fieldOf("transform").forGetter(Unbaked::transform)
+		).apply(instance, Unbaked::new));
+
+		@Override
+		public MapCodec<Unbaked> type() {
+			return MAP_CODEC;
+		}
+
+		@Override
+		public SpecialModelRenderer<ItemStack> bake(SpecialModelRenderer.BakingContext context) {
+			return new RiftItemRenderer(
+					context.entityModelSet().bakeLayer(BOSS_RIFT_MODEL),
+					this.context != ItemDisplayContext.GUI && this.context != ItemDisplayContext.FIXED,
+					this.transform
+			);
+		}
+	}
 }

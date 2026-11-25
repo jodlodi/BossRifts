@@ -9,6 +9,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.NullMarked;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,6 +24,10 @@ public abstract class PlayerListMixin {
 	private void onPlaceNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
 		Services.NETWORK.sendToClient(player, new ClientBoundConfigPacket(FabricConfigHelper.getHelper().saveToTag()));
 		Services.NETWORK.sendToClient(player, new ClearRiftCachePacket());
-		Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(player.getRespawnPosition(), player.getRespawnDimension()));
+		ServerPlayer.RespawnConfig config = player.getRespawnConfig();
+		Services.NETWORK.sendToClient(player, new SendRespawnDataPacket(
+				config != null ? config.respawnData().pos() : null,
+				config != null ? config.respawnData().dimension() : Level.OVERWORLD
+		));
 	}
 }

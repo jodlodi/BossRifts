@@ -7,34 +7,35 @@ import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.LodestoneTracker;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @NullMarked
 public class RiftPearlItem extends Item implements iRift<ItemStack> {
@@ -71,8 +72,8 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	@Override
-	public String getDescriptionId(ItemStack stack) {
-		return isAggregatorPearl(stack) ? super.getDescriptionId(stack) + ".aggregator" : super.getDescriptionId(stack);
+	public Component getName(ItemStack stack) {
+		return isAggregatorPearl(stack) ? Component.translatable("item.bossrifts.rift_pearl.aggregator") : super.getName(stack);
 	}
 
 	@Override
@@ -94,9 +95,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				price = this.getPrice(
 						player.blockPosition(),
 						stack,
-						player instanceof ServerPlayer serverPlayer
-								? serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
-								: respawnPosition != null ? respawnPosition : BlockPos.ZERO
+						getPlayerRespawnPos(player)
 				);
 
 				if (price <= -1 || (player.experienceLevel < price && !player.getAbilities().instabuild)) {
@@ -117,12 +116,13 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			Direction face = context.getClickedFace();
 			BlockPos relative = pos.relative(face, 2);
-			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative)) relative = pos.relative(face, 1);
+			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative))
+				relative = pos.relative(face, 1);
 			if (level.getBlockState(relative).isCollisionShapeFullBlock(level, relative)) return InteractionResult.FAIL;
 
-			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level);
+			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level, EntitySpawnReason.TRIGGERED);
 			if (rift != null) {
-				rift.moveTo(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D);
+				rift.move(MoverType.SELF, new Vec3(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D));
 				rift.setItem(context.getItemInHand());
 				if (player instanceof ServerPlayer serverPlayer) rift.startRevving(serverPlayer);
 
@@ -149,30 +149,28 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				if (!player.addItem(newStack)) player.drop(newStack, false);
 			}
 
-			return InteractionResult.sidedSuccess(level.isClientSide);
+			return InteractionResult.SUCCESS;
 		} else {
 			return super.useOn(context);
 		}
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-		ItemStack stack = player.getItemInHand(hand);
-		if (Services.CONFIG.isV1()) return InteractionResultHolder.pass(stack);
+	public InteractionResult use(Level level, Player player, InteractionHand hand) {
+		if (Services.CONFIG.isV1()) return InteractionResult.PASS;
 
+		ItemStack stack = player.getItemInHand(hand);
 		int price = this.getPrice(
 				player.blockPosition(),
 				stack,
-				player instanceof ServerPlayer serverPlayer
-						? serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
-						: respawnPosition != null ? respawnPosition : BlockPos.ZERO
+				getPlayerRespawnPos(player)
 		);
 
 		if (price > -1) {
 			if (player.experienceLevel >= price || player.getAbilities().instabuild) {
 				player.startUsingItem(hand);
-				return InteractionResultHolder.consume(stack);
-			} else return InteractionResultHolder.fail(stack);
+				return InteractionResult.CONSUME;
+			} else return InteractionResult.FAIL;
 		}
 
 		long powered = poweredTime(stack);
@@ -182,15 +180,15 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			if (diff <= Services.CONFIG.empowerDuration()) {
 				if (diff >= TRANSITION_TIME) {
 					player.startUsingItem(hand);
-					return InteractionResultHolder.consume(stack);
-				} else return InteractionResultHolder.pass(stack);
+					return InteractionResult.CONSUME;
+				} else return InteractionResult.PASS;
 			} else {
 				diff -= Services.CONFIG.empowerDuration();
-				if (diff <= TRANSITION_TIME) return InteractionResultHolder.pass(stack);
+				if (diff <= TRANSITION_TIME) return InteractionResult.PASS;
 			}
 		}
 
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override
@@ -210,22 +208,23 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 		if (AnimUtil.justFinished(ticksUsed, USE_DURATION - SHUFFLE_OFFSET - 2)) {
 			level.playLocalSound(pos.x, pos.y, pos.z,
-					ModSounds.RIFT_CLOSE.get(), SoundSource.PLAYERS, 1.0F, level.random.nextFloat() * 0.5F + 0.8F, false);
+					ModSounds.RIFT_CLOSE.get(), SoundSource.PLAYERS, 1.0F, level.getRandom().nextFloat() * 0.5F + 0.8F, false);
 		}
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> list, TooltipFlag tooltipFlag) {
-		if (!isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_UNLINKED));
+	@SuppressWarnings("deprecation")
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag tooltipFlag) {
+		if (!isAggregatorPearl(stack)) builder.accept(Component.translatable(TOOLTIP_UNLINKED));
 		if (Services.CONFIG.isV1()) {
-			if (isAggregatorPearl(stack)) list.add(Component.translatable(TOOLTIP_V1_LINKED));
+			if (isAggregatorPearl(stack)) builder.accept(Component.translatable(TOOLTIP_V1_LINKED));
 		} else {
 			double cost = Services.CONFIG.getExpCost();
 			if (Mth.equal(cost, 0.0F)) {
-				list.add(Component.translatable(TOOLTIP_MODERN_1));
-				list.add(Component.translatable(TOOLTIP_MODERN_2));
+				builder.accept(Component.translatable(TOOLTIP_MODERN_1));
+				builder.accept(Component.translatable(TOOLTIP_MODERN_2));
 				return;
-			} else if (cost >= 0.0F && stack.getEntityRepresentation() instanceof Player player) {
+			} else if (cost >= 0.0F && getEntityRepresentation(stack) instanceof Player player) {
 				int price = this.getPrice(
 						player.blockPosition(),
 						stack,
@@ -234,25 +233,30 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 				if (price > -1) {
 					if (player.experienceLevel >= price || player.getAbilities().instabuild) {
-						list.add(Component.translatable(TOOLTIP_MODERN_1));
-						list.add(Component.translatable(TOOLTIP_MODERN_2));
+						builder.accept(Component.translatable(TOOLTIP_MODERN_1));
+						builder.accept(Component.translatable(TOOLTIP_MODERN_2));
 					}
-					list.add(Component.translatable(BossRiftEntity.COST, Component.literal(String.valueOf(price)).withStyle(ChatFormatting.GREEN)));
+					builder.accept(Component.translatable(BossRiftEntity.COST, Component.literal(String.valueOf(price)).withStyle(ChatFormatting.GREEN)));
 					return;
 				}
 			}
 
 			long powered = poweredTime(stack);
 
-			Entity entity = stack.getEntityRepresentation();
+			Entity entity = getEntityRepresentation(stack);
 			if (powered >= 0 && entity != null) {
 				long diff = entity.level().getGameTime() - powered;
 				if (diff <= Services.CONFIG.empowerDuration() && diff >= TRANSITION_TIME) {
-					list.add(Component.translatable(TOOLTIP_MODERN_1));
-					list.add(Component.translatable(TOOLTIP_MODERN_2));
+					builder.accept(Component.translatable(TOOLTIP_MODERN_1));
+					builder.accept(Component.translatable(TOOLTIP_MODERN_2));
 				}
 			}
 		}
+	}
+
+	@Nullable
+	public static Entity getEntityRepresentation(ItemStack stack) {
+		return Minecraft.getInstance().player;
 	}
 
 	@Override
@@ -261,9 +265,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 			int price = this.getPrice(
 					player.blockPosition(),
 					stack,
-					player instanceof ServerPlayer serverPlayer
-							? serverPlayer.getRespawnPosition() != null ? serverPlayer.getRespawnPosition() : BlockPos.ZERO
-							: respawnPosition != null ? respawnPosition : BlockPos.ZERO
+					getPlayerRespawnPos(player)
 			);
 
 			if (price > -1) {
@@ -275,12 +277,12 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 		if (living instanceof ServerPlayer player) {
 			Vec3 pos = living.getEyePosition(1.0F);
-			level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundSource.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
-			this.sendToSpawn(stack, player.server, player, player);
+			level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundSource.PLAYERS, 1F, level.getRandom().nextFloat() * 0.4F + 0.5F);
+			this.sendToSpawn(stack, player.level().getServer(), player, player);
 		}
 
 		Vec3 pos = living.getEyePosition(1.0F);
-		level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundSource.PLAYERS, 1F, level.random.nextFloat() * 0.4F + 0.5F);
+		level.playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_WARP.get(), SoundSource.PLAYERS, 1F, level.getRandom().nextFloat() * 0.4F + 0.5F);
 		return stack;
 	}
 
@@ -290,22 +292,27 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 	}
 
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack) {
-		return UseAnim.BLOCK;
+	public ItemUseAnimation getUseAnimation(ItemStack stack) {
+		return ItemUseAnimation.BLOCK;
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean held) {
-		stack.setEntityRepresentation(entity);
+	public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
 		long powered = RiftPearlItem.poweredTime(stack);
 		if (powered >= 0L) {
 			long time = level.getGameTime();
 			int soundPoint = TRANSITION_TIME / 2;
 			if (time - powered == soundPoint) {
 				Vec3 pos = entity.getEyePosition(1.0F);
-				entity.level().playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_OPEN.get(), SoundSource.PLAYERS, 0.75F, level.random.nextFloat() * 0.4F + 0.4F);
+				entity.level().playSound(null, pos.x, pos.y, pos.z, ModSounds.RIFT_OPEN.get(), SoundSource.PLAYERS, 0.75F, level.getRandom().nextFloat() * 0.4F + 0.4F);
 			}
 		}
+	}
+
+	protected BlockPos getPlayerRespawnPos(Player player) {
+		return player instanceof ServerPlayer serverPlayer
+				? serverPlayer.getRespawnConfig() != null ? serverPlayer.getRespawnConfig().respawnData().pos() : BlockPos.ZERO
+				: respawnPosition != null ? respawnPosition : BlockPos.ZERO;
 	}
 
 	@Override

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "bossrifts:block/rift_aggregator"
+  }
+}

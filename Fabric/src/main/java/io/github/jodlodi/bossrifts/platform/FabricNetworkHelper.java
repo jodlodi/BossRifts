@@ -20,9 +20,9 @@ public class FabricNetworkHelper implements INetworkHelper {
 	}
 
 	public static void init() {
-		PayloadTypeRegistry.playS2C().register(SendRespawnDataPacket.TYPE, SendRespawnDataPacket.STREAM_CODEC);
-		PayloadTypeRegistry.playS2C().register(ClearRiftCachePacket.TYPE, ClearRiftCachePacket.STREAM_CODEC);
-		PayloadTypeRegistry.playS2C().register(ClientBoundConfigPacket.TYPE, ClientBoundConfigPacket.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(SendRespawnDataPacket.TYPE, SendRespawnDataPacket.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ClearRiftCachePacket.TYPE, ClearRiftCachePacket.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ClientBoundConfigPacket.TYPE, ClientBoundConfigPacket.STREAM_CODEC);
 	}
 
 	public static class ModPacketHandler {

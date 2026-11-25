@@ -1,76 +1,93 @@
 package io.github.jodlodi.bossrifts;
 
+import io.github.jodlodi.bossrifts.client.V2ModelProperty;
+import io.github.jodlodi.bossrifts.client.rift.RiftItemRenderer;
+import io.github.jodlodi.bossrifts.client.rift.iRiftRenderer;
 import io.github.jodlodi.bossrifts.entities.BossRiftEntity;
 import io.github.jodlodi.bossrifts.items.RiftAggregatorItem;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
+import io.github.jodlodi.bossrifts.platform.NeoForgeRegistryHelper;
 import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ItemModelOutput;
+import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
+import net.minecraft.client.data.models.model.*;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.SelectItemModel;
+import net.minecraft.client.renderer.item.properties.select.DisplayContext;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.tags.EntityTypeTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplate;
+import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.common.data.SoundDefinition;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import org.joml.Vector3f;
 import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @NullMarked
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class ModData {
 
 	@SubscribeEvent
-	public static void gatherData(GatherDataEvent event) {
+	public static void gatherData(GatherDataEvent.Client event) {
 		DataGenerator generator = event.getGenerator();
 		PackOutput output = generator.getPackOutput();
-		ExistingFileHelper helper = event.getExistingFileHelper();
 		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-		generator.addProvider(true, new ModBlockStates(output, helper));
-		generator.addProvider(true, new ModItemModels(output, helper));
-		generator.addProvider(true, new ModCrafting(output, lookupProvider));
-		generator.addProvider(true, new ModSoundDefinitions(output, helper));
-		generator.addProvider(true, new ModEntityTags(output, lookupProvider, helper));
+		generator.addProvider(true, new ModModelGen(output));
+		generator.addProvider(true, new ModCrafting.ModRecipeRunner(output, lookupProvider));
+		generator.addProvider(true, new ModSoundDefinitions(output));
+		generator.addProvider(true, new ModEntityTags(output, lookupProvider));
 		generator.addProvider(true, new ModLang(output));
 	}
 
-	private static class ModCrafting extends RecipeProvider {
+	private static class ModCrafting extends VanillaRecipeProvider {
 
-
-		public ModCrafting(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-			super(output, registries);
+		public ModCrafting(HolderLookup.Provider registries, RecipeOutput output) {
+			super(registries, output);
 		}
 
 		@Override
-		protected void buildRecipes(RecipeOutput output) {
-			ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.RIFT_PEARL.get(), 1)
+		protected void buildRecipes() {
+			this.shaped(RecipeCategory.MISC, ModItems.RIFT_PEARL.get(), 1)
 					.pattern("#X#")
 					.pattern("X0X")
 					.pattern("#X#")
@@ -80,7 +97,7 @@ public class ModData {
 					.unlockedBy("has_item", has(Items.ENDER_EYE))
 					.save(output);
 
-			ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.RIFT_AGGREGATOR.get(), 1)
+			this.shaped(RecipeCategory.MISC, ModItems.RIFT_AGGREGATOR.get(), 1)
 					.pattern("#X#")
 					.pattern("#0#")
 					.pattern("#H#")
@@ -91,109 +108,209 @@ public class ModData {
 					.unlockedBy("has_item", has(ModItems.RIFT_PEARL.get()))
 					.save(output);
 		}
-	}
 
-	private static class ModBlockStates extends BlockStateProvider {
-		public ModBlockStates(PackOutput output, ExistingFileHelper exFileHelper) {
-			super(output, Constants.MOD_ID, exFileHelper);
-		}
+		private static class ModRecipeRunner extends RecipeProvider.Runner {
 
-		@Override
-		protected void registerStatesAndModels() {
-			this.simpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), this.models().withExistingParent(ModBlocks.RIFT_AGGREGATOR.id().getPath(), "block/block")
-					.texture("top", Constants.prefix("block/rift_aggregator_top_off"))
-					.texture("inner", Constants.prefix("block/rift_aggregator_top"))
-					.texture("bottom", Constants.prefix("block/rift_aggregator_bottom"))
-					.texture("side", Constants.prefix("block/rift_aggregator_side0"))
-					.texture("particle", Constants.prefix("block/rift_aggregator_side0"))
-					.renderType(ResourceLocation.withDefaultNamespace("cutout"))
-
-					.element()
-					.from(0.0F, 0.0F, 0.0F)
-					.to(16.0F, 14.0F, 16.0F)
-					.face(Direction.UP).texture("#inner").end()
-					.face(Direction.DOWN).texture("#bottom").end()
-					.face(Direction.NORTH).texture("#side").end()
-					.face(Direction.EAST).texture("#side").end()
-					.face(Direction.SOUTH).texture("#side").end()
-					.face(Direction.WEST).texture("#side").end()
-					.end()
-
-					.element()
-					.from(0.0F, 14.0F, 0.0F)
-					.to(16.0F, 16.0F, 2.0F)
-					.face(Direction.UP).texture("#top").end()
-					.face(Direction.NORTH).texture("#side").end()
-					.face(Direction.EAST).texture("#side").end()
-					.face(Direction.SOUTH).texture("#side").end()
-					.face(Direction.WEST).texture("#side").end()
-					.end()
-
-					.element()
-					.from(0.0F, 14.0F, 14.0F)
-					.to(16.0F, 16.0F, 16.0F)
-					.face(Direction.UP).texture("#top").end()
-					.face(Direction.NORTH).texture("#side").end()
-					.face(Direction.EAST).texture("#side").end()
-					.face(Direction.SOUTH).texture("#side").end()
-					.face(Direction.WEST).texture("#side").end()
-					.end()
-
-					.element()
-					.from(0.0F, 14.0F, 2.0F)
-					.to(2.0F, 16.0F, 14.0F)
-					.face(Direction.UP).texture("#top").end()
-					.face(Direction.NORTH).texture("#side").end()
-					.face(Direction.EAST).texture("#side").end()
-					.face(Direction.SOUTH).texture("#side").end()
-					.face(Direction.WEST).texture("#side").end()
-					.end()
-
-					.element()
-					.from(14.0F, 14.0F, 2.0F)
-					.to(16.0F, 16.0F, 14.0F)
-					.face(Direction.UP).texture("#top").end()
-					.face(Direction.NORTH).texture("#side").end()
-					.face(Direction.EAST).texture("#side").end()
-					.face(Direction.SOUTH).texture("#side").end()
-					.face(Direction.WEST).texture("#side").end()
-					.end()
-
-					.element()
-					.from(2.0F, 16.0F, 2.0F)
-					.to(14.0F, 16.0F, 14.0F)
-					.face(Direction.UP).texture("#top").end()
-					.end()
-			);
-		}
-	}
-
-	private static class ModItemModels extends ItemModelProvider {
-
-		public ModItemModels(PackOutput output, ExistingFileHelper existingFileHelper) {
-			super(output, Constants.MOD_ID, existingFileHelper);
-		}
-
-		@Override
-		protected void registerModels() {
-			this.singleTex(ModItems.RIFT_PEARL);
-			this.toBlock(ModBlocks.RIFT_AGGREGATOR);
-		}
-
-		private ItemModelBuilder generated(String name, ResourceLocation... layers) {
-			ItemModelBuilder builder = withExistingParent(name, "item/generated");
-			for (int i = 0; i < layers.length; i++) {
-				builder = builder.texture("layer" + i, layers[i]);
+			protected ModRecipeRunner(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+				super(packOutput, registries);
 			}
-			return builder;
+
+			@Override
+			protected RecipeProvider createRecipeProvider(HolderLookup.Provider provider, RecipeOutput recipeOutput) {
+				return new ModCrafting(provider, recipeOutput);
+			}
+
+			@Override
+			public String getName() {
+				return Constants.MOD_NAME + " recipes";
+			}
+		}
+	}
+
+	private static class ModModelGen extends ModelProvider {
+		private final PackOutput.PathProvider blocks;
+		private final PackOutput.PathProvider items;
+		private final PackOutput.PathProvider models;
+
+		public ModModelGen(PackOutput output) {
+			super(output, Constants.MOD_ID);
+			this.blocks = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "blockstates");
+			this.items = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "items");
+			this.models = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "models");
 		}
 
-		private <T extends Item> ItemModelBuilder singleTex(MultiSupplier<T> item) {
-			return generated(item.id().getPath(), Constants.prefix("item/" + item.id().getPath()));
+		@Override
+		public CompletableFuture<?> run(CachedOutput output) {
+			ItemInfoCollector itemModelOutput = new ItemInfoCollector(this::getKnownItems);
+			BlockStateGeneratorCollector blockModelOutput = new BlockStateGeneratorCollector(this::getKnownBlocks);
+			SimpleModelCollector modelOutput = new SimpleModelCollector();
+			this.registerModels(new ModBlockStates(blockModelOutput, itemModelOutput, modelOutput), new ModItemModels(itemModelOutput, modelOutput));
+			blockModelOutput.validate();
+			itemModelOutput.finalizeAndValidate();
+			return CompletableFuture.allOf(blockModelOutput.save(output, this.blocks), modelOutput.save(output, this.models), itemModelOutput.save(output, this.items));
 		}
 
-		private <T extends Block> void toBlock(MultiSupplier<T> block) {
-			withExistingParent(block.id().getPath(), block.id().withPrefix("block/"));
+		@Override
+		protected Stream<? extends Holder<Block>> getKnownBlocks() {
+			return NeoForgeRegistryHelper.BLOCKS.getEntries().stream();
+		}
+
+		@Override
+		protected Stream<? extends Holder<Item>> getKnownItems() {
+			return NeoForgeRegistryHelper.ITEMS.getEntries().stream();
+		}
+
+		private static class ModBlockStates extends BlockModelGenerators {
+			public static final ExtendedModelTemplate RIFT_AGGREGATOR = ExtendedModelTemplateBuilder.builder()
+					.parent(Identifier.withDefaultNamespace("block/block"))
+					.requiredTextureSlot(TextureSlot.PARTICLE)
+					.requiredTextureSlot(TextureSlot.SIDE)
+					.requiredTextureSlot(TextureSlot.BOTTOM)
+					.requiredTextureSlot(TextureSlot.TOP)
+					.requiredTextureSlot(TextureSlot.INSIDE)
+					.element(elementBuilder -> elementBuilder
+							.from(0.0F, 0.0F, 0.0F).to(16.0F, 14.0F, 16.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.INSIDE))
+							.face(Direction.DOWN, faceBuilder -> faceBuilder.texture(TextureSlot.BOTTOM).cullface(Direction.DOWN))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+					).element(elementBuilder -> elementBuilder
+							.from(0.0F, 14.0F, 0.0F).to(16.0F, 16.0F, 2.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+					).element(elementBuilder -> elementBuilder
+							.from(0.0F, 14.0F, 14.0F).to(16.0F, 16.0F, 16.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+					).element(elementBuilder -> elementBuilder
+							.from(0.0F, 14.0F, 2.0F).to(2.0F, 16.0F, 14.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+					).element(elementBuilder -> elementBuilder
+							.from(14.0F, 14.0F, 2.0F).to(16.0F, 16.0F, 14.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
+							.face(Direction.NORTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.NORTH))
+							.face(Direction.SOUTH, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.SOUTH))
+							.face(Direction.WEST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.WEST))
+							.face(Direction.EAST, faceBuilder -> faceBuilder.texture(TextureSlot.SIDE).cullface(Direction.EAST))
+					).element(elementBuilder -> elementBuilder
+							.from(2.0F, 16.0F, 2.0F).to(14.0F, 16.0F, 14.0F)
+							.face(Direction.UP, faceBuilder -> faceBuilder.texture(TextureSlot.TOP).cullface(Direction.UP))
+					).build();
+
+			public ModBlockStates(Consumer<BlockModelDefinitionGenerator> blockStateOutput, ItemModelOutput itemModelOutput, BiConsumer<Identifier, ModelInstance> modelOutput) {
+				super(blockStateOutput, itemModelOutput, modelOutput);
+			}
+
+			@Override
+			public void run() {
+				TextureMapping mapping = TextureMapping.cube(ModBlocks.RIFT_AGGREGATOR.get())
+						.put(TextureSlot.PARTICLE, new Material(Constants.prefix("block/rift_aggregator_side0")))
+						.put(TextureSlot.SIDE, new Material(Constants.prefix("block/rift_aggregator_side0")))
+						.put(TextureSlot.BOTTOM, new Material(Constants.prefix("block/rift_aggregator_bottom")))
+						.put(TextureSlot.TOP, new Material(Constants.prefix("block/rift_aggregator_top_off")))
+						.put(TextureSlot.INSIDE, new Material(Constants.prefix("block/rift_aggregator_top")));
+
+				Identifier aggregator = RIFT_AGGREGATOR.create(Constants.prefix("block/" + ModBlocks.RIFT_AGGREGATOR.id().getPath()), mapping, this.modelOutput);
+				this.itemModelOutput.accept(ModItems.RIFT_AGGREGATOR.get(), ItemModelUtils.plainModel(aggregator));
+				this.blockStateOutput.accept(createSimpleBlock(ModBlocks.RIFT_AGGREGATOR.get(), variant(plainModel(aggregator))));
+			}
+		}
+
+		private static class ModItemModels extends ItemModelGenerators {
+
+			public ModItemModels(ItemModelOutput output, BiConsumer<Identifier, ModelInstance> modelOutput) {
+				super(output, modelOutput);
+			}
+
+			@Override
+			public void run() {
+				this.itemModelOutput.accept(ModItems.RIFT_PEARL.get(), ItemModelUtils.select(
+						new V2ModelProperty(),
+						ItemModelUtils.plainModel(ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(ModItems.RIFT_PEARL.get()).withSuffix("_flat"), TextureMapping.layer0(ModItems.RIFT_PEARL.get()), this.modelOutput)),
+						ItemModelUtils.when(
+								true,
+								ItemModelUtils.select(
+										new DisplayContext(),
+										this.pearlModel(ItemDisplayContext.NONE, ItemTransform.NO_TRANSFORM),
+										List.of(
+												this.pearlWhen(
+														ItemDisplayContext.GUI,
+														new ItemTransform(
+																new Vector3f(30.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.625F, 0.625F, 0.625F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.GROUND,
+														new ItemTransform(
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.0F, 3.0F, 0.0F),
+																new Vector3f(0.25F, 0.25F, 0.25F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.FIXED,
+														new ItemTransform(
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.0F, 0.0F, 0.0F),
+																new Vector3f(0.75F, 0.75F, 0.75F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+														new ItemTransform(
+																new Vector3f(75.0F, 45.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.375F, 0.375F, 0.375F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
+														new ItemTransform(
+																new Vector3f(0.0F, 45.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.40F, 0.40F, 0.40F)
+														)
+												),
+												this.pearlWhen(
+														ItemDisplayContext.FIRST_PERSON_LEFT_HAND,
+														new ItemTransform(
+																new Vector3f(0.0F, 225.0F, 0.0F),
+																new Vector3f(0.0F, 2.5F, 0.0F),
+																new Vector3f(0.40F, 0.40F, 0.40F)
+														)
+												)
+										)
+								)
+						)
+				));
+
+				ModelTemplates.FLAT_ITEM.create(iRiftRenderer.PEARL_ITEM_MODEL, TextureMapping.layer0(new Material(iRiftRenderer.PEARL_ITEM_MODEL)), this.modelOutput);
+			}
+
+			private SelectItemModel.SwitchCase<ItemDisplayContext> pearlWhen(ItemDisplayContext context, ItemTransform transform) {
+				return ItemModelUtils.when(context, this.pearlModel(context, transform));
+			}
+
+			private ItemModel.Unbaked pearlModel(ItemDisplayContext context, ItemTransform transform) {
+				return ItemModelUtils.specialModel(
+						ModelLocationUtils.getModelLocation(ModItems.RIFT_PEARL.get()).withSuffix("_" + context.getSerializedName()),
+						new RiftItemRenderer.Unbaked(context, transform)
+				);
+			}
 		}
 	}
 
@@ -225,77 +342,77 @@ public class ModData {
 
 	private static class ModEntityTags extends EntityTypeTagsProvider {
 
-		public ModEntityTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
-			super(output, lookupProvider, Constants.MOD_ID, existingFileHelper);
+		public ModEntityTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+			super(output, lookupProvider, Constants.MOD_ID);
 		}
 
 		@Override
 		protected void addTags(HolderLookup.Provider provider) {
-			this.tag(ModTags.RIFT_BOSSES)
-					.add(EntityType.WITHER)
-					.add(EntityType.ENDER_DRAGON)
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "lich"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "yeti"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "snow_queen"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "minoshroom"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "hydra"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "knight_phantom"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", "ur_ghast"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("atum", "pharaoh"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "barako"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "ferrous_wroughtnaut"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("mowziesmobs", "frostmaw"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "baroness"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "clunkhead"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "craexxeus"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "crystocore"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "creep"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "dracyon"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "elusive"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "graw"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "hive_king"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "kror"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "mechbot"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "okazor"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "shadowlord"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "skeletron"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "vinocorne"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "voxxulon"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "flash"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "red_guardian"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "green_guardian"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "blue_guardian"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("aoa3", "yellow_guardian"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("gaiadimension", "malachite_guard"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "alchemist"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "arachnarch"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "starlit_crusher"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("blue_skies", "summoner"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "awful_ghast"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "nether_keeper"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("stalwart_dungeons", "shelterer_without_armor"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "king"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "deserted"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "crawler"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "ironslime"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "kraken"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("dungeonsmod", "voidmaster"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "beequeen"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("forestcraft", "iguana_king"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_golem"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ender_guardian"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignis"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
-					.addOptional(ResourceLocation.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"))
+			this.getOrCreateRawBuilder(ModTags.RIFT_BOSSES)
+					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.WITHER))
+					.addElement(BuiltInRegistries.ENTITY_TYPE.getKey(EntityType.ENDER_DRAGON))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "lich"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "yeti"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "snow_queen"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "minoshroom"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "hydra"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "knight_phantom"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("twilightforest", "ur_ghast"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("atum", "pharaoh"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("mowziesmobs", "barako"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("mowziesmobs", "ferrous_wroughtnaut"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("mowziesmobs", "frostmaw"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "baroness"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "clunkhead"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "craexxeus"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "crystocore"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "creep"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "dracyon"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "elusive"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "graw"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "hive_king"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "kror"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "mechbot"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "okazor"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "shadowlord"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "skeletron"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "vinocorne"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "voxxulon"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "flash"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "red_guardian"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "green_guardian"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "blue_guardian"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("aoa3", "yellow_guardian"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("gaiadimension", "malachite_guard"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("blue_skies", "alchemist"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("blue_skies", "arachnarch"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("blue_skies", "starlit_crusher"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("blue_skies", "summoner"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("stalwart_dungeons", "awful_ghast"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("stalwart_dungeons", "nether_keeper"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("stalwart_dungeons", "shelterer_without_armor"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "king"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "deserted"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "crawler"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "ironslime"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "kraken"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("dungeonsmod", "voidmaster"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("forestcraft", "beequeen"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("forestcraft", "iguana_king"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("cataclysm", "ender_golem"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("cataclysm", "ender_guardian"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("cataclysm", "ignis"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("cataclysm", "ignited_revenant"))
+					.addOptionalElement(Identifier.fromNamespaceAndPath("cataclysm", "netherite_monstrosity"))
 					.addOptionalTag(Tags.EntityTypes.BOSSES.location());
 		}
 	}
 
 	private static class ModSoundDefinitions extends SoundDefinitionsProvider {
 
-		protected ModSoundDefinitions(PackOutput output, ExistingFileHelper helper) {
-			super(output, Constants.MOD_ID, helper);
+		protected ModSoundDefinitions(PackOutput output) {
+			super(output, Constants.MOD_ID);
 		}
 
 		@Override
@@ -341,20 +458,20 @@ public class ModData {
 			this.generateWithExistingSound(ModSounds.RIFT_AGGREGATOR_SET_SPAWN, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, "Rift Aggregator sets spawn");
 		}
 
-		public void generateWithExistingSound(Supplier<SoundEvent> event, SoundEvent referencedSound, String subtitle) {
+		public void generateWithExistingSound(MultiSupplier<SoundEvent> event, SoundEvent referencedSound, String subtitle) {
 			SoundDefinition definition = SoundDefinition.definition()
-					.with(SoundDefinition.Sound.sound(referencedSound.getLocation(), SoundDefinition.SoundType.EVENT));
+					.with(SoundDefinition.Sound.sound(referencedSound.location(), SoundDefinition.SoundType.EVENT));
 
 			this.createSubtitleAndLangEntry(event, definition, subtitle);
-			this.add(event, definition);
+			this.add(event.get(), definition);
 		}
 
-		public void generateNewSoundMC(Supplier<SoundEvent> event, String subtitle, float volume, float pitch, String... baseSoundDirectory) {
+		public void generateNewSoundMC(MultiSupplier<SoundEvent> event, String subtitle, float volume, float pitch, String... baseSoundDirectory) {
 			SoundDefinition definition = SoundDefinition.definition();
 			for (String string : baseSoundDirectory) {
 				definition.with(
 						SoundDefinition.Sound
-								.sound(ResourceLocation.withDefaultNamespace(string), SoundDefinition.SoundType.SOUND)
+								.sound(Identifier.withDefaultNamespace(string), SoundDefinition.SoundType.SOUND)
 								.volume(volume)
 								.pitch(pitch)
 				);
@@ -363,8 +480,8 @@ public class ModData {
 			this.add(event.get(), definition);
 		}
 
-		private void createSubtitleAndLangEntry(Supplier<SoundEvent> event, SoundDefinition definition, String subtitle) {
-			String[] splitSoundName = Objects.requireNonNull(event.get().getLocation()).getPath().split("\\.", 2);
+		private void createSubtitleAndLangEntry(MultiSupplier<SoundEvent> event, SoundDefinition definition, String subtitle) {
+			String[] splitSoundName = Objects.requireNonNull(event.id()).getPath().split("\\.", 2);
 			String subtitleKey = "subtitles." + Constants.MOD_ID + "." + splitSoundName[0] + "." + splitSoundName[1];
 			definition.subtitle(subtitleKey);
 			ModLang.AUTO_GENERATOR.put(subtitleKey, subtitle);

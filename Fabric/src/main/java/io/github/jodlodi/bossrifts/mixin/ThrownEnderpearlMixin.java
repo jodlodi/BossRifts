@@ -6,8 +6,8 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.NullMarked;
@@ -29,11 +29,11 @@ public abstract class ThrownEnderpearlMixin extends ThrowableItemProjectile {
 		if (entityHitResult.getEntity() instanceof BossRiftEntity rift && rift.level() instanceof ServerLevel serverLevel && this.getOwner() instanceof ServerPlayer player) {
 			ci.cancel();
 			player.fallDistance = 0.0F;
-			player.hurt(player.damageSources().fall(), 5.0F);
+			player.hurtServer(serverLevel, player.damageSources().fall(), 5.0F);
 
 			MinecraftServer server = serverLevel.getServer();
-			server.tell(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, player, player)));
-			server.tell(new TickTask(server.getTickCount(), () -> rift.validateSpawn(player, false)));
+			server.schedule(new TickTask(server.getTickCount(), () -> rift.sendToSpawn(rift, server, player, player)));
+			server.schedule(new TickTask(server.getTickCount(), () -> rift.validateSpawn(player, false)));
 		}
 	}
 }

@@ -11,15 +11,17 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class RiftAggregatorRenderer implements BlockEntityRenderer<RiftAggregatorBlockEntity> {
+public class RiftAggregatorRenderer implements BlockEntityRenderer<RiftAggregatorBlockEntity, BlockEntityRenderState> {
 	public static ModelLayerLocation AGGREGATOR_RIFT_MODEL = new ModelLayerLocation(Constants.prefix("aggregator_rift"), "main");
 	private final ModelPart core;
 
@@ -39,7 +41,12 @@ public class RiftAggregatorRenderer implements BlockEntityRenderer<RiftAggregato
 	}
 
 	@Override
-	public void render(RiftAggregatorBlockEntity entity, float partialTick, PoseStack stack, MultiBufferSource buffer, int light, int overlay) {
-		this.core.render(stack, buffer.getBuffer(RenderType.endPortal()), light, OverlayTexture.NO_OVERLAY);
+	public BlockEntityRenderState createRenderState() {
+		return new BlockEntityRenderState();
+	}
+
+	@Override
+	public void submit(BlockEntityRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
+		collector.submitModelPart(this.core, stack, RenderTypes.endPortal(), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
 	}
 }
