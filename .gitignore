@@ -21,3 +21,6 @@ build
 # other
 eclipse
 run
+/fabric/runs
+/neoforge
+/run-data

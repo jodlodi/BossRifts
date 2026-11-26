@@ -2,6 +2,7 @@ package io.github.jodlodi.bossrifts.mixin;
 
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.platform.services.IConfigHelper;
+import io.github.jodlodi.bossrifts.registry.ModTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,7 +22,7 @@ public abstract class LivingEntityMixin extends Entity {
 
 	@Inject(method = "die", at = @At(value = "HEAD"))
 	private void onDie(DamageSource source, CallbackInfo ci) {
-		if (this.getType().is(Services.CONFIG.getTag()) && !this.level.isClientSide()) {
+		if (this.getType().is(ModTags.RIFT_BOSSES) && !this.level.isClientSide()) {
 			LivingEntity dis = (LivingEntity) (Object) this;
 			if (!Services.CONFIG.isV1()) IConfigHelper.triggerV2(dis, source);
 			else IConfigHelper.triggerV1(dis);
