@@ -11,6 +11,7 @@
         "homepage": "https://www.curseforge.com/minecraft/mc-mods/boss-rifts",
         "sources": "https://github.com/jodlodi/BossRifts"
     },
+    "accessWidener": "bossrifts.classtweaker",
     "license": "${license}",
     "icon": "rift_logo.png",
     "environment": "*",

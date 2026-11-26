@@ -47,6 +47,9 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	protected static final EntityDataAccessor<ItemStack> DATA_ITEM = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.ITEM_STACK);
 	protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
 	public static final String COST = "msg.boss_rifts.exp.cost";
+	public static final String TICK_COUNT_KEY = "tick_count";
+	public static final String WARP_POINTS_KEY = "warp_points";
+	public static final String ITEM_KEY = "item";
 
 	private int clientWarp = 0;
 	private int clientWarp0 = 0;
@@ -304,16 +307,16 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
-		output.putInt("tick_count", this.tickCount);
-		output.putInt("warp_points", this.getEntityData().get(DATA_WARP_POINTS));
-		output.store("item", ItemStack.OPTIONAL_CODEC, this.getItem());
+		output.putInt(TICK_COUNT_KEY, this.tickCount);
+		output.putInt(WARP_POINTS_KEY, this.getEntityData().get(DATA_WARP_POINTS));
+		output.store(ITEM_KEY, ItemStack.OPTIONAL_CODEC, this.getItem());
 	}
 
 	@Override
 	protected void readAdditionalSaveData(ValueInput input) {
-		this.tickCount = input.getIntOr("tick_count", 0);
-		this.getEntityData().set(DATA_WARP_POINTS, input.getIntOr("warp_points", 0));
-		input.read("item", ItemStack.OPTIONAL_CODEC).ifPresent(this::setItem);
+		this.tickCount = input.getIntOr(TICK_COUNT_KEY, 0);
+		this.getEntityData().set(DATA_WARP_POINTS, input.getIntOr(WARP_POINTS_KEY, 0));
+		input.read(ITEM_KEY, ItemStack.OPTIONAL_CODEC).ifPresent(this::setItem);
 	}
 
 	@Override

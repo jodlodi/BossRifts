@@ -54,7 +54,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		if (player.getItemInHand(hand).getItem() instanceof RiftPearlItem pearlItem) {
-			level.playSound(null, pos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundSource.PLAYERS, 1.0F, 1.0F);
+			level.playSound(null, pos, ModSounds.RIFT_PEARL_LOCK.get(), SoundSource.PLAYERS, 0.65F, 1.0F);
 
 			boolean consume = !player.getAbilities().instabuild && stack.getCount() == 1;
 			if (consume) {
