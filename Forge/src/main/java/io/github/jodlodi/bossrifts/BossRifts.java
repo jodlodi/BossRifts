@@ -1,13 +1,10 @@
 package io.github.jodlodi.bossrifts;
 
-import io.github.jodlodi.bossrifts.events.DeathListener;
-import io.github.jodlodi.bossrifts.events.PearlListener;
+import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeNetworkHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeRegistryHelper;
-import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -22,15 +19,11 @@ import org.jspecify.annotations.NullMarked;
 @Mod(Constants.MOD_ID)
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class BossRifts {
-	public static final Tags.IOptionalNamedTag<EntityType<?>> LEGACY_BOSSES = EntityTypeTags.createOptional(Constants.prefix("legacy_bosses"));
 	public static final Tags.IOptionalNamedTag<EntityType<?>> RIFT_BOSSES = EntityTypeTags.createOptional(Constants.prefix("rift_bosses"));
 
 	public BossRifts() {
 		CommonClass.init();
 		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-		MinecraftForge.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.register(DeathListener.class);
-		MinecraftForge.EVENT_BUS.register(PearlListener.class);
 
 		ForgeRegistryHelper.BLOCK_ENTITIES.register(bus);
 		ForgeRegistryHelper.PARTICLE_TYPES.register(bus);

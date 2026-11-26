@@ -197,7 +197,7 @@ public class FabricConfigHelper implements IConfigHelper {
 
 	@Override
 	public Tag<EntityType<?>> getTag() {
-		return this.isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
+		return BossRifts.RIFT_BOSSES;
 	}
 
 	@Override

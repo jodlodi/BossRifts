@@ -3,7 +3,6 @@ package io.github.jodlodi.bossrifts.platform;
 import io.github.jodlodi.bossrifts.BossRifts;
 import io.github.jodlodi.bossrifts.Constants;
 import io.github.jodlodi.bossrifts.platform.services.IConfigHelper;
-import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.iRift;
 import net.minecraft.tags.Tag;
 import net.minecraft.world.entity.EntityType;
@@ -106,7 +105,7 @@ public class ForgeConfigHelper implements IConfigHelper {
 
 	@Override
 	public Tag<EntityType<?>> getTag() {
-		return this.isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
+		return BossRifts.RIFT_BOSSES;
 	}
 
 	@Override

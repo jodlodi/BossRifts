@@ -16,7 +16,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.List;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class PearlListener {
 	@SubscribeEvent
 	public static void onPlayerPearl(EntityTeleportEvent.EnderPearl event) {

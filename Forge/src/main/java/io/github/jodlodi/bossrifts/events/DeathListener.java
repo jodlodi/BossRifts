@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DeathListener {
 	@SubscribeEvent
 	public static void onLivingEntityDeath(LivingDeathEvent event) {
