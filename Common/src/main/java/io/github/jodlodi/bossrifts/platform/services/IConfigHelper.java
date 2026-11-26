@@ -11,6 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PositionPath;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -55,7 +56,7 @@ public interface IConfigHelper {
 			if (dying.level().getBlockState(pos).isCollisionShapeFullBlock(dying.level(), pos)) {
 				dying.level().removeBlock(pos, false);
 			}
-			bossRift.moveOrInterpolateTo(Vec3.atCenterOf(pos).add(0.0D, -0.25D, 0.0D));
+			bossRift.moveOrInterpolateTo(PositionPath.of(Vec3.atCenterOf(pos).add(0.0D, -0.25D, 0.0D)));
 			dying.level().addFreshEntity(bossRift);
 		}
 	}

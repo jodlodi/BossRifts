@@ -107,9 +107,9 @@ public interface iRiftRenderer<T> {
 	}
 
 	default void spin(PoseStack ms, float x, float y, float z) {
-		ms.mulPose(Axis.XP.rotationDegrees(x));
-		ms.mulPose(Axis.YP.rotationDegrees(y));
-		ms.mulPose(Axis.ZP.rotationDegrees(z));
+		ms.rotate(Axis.XP.rotationDegrees(x));
+		ms.rotate(Axis.YP.rotationDegrees(y));
+		ms.rotate(Axis.ZP.rotationDegrees(z));
 	}
 
 	long getSeed(T t);

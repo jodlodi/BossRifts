@@ -122,7 +122,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 
 			BossRiftEntity rift = ModEntities.BOSS_RIFT.get().create(level, EntitySpawnReason.TRIGGERED);
 			if (rift != null) {
-				rift.moveOrInterpolateTo(new Vec3(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D));
+				rift.moveOrInterpolateTo(PositionPath.of(new Vec3(relative.getX() + 0.5D, relative.getY() + 0.25D, relative.getZ() + 0.5D)));
 				rift.setItem(context.getItemInHand());
 				if (player instanceof ServerPlayer serverPlayer) rift.startRevving(serverPlayer);
 

@@ -9,8 +9,12 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath = project(':fabric').file("src/main/resources/${mod_id}.classtweaker")
-    enableTransitiveAccessWideners = true
+    def aw = project(':fabric').file("src/main/resources/${mod_id}.classtweaker")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+    //accessWidenerPath = project(':fabric').file("src/main/resources/${mod_id}.classtweaker")
+    //enableTransitiveAccessWideners = true
 
     runs {
         client {

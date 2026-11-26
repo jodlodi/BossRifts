@@ -10,6 +10,7 @@ import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.NeoForgeRegistryHelper;
 import io.github.jodlodi.bossrifts.registry.*;
 import io.github.jodlodi.bossrifts.util.MultiSupplier;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ItemModelOutput;
@@ -21,19 +22,21 @@ import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.properties.select.DisplayContext;
 import net.minecraft.client.resources.model.cuboid.ItemTransform;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.MultiRegistryBootstrap;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
+import net.minecraft.data.registries.RegistryPatchGenerator;
 import net.minecraft.data.tags.EntityTypeTagsProvider;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityTypes;
@@ -41,12 +44,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplate;
 import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.common.data.SoundDefinition;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
@@ -54,10 +59,7 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -71,19 +73,43 @@ public class ModData {
 	public static void gatherData(GatherDataEvent.Client event) {
 		DataGenerator generator = event.getGenerator();
 		PackOutput output = generator.getPackOutput();
-		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getReloadableLookupProvider();
 
 		generator.addProvider(true, new ModModelGen(output));
-		generator.addProvider(true, new ModCrafting.ModRecipeRunner(output, lookupProvider));
+		generator.addProvider(true, ModRegistries.forReloadableLayer(output, event.getWorldLookupProvider(), lookupProvider));
 		generator.addProvider(true, new ModSoundDefinitions(output));
 		generator.addProvider(true, new ModEntityTags(output, lookupProvider));
 		generator.addProvider(true, new ModLang(output));
 	}
 
+	private static class ModRegistries {
+		public static final RegistrySetBuilder RELOADABLE_BUILDER = new RegistrySetBuilder().add(new MultiRegistryBootstrap() {
+			@Override
+			public Set<ResourceKey<? extends Registry<?>>> requestedRegistries() {
+				return Set.of(Registries.RECIPE, Registries.ADVANCEMENT);
+			}
+
+			@Override
+			public void run(MultiRegistryBootstrap.BootstrapGetter registries) {
+				new ModCrafting(registries.get(Registries.RECIPE), registries.get(Registries.ADVANCEMENT)).buildRecipes();
+			}
+		});
+
+		public static DatapackBuiltinEntriesProvider forReloadableLayer(PackOutput output, CompletableFuture<HolderLookup.Provider> worldRegistries, CompletableFuture<HolderLookup.Provider> reloadableRegistries) {
+			return new DatapackBuiltinEntriesProvider(
+					output,
+					Constants.MOD_ID + "_reloadable",
+					RegistryDataLoader.RELOADABLE_REGISTRIES,
+					RegistryPatchGenerator.createReloadableLookup(worldRegistries, reloadableRegistries, RELOADABLE_BUILDER),
+					Set.of("minecraft", Constants.MOD_ID)
+			);
+		}
+	}
+
 	private static class ModCrafting extends VanillaRecipeProvider {
 
-		public ModCrafting(HolderLookup.Provider registries, RecipeOutput output) {
-			super(registries, output);
+		public ModCrafting(BootstrapContext<Recipe<?>> recipeOutput, BootstrapContext<Advancement> advancementOutput) {
+			super(recipeOutput, advancementOutput);
 		}
 
 		@Override
@@ -108,23 +134,6 @@ public class ModData {
 					.define('H', Ingredient.of(Items.LODESTONE))
 					.unlockedBy("has_item", has(ModItems.RIFT_PEARL.get()))
 					.save(output);
-		}
-
-		private static class ModRecipeRunner extends RecipeProvider.Runner {
-
-			protected ModRecipeRunner(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
-				super(packOutput, registries);
-			}
-
-			@Override
-			protected RecipeProvider createRecipeProvider(HolderLookup.Provider provider, RecipeOutput recipeOutput) {
-				return new ModCrafting(provider, recipeOutput);
-			}
-
-			@Override
-			public String getName() {
-				return Constants.MOD_NAME + " recipes";
-			}
 		}
 	}
 

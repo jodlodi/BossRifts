@@ -7,22 +7,23 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.world.item.ItemDisplayContext;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.List;
 
 @NullMarked
 public class NeoForgeClientHooksHelper implements IClientHooksHelper {
+	private @Nullable QuadCollection lastCollection;
+	private ItemQuads lastQuads = ItemQuads.EMPTY;
 
 	@Override
 	public void renderEye(PoseStack stack, SubmitNodeCollector collector, ItemDisplayContext context, boolean hasFoil, int outlineColor) {
 		QuadCollection eyeModel = Minecraft.getInstance().getModelManager().getStandaloneModel(ClientSetupListener.KEY);
 		if (eyeModel == null) return;
 
-		List<BakedQuad> quads = eyeModel.getAll();
+		ItemQuads quads = this.quadsFor(eyeModel);
 		if (quads.isEmpty()) return;
 
 		collector.submitItem(
@@ -35,5 +36,13 @@ public class NeoForgeClientHooksHelper implements IClientHooksHelper {
 				quads,
 				hasFoil ? ItemStackRenderState.FoilType.STANDARD : ItemStackRenderState.FoilType.NONE
 		);
+	}
+
+	private ItemQuads quadsFor(QuadCollection collection) {
+		if (collection != this.lastCollection) {
+			this.lastCollection = collection;
+			this.lastQuads = ItemQuads.split(collection.getAll());
+		}
+		return this.lastQuads;
 	}
 }

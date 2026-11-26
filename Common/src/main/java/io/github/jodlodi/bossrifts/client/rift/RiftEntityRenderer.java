@@ -148,7 +148,7 @@ public class RiftEntityRenderer extends EntityRenderer<BossRiftEntity, BossRiftR
 		for (Map.Entry<Vec3i, ModelPart> entry : this.getShell().entrySet()) {
 			stack.pushPose();
 
-			if (pose != null) stack.mulPose(pose.get(entry.getKey()));
+			if (pose != null) stack.rotate(pose.get(entry.getKey()));
 
 			double multiplier = ((Math.sin((exactTime + i++ * 2.5D) * 0.1D) * 0.2D + 0.5D) * antiScale + 0.5D * scale) * 0.125D * close * useScale;
 

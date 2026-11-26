@@ -1,6 +1,5 @@
 package io.github.jodlodi.bossrifts.blocks;
 
-import com.mojang.serialization.MapCodec;
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
 import io.github.jodlodi.bossrifts.registry.ModParticles;
@@ -9,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -30,15 +30,9 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class RiftAggregatorBlock extends BaseEntityBlock {
-	public static final MapCodec<RiftAggregatorBlock> CODEC = simpleCodec(RiftAggregatorBlock::new);
 
 	public RiftAggregatorBlock(BlockBehaviour.Properties properties) {
 		super(properties);
-	}
-
-	@Override
-	protected MapCodec<? extends BaseEntityBlock> codec() {
-		return CODEC;
 	}
 
 	@Override
@@ -64,7 +58,7 @@ public class RiftAggregatorBlock extends BaseEntityBlock {
 				if (!player.getAbilities().instabuild) stack.shrink(1);
 
 				pearlItem.makeAggregatorPearl(level.dimension(), pos, newStack);
-				if (!player.addItem(newStack)) player.drop(newStack, false);
+				if (!player.addItem(newStack)) player.drop(newStack, false, Prediction.SERVER_ONLY);
 			}
 
 			return InteractionResult.SUCCESS;
