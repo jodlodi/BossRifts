@@ -18,6 +18,8 @@ public class ModSounds {
 	public static final MultiSupplier<SoundEvent> RIFT_AGGREGATOR_AMBIENT = riftSound("block.boss_rift.rift_aggregator.ambient");
 	public static final MultiSupplier<SoundEvent> RIFT_AGGREGATOR_SET_SPAWN = riftSound("block.boss_rift.rift_aggregator.set_spawn");
 
+	public static final MultiSupplier<SoundEvent> RIFT_PEARL_LOCK = riftSound("item.boss_rift.rift_pearl.lock");
+
 	private static MultiSupplier<SoundEvent> riftSound(String key) {
 		return Services.REGISTRY.registerSound(key, () -> SoundEvent.createVariableRangeEvent(Constants.prefix(key)));
 	}
