@@ -12,6 +12,7 @@
   "subtitles.bossrifts.entity.boss_rift.rev_up": "Rift is revving",
   "subtitles.bossrifts.entity.boss_rift.spawn": "Rift spawns",
   "subtitles.bossrifts.entity.boss_rift.warp": "Rift warps",
+  "subtitles.bossrifts.item.boss_rift.rift_pearl.lock": "Rift Pearl links",
   "tooltip.boss_rifts.aggregator": "§7Can be used as a spawn point.",
   "tooltip.boss_rifts.rift_pearl.modern.1": "§7Hold-use to warp.",
   "tooltip.boss_rifts.rift_pearl.modern.2": "§7Sneak-use on block to place Rift.",

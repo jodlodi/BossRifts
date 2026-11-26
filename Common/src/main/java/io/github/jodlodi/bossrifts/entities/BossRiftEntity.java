@@ -2,7 +2,10 @@ package io.github.jodlodi.bossrifts.entities;
 
 import io.github.jodlodi.bossrifts.items.RiftPearlItem;
 import io.github.jodlodi.bossrifts.platform.Services;
-import io.github.jodlodi.bossrifts.registry.*;
+import io.github.jodlodi.bossrifts.registry.ModDataComponents;
+import io.github.jodlodi.bossrifts.registry.ModItems;
+import io.github.jodlodi.bossrifts.registry.ModParticles;
+import io.github.jodlodi.bossrifts.registry.ModSounds;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.RiftCubeSolver;
 import io.github.jodlodi.bossrifts.util.iRift;
@@ -11,15 +14,12 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
-import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
@@ -48,6 +48,9 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	protected static final EntityDataAccessor<ItemStack> DATA_ITEM = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.ITEM_STACK);
 	protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(BossRiftEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 	public static final String COST = "msg.boss_rifts.exp.cost";
+	public static final String TICK_COUNT_KEY = "tick_count";
+	public static final String WARP_POINTS_KEY = "warp_points";
+	public static final String ITEM_KEY = "item";
 
 	private int clientWarp = 0;
 	private int clientWarp0 = 0;
@@ -298,16 +301,16 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 	@Override
 	protected void addAdditionalSaveData(CompoundTag tag) {
-		tag.putInt("tick_count", this.tickCount);
-		tag.putInt("warp_points", this.getEntityData().get(DATA_WARP_POINTS));
-		tag.put("item", this.getItem().save(this.level().registryAccess()));
+		tag.putInt(TICK_COUNT_KEY, this.tickCount);
+		tag.putInt(WARP_POINTS_KEY, this.getEntityData().get(DATA_WARP_POINTS));
+		tag.put(ITEM_KEY, this.getItem().save(this.level().registryAccess()));
 	}
 
 	@Override
 	protected void readAdditionalSaveData(CompoundTag tag) {
-		this.tickCount = tag.getInt("tick_count");
-		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt("warp_points"));
-		this.setItem(ItemStack.parseOptional(this.level().registryAccess(), tag.getCompound("Item")));
+		this.tickCount = tag.getInt(TICK_COUNT_KEY);
+		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt(WARP_POINTS_KEY));
+		this.setItem(ItemStack.parseOptional(this.level().registryAccess(), tag.getCompound(ITEM_KEY)));
 	}
 
 	@Override
