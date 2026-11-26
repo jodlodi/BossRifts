@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
+@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class SpawnListener {
 	@SubscribeEvent
 	public static void onEntityJoinLevelEvent(EntityJoinLevelEvent event) {
