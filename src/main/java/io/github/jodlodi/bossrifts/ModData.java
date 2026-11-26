@@ -232,7 +232,11 @@ public class ModData {
 
 		@Override
 		protected void addTags() {
-			this.tag(BossRifts.LEGACY_BOSSES)
+			this.tag(BossRifts.RIFT_BOSSES)
+					.add(
+							EntityType.WITHER,
+							EntityType.ENDER_DRAGON
+					)
 					.addOptional(new ResourceLocation("twilightforest", "lich"))
 					.addOptional(new ResourceLocation("twilightforest", "lich"))
 					.addOptional(new ResourceLocation("twilightforest", "yeti"))
@@ -287,11 +291,6 @@ public class ModData {
 					.addOptional(new ResourceLocation("cataclysm", "ignis"))
 					.addOptional(new ResourceLocation("cataclysm", "ignited_revenant"))
 					.addOptional(new ResourceLocation("cataclysm", "netherite_monstrosity"));
-
-			this.tag(BossRifts.RIFT_BOSSES).add(
-					EntityType.WITHER,
-					EntityType.ENDER_DRAGON
-			).addTag(BossRifts.LEGACY_BOSSES);
 		}
 	}
 
@@ -342,6 +341,8 @@ public class ModData {
 
 			this.generateWithExistingSound(ModSounds.RIFT_AGGREGATOR_AMBIENT, SoundEvents.RESPAWN_ANCHOR_AMBIENT, "Rift Aggregator whooshes");
 			this.generateWithExistingSound(ModSounds.RIFT_AGGREGATOR_SET_SPAWN, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, "Rift Aggregator sets spawn");
+
+			this.generateWithExistingSound(ModSounds.RIFT_PEARL_LOCK, SoundEvents.LODESTONE_COMPASS_LOCK, "Rift Pearl links");
 		}
 
 		public void generateWithExistingSound(Supplier<SoundEvent> event, SoundEvent referencedSound, String subtitle) {

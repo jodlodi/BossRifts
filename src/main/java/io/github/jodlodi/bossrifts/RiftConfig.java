@@ -3,10 +3,8 @@ package io.github.jodlodi.bossrifts;
 import io.github.jodlodi.bossrifts.util.AnimUtil;
 import io.github.jodlodi.bossrifts.util.iRift;
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.entity.EntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -90,10 +88,6 @@ public class RiftConfig {
 
 	public static double getRange() {
 		return CONFIG.range.get();
-	}
-
-	public static Tags.IOptionalNamedTag<EntityType<?>> getTag() {
-		return isV1() ? BossRifts.LEGACY_BOSSES : BossRifts.RIFT_BOSSES;
 	}
 
 	public static boolean canSetSpawn() {

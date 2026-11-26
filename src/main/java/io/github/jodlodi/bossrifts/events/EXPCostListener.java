@@ -15,7 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Optional;
 
 @ParametersAreNonnullByDefault
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EXPCostListener {
 
 	@SubscribeEvent

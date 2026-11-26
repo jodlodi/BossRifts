@@ -23,12 +23,12 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DeathListener {
 	@SubscribeEvent
 	public static void onLivingEntityDeath(LivingDeathEvent event) {
 		LivingEntity dying = event.getEntityLiving();
-		if (dying.getType().is(RiftConfig.getTag()) && !dying.level.isClientSide()) {
+		if (dying.getType().is(BossRifts.RIFT_BOSSES) && !dying.level.isClientSide()) {
 			DamageSource source = event.getSource();
 			if (!RiftConfig.isV1()) triggerV2(dying, source);
 			else triggerV1(dying);
@@ -51,8 +51,9 @@ public class DeathListener {
 	}
 
 	public static void triggerV1(LivingEntity dying) {
-		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> RiftConfig.getTag().contains(entity.getType())).isEmpty())
+		if (!dying.level.getEntities(dying, dying.getBoundingBox().inflate(32), entity -> BossRifts.RIFT_BOSSES.contains(entity.getType())).isEmpty()) {
 			return;
+		}
 
 		BossRiftEntity bossRift = ModEntities.BOSS_RIFT.get().create(dying.level);
 		if (bossRift != null) {

@@ -131,7 +131,7 @@ public class RiftPearlItem extends Item implements iRift<ItemStack> {
 				return level.addFreshEntity(rift) ? ActionResultType.SUCCESS : ActionResultType.FAIL;
 			} else return ActionResultType.FAIL;
 		} else if (level.getBlockState(pos).is(ModBlocks.RIFT_AGGREGATOR.get())) {
-			level.playSound(null, pos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0F, 1.0F);
+			level.playSound(null, pos, ModSounds.RIFT_PEARL_LOCK.get(), SoundCategory.PLAYERS, 0.65F, 1.0F);
 			PlayerEntity player = context.getPlayer();
 			if (player == null) return super.useOn(context);
 			ItemStack stack = context.getItemInHand();

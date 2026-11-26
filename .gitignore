@@ -27,3 +27,5 @@ forge*changelog.txt
 /build.bat
 /setup.bat
 /run-data
+/fabric
+/neoforge

@@ -17,7 +17,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID)
+@Mod.EventBusSubscriber(modid = BossRifts.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class PearlListener {
 	@SubscribeEvent
 	public static void onPlayerPearl(EntityTeleportEvent.EnderPearl event) {

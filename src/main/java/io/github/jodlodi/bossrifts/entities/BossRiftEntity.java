@@ -51,6 +51,9 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 	protected static final DataParameter<ItemStack> DATA_ITEM = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.ITEM_STACK);
 	protected static final DataParameter<Optional<UUID>> DATA_OWNERUUID_ID = EntityDataManager.defineId(BossRiftEntity.class, DataSerializers.OPTIONAL_UUID);
 	public static final String COST = "msg.boss_rifts.exp.cost";
+	public static final String TICK_COUNT_KEY = "tick_count";
+	public static final String WARP_POINTS_KEY = "warp_points";
+	public static final String ITEM_KEY = "item";
 
 	private int clientWarp = 0;
 	private int clientWarp0 = 0;
@@ -314,16 +317,16 @@ public class BossRiftEntity extends Entity implements iRift<BossRiftEntity> {
 
 	@Override
 	protected void addAdditionalSaveData(CompoundNBT tag) {
-		tag.putInt("tick_count", this.tickCount);
-		tag.putInt("warp_points", this.getEntityData().get(DATA_WARP_POINTS));
-		tag.put("item", this.getItem().save(new CompoundNBT()));
+		tag.putInt(TICK_COUNT_KEY, this.tickCount);
+		tag.putInt(WARP_POINTS_KEY, this.getEntityData().get(DATA_WARP_POINTS));
+		tag.put(ITEM_KEY, this.getItem().save(new CompoundNBT()));
 	}
 
 	@Override
 	protected void readAdditionalSaveData(CompoundNBT tag) {
-		this.tickCount = tag.getInt("tick_count");
-		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt("warp_points"));
-		this.setItem(ItemStack.of(tag.getCompound("Item")));
+		this.tickCount = tag.getInt(TICK_COUNT_KEY);
+		this.getEntityData().set(DATA_WARP_POINTS, tag.getInt(WARP_POINTS_KEY));
+		this.setItem(ItemStack.of(tag.getCompound(ITEM_KEY)));
 	}
 
 	@Override
