@@ -64,5 +64,14 @@
       }
     ],
     "subtitle": "subtitles.bossrifts.entity.boss_rift.warp"
+  },
+  "item.boss_rift.rift_pearl.lock": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.lodestone_compass.lock"
+      }
+    ],
+    "subtitle": "subtitles.bossrifts.item.boss_rift.rift_pearl.lock"
   }
 }

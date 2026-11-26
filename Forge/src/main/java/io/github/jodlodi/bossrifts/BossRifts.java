@@ -1,11 +1,8 @@
 package io.github.jodlodi.bossrifts;
 
-import io.github.jodlodi.bossrifts.events.DeathListener;
-import io.github.jodlodi.bossrifts.events.PearlListener;
 import io.github.jodlodi.bossrifts.platform.ForgeConfigHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeNetworkHelper;
 import io.github.jodlodi.bossrifts.platform.ForgeRegistryHelper;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -22,9 +19,6 @@ public class BossRifts {
 	public BossRifts(FMLJavaModLoadingContext context) {
 		CommonClass.init();
 		IEventBus bus = context.getModEventBus();
-		MinecraftForge.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.register(DeathListener.class);
-		MinecraftForge.EVENT_BUS.register(PearlListener.class);
 
 		ForgeRegistryHelper.BLOCK_ENTITIES.register(bus);
 		ForgeRegistryHelper.PARTICLE_TYPES.register(bus);
